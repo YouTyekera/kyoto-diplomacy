@@ -1,6 +1,9 @@
 export interface ServerConfig { production: boolean; frontendOrigin?: string; port: number; host: string }
 export function serverConfig(env:NodeJS.ProcessEnv=process.env):ServerConfig {
-  const production=env.NODE_ENV==='production';
+  // Render is a public deployment even if NODE_ENV is missing or overridden.
+  // Keep both the bind address and the origin policy out of development fallback.
+  const isRender=env.RENDER==='true';
+  const production=isRender||env.NODE_ENV==='production';
   const raw=production?env.PORT:env.PORT??env.ONLINE_PORT??'3001';
   const port=Number(raw);
   if(!raw||!/^\d+$/.test(raw)||port<1||port>65535)throw new Error('PORTに1～65535の整数を設定してください');

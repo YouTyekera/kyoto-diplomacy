@@ -5,6 +5,21 @@ import {createOnlineServer} from './server';
 import {RoomManager} from '../../packages/online-core/room-manager';
 import {sampleDataset,sampleConfig} from '../../packages/map-core/sample';
 const origin='https://kyoto-web.example';
+it.each([undefined,'','development','test','production','production '])('RenderはNODE_ENV=%jでもPORT/0.0.0.0と本番CORSを固定する',nodeEnv=>{
+ const config=serverConfig({RENDER:'true',NODE_ENV:nodeEnv,PORT:'10000',ONLINE_PORT:'3999',ONLINE_HOST:'127.0.0.1',HOST:'localhost',FRONTEND_ORIGIN:origin});
+ expect(config).toEqual({production:true,port:10000,host:'0.0.0.0',frontendOrigin:origin});
+ expect(permittedOrigin('http://localhost:5173',config)).toBe(false);
+});
+it('RenderではONLINE_PORTへfallbackせず、PORTとFrontend originを必須にする',()=>{
+ for(const port of [undefined,'','0','65536','abc','1.5'])expect(()=>serverConfig({RENDER:'true',NODE_ENV:'development',PORT:port,ONLINE_PORT:'3999',FRONTEND_ORIGIN:origin})).toThrow();
+ expect(()=>serverConfig({RENDER:'true',PORT:'10000'})).toThrow('FRONTEND_ORIGIN');
+});
+it('Render外のローカル既定・LAN指定・PORT優先順位を維持し、HOSTは使わない',()=>{
+ expect(serverConfig({})).toEqual({production:false,port:3001,host:'127.0.0.1',frontendOrigin:undefined});
+ expect(serverConfig({RENDER:'false',NODE_ENV:'development',ONLINE_PORT:'3012',ONLINE_HOST:'192.168.1.5',HOST:'0.0.0.0'})).toMatchObject({production:false,port:3012,host:'192.168.1.5'});
+ expect(serverConfig({PORT:'3013',ONLINE_PORT:'3012',ONLINE_HOST:'0.0.0.0'})).toMatchObject({production:false,port:3013,host:'0.0.0.0'});
+ expect(serverConfig({RENDER:'false',HOST:'0.0.0.0'})).toMatchObject({production:false,host:'127.0.0.1'});
+});
 it('PORT/0.0.0.0・productionの必須HTTPS originとdevelopmentだけのLAN許可',()=>{
  expect(serverConfig({NODE_ENV:'production',PORT:'10000',FRONTEND_ORIGIN:origin,ONLINE_HOST:'127.0.0.1'})).toEqual({production:true,port:10000,host:'0.0.0.0',frontendOrigin:origin});
  for(const value of [undefined,'*','http://kyoto-web.example','https://localhost','https://user:secret@kyoto-web.example','https://kyoto-web.example/path'])expect(()=>serverConfig({NODE_ENV:'production',PORT:'10000',FRONTEND_ORIGIN:value})).toThrow();

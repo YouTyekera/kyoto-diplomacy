@@ -1,6 +1,6 @@
 # Render Freeで公開する手順（Phase 7A）
 
-確認日: 2026-10-04。**公開用コードは準備済みですが、GitHubへのpush、Renderでの作成・Deploy、実公開URLでの確認はまだ実施していません。** このフォルダーにはGit管理情報 `.git` もありません。以下は利用者が自分のアカウントで行う操作です。
+確認日: 2026-10-04。以下は初回作成から公開確認までの手順です。すでにGitHub・Renderのサービスを作成済みの場合、その手順は繰り返さず、変更したコードのpushとBackendの再Deployを行ってください。アカウント操作と実公開URLでの確認は利用者が行います。
 
 Frontendは無料Static Site、Backendは無料Web Serviceです。DBを作成する必要はありません。サービス名から公開URLを推測せず、Render画面に表示された実際のURLをコピーしてください。
 
@@ -64,6 +64,16 @@ Dashboardで各サービスの **Environment → Add Environment Variable / Edit
 URLに `/health`、`/socket.io`、`?room=`を付けません。Backendは最後の `/` を正規化します。CORSはFrontendの**一つのorigin**だけを許可し、`*`、localhost、別のプレビューURLをproduction許可へ加えません。PORTはRenderが供給します。ONLINE_PORT / ONLINE_HOSTを本番で追加する必要はありません。秘密情報は `VITE_` 変数へ入れません。招待URLはアクセス中のFrontend originから作られます。
 
 BackendはFRONTEND_ORIGIN未設定なら起動を拒否します。公開Frontendの接続設定が無効なら、localhostへ接続せず設定エラーを表示します。
+
+### Backendのbind設定と再Deploy時の確認
+
+Renderが供給する `RENDER=true` を最優先で判定し、Backendは必ず `process.env.PORT` と `0.0.0.0` を使います。`NODE_ENV` が未設定・`development`でも、この判定は変わりません。CORSも本番設定を使います。`NODE_ENV=production` は引き続き設定してください。`ONLINE_HOST`・`ONLINE_PORT`・`HOST` はRender上のbind先を上書きできません。[Render公式環境変数](https://render.com/docs/environment-variables)、[公開Web Serviceのbind要件](https://render.com/docs/web-services)
+
+`npm run start:server` は `apps/server/main.ts` から共通の `serverConfig()` を呼びます。コマンド自体が `NODE_ENV` を設定する構成ではありません。Render外では `NODE_ENV=production` で本番設定、それ以外では従来のローカル/LAN設定です。ローカルのportは `PORT → ONLINE_PORT → 3001`、hostは `ONLINE_HOST → 127.0.0.1` の順です。`HOST` は使用しません。
+
+修正版をGitHubへpushして **Backend → Manual Deploy → Deploy latest commit** を実行し、Deploy対象のcommitが修正版であることを確認します。起動ログは実際にbindしたアドレスを表示します。Render既定のportの場合、`http://0.0.0.0:10000` と `server configuration: mode=production, RENDER=true, NODE_ENV=...` が目印です。全環境変数やreconnect tokenをログへ貼り付ける必要はありません。
+
+もし修正後も `127.0.0.1` が出る場合、Deploy対象commit、Start Commandが `npm run start:server` か、ログの `RENDER` 値を確認します。`FRONTEND_ORIGIN` の変更自体はhostの選択に影響しません。修正の再現条件と検証結果は [bind修正報告](PHASE7A_RENDER_BIND_FIX_REPORT.md) を参照してください。
 
 ## 5. Deployと公開URLの確認
 
