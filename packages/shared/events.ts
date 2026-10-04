@@ -1,0 +1,37 @@
+import { z } from 'zod';
+import { wardSchema } from './model';
+import { orderSchema } from '../rules-core/model';
+
+const id=z.string().min(1);
+export const equipmentTypeSchema=z.enum(['bicycle','barricade']);
+export const equipmentSchema=z.object({equipmentId:id,type:equipmentTypeSchema,ownerWardId:wardSchema}).strict();
+export const groundEquipmentSchema=z.object({equipmentId:id,type:equipmentTypeSchema,regionId:id,spawnedYear:z.number().int().positive(),spawnedSeason:z.enum(['spring','autumn'])}).strict();
+export const edgeSchema=z.object({a:id,b:id}).strict().refine(e=>e.a<e.b,'辺の端点は異なるIDの昇順で保存してください');
+export const barricadeSchema=z.object({barricadeId:id,a:id,b:id,ownerWardId:wardSchema,remainingMovementSeasons:z.number().int().min(1).max(4)}).strict().refine(e=>e.a<e.b);
+export const eventRecordSchema=z.object({type:z.enum(['bicycle','barricade','roadwork','bus']),regionId:id.optional(),edge:edgeSchema.optional()}).strict();
+export const publicEventsSchema=z.object({current:z.array(eventRecordSchema),groundEquipment:z.array(groundEquipmentSchema),roadworkEdges:z.array(edgeSchema),temporaryBusEdges:z.array(edgeSchema),activeBarricades:z.array(barricadeSchema)}).strict();
+export const reservationSchema=z.object({equipmentId:id,unitId:id,type:equipmentTypeSchema}).strict();
+export const eventSettingsSchema=z.object({weights:z.object({bicycle:z.number().nonnegative().finite(),barricade:z.number().nonnegative().finite(),roadwork:z.number().nonnegative().finite(),bus:z.number().nonnegative().finite()}).strict()}).strict();
+export const eventStateSchema=publicEventsSchema.extend({inventory:z.array(equipmentSchema),reservations:z.array(reservationSchema),pendingBarricades:z.array(barricadeSchema),seed:id,rngCounter:z.number().int().nonnegative(),nextEquipmentSerial:z.number().int().positive(),settings:eventSettingsSchema}).strict().superRefine((s,ctx)=>{
+  const ids=[...s.inventory,...s.groundEquipment].map(e=>e.equipmentId);
+  if(new Set(ids).size!==ids.length)ctx.addIssue({code:'custom',message:'装備IDが重複しています'});
+  if(new Set(s.groundEquipment.map(e=>e.regionId)).size!==s.groundEquipment.length)ctx.addIssue({code:'custom',message:'地面の装備が重なっています'});
+  if(new Set(s.reservations.map(e=>e.equipmentId)).size!==s.reservations.length||new Set(s.reservations.map(e=>e.unitId)).size!==s.reservations.length)ctx.addIssue({code:'custom',message:'装備の予約が重複しています'});
+  if(s.reservations.some(r=>!s.inventory.some(e=>e.equipmentId===r.equipmentId&&e.type===r.type)))ctx.addIssue({code:'custom',message:'所持していない装備の予約です'});
+});
+export const bicycleOrderSchema=z.object({type:z.literal('bicycle-move'),unitId:id,viaRegionId:id,destination:id,equipmentId:id}).strict();
+export const deployOrderSchema=z.object({type:z.literal('deploy-barricade'),unitId:id,targetRegionId:id,equipmentId:id}).strict();
+export const gameOrderSchema=z.union([orderSchema,bicycleOrderSchema,deployOrderSchema]);
+const legSchema=z.object({status:z.enum(['success','fail']),reason:id}).strict();
+export const equipmentResultSchema=z.object({unitId:id,type:equipmentTypeSchema,status:z.enum(['success','fail']),reason:id,viaRegionId:id.optional(),destination:id.optional(),targetRegionId:id.optional(),firstLeg:legSchema.optional(),secondLeg:legSchema.optional()}).strict();
+export type Equipment=z.infer<typeof equipmentSchema>;
+export type GroundEquipment=z.infer<typeof groundEquipmentSchema>;
+export type Edge=z.infer<typeof edgeSchema>;
+export type Barricade=z.infer<typeof barricadeSchema>;
+export type EventType=z.infer<typeof eventRecordSchema>['type'];
+export type EventSettings=z.infer<typeof eventSettingsSchema>;
+export type PublicEvents=z.infer<typeof publicEventsSchema>;
+export type EventState=z.infer<typeof eventStateSchema>;
+export type GameOrder=z.infer<typeof gameOrderSchema>;
+export type EquipmentResult=z.infer<typeof equipmentResultSchema>;
+export const gameOrderNames:Record<GameOrder['type'],string>={hold:'Hold（保持）',move:'Move（移動）','support-hold':'Support Hold（保持支援）','support-move':'Support Move（移動支援）','bicycle-move':'Bicycle Move（自転車移動）','deploy-barricade':'Deploy Barricade（封鎖設置）'};

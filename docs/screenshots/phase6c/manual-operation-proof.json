@@ -1,0 +1,32 @@
+[
+  {
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "dock": "移動 → 小川",
+    "move": [
+      {
+        "unitId": "initial-kyoto-26102-01",
+        "type": "move",
+        "destination": "kyoto-26102-02"
+      }
+    ],
+    "panelVisible": true
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "dock": "移動 → 小川",
+    "move": [
+      {
+        "unitId": "initial-kyoto-26102-01",
+        "type": "move",
+        "destination": "kyoto-26102-02"
+      }
+    ],
+    "panelVisible": true
+  }
+]

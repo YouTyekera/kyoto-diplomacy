@@ -1,0 +1,167 @@
+{
+  "issues": [
+    {
+      "severity": "warning",
+      "code": "obstacle-intersection",
+      "message": "京極: 障害物と重なります (kyoto-gyoen-game-obstacle)",
+      "regionIds": [
+        "kyoto-26102-11"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "obstacle-intersection",
+      "message": "滋野: 障害物と重なります (kyoto-gyoen-game-obstacle)",
+      "regionIds": [
+        "kyoto-26102-13"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "disconnected-geometry",
+      "message": "滋野: 障害物差し引き後は2部分です（原本1部分）。要確認。",
+      "regionIds": [
+        "kyoto-26102-13"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "obstacle-intersection",
+      "message": "竹間: 障害物と重なります (kyoto-gyoen-game-obstacle)",
+      "regionIds": [
+        "kyoto-26104-16"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "obstacle-intersection",
+      "message": "富有: 障害物と重なります (kyoto-gyoen-game-obstacle)",
+      "regionIds": [
+        "kyoto-26104-17"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "source-multipolygon",
+      "message": "南大内: 原本から複数部分を持つ地域です",
+      "regionIds": [
+        "kyoto-26107-02"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "source-multipolygon",
+      "message": "安井: 原本から複数部分を持つ地域です",
+      "regionIds": [
+        "kyoto-26108-06"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "source-multipolygon",
+      "message": "砂川: 原本から複数部分を持つ地域です",
+      "regionIds": [
+        "kyoto-26109-22"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "no-enabled-regions",
+      "message": "採用地域がありません。地図の使用範囲は未設定です。",
+      "regionIds": []
+    }
+  ],
+  "components": [],
+  "counts": [
+    {
+      "wardId": "26101",
+      "enabled": 0,
+      "supplyCenters": 0,
+      "homeSupplyCenters": 0,
+      "startingUnits": 0,
+      "adjacentWards": 0
+    },
+    {
+      "wardId": "26102",
+      "enabled": 0,
+      "supplyCenters": 0,
+      "homeSupplyCenters": 0,
+      "startingUnits": 0,
+      "adjacentWards": 0
+    },
+    {
+      "wardId": "26103",
+      "enabled": 0,
+      "supplyCenters": 0,
+      "homeSupplyCenters": 0,
+      "startingUnits": 0,
+      "adjacentWards": 0
+    },
+    {
+      "wardId": "26104",
+      "enabled": 0,
+      "supplyCenters": 0,
+      "homeSupplyCenters": 0,
+      "startingUnits": 0,
+      "adjacentWards": 0
+    },
+    {
+      "wardId": "26105",
+      "enabled": 0,
+      "supplyCenters": 0,
+      "homeSupplyCenters": 0,
+      "startingUnits": 0,
+      "adjacentWards": 0
+    },
+    {
+      "wardId": "26110",
+      "enabled": 0,
+      "supplyCenters": 0,
+      "homeSupplyCenters": 0,
+      "startingUnits": 0,
+      "adjacentWards": 0
+    },
+    {
+      "wardId": "26106",
+      "enabled": 0,
+      "supplyCenters": 0,
+      "homeSupplyCenters": 0,
+      "startingUnits": 0,
+      "adjacentWards": 0
+    },
+    {
+      "wardId": "26107",
+      "enabled": 0,
+      "supplyCenters": 0,
+      "homeSupplyCenters": 0,
+      "startingUnits": 0,
+      "adjacentWards": 0
+    },
+    {
+      "wardId": "26108",
+      "enabled": 0,
+      "supplyCenters": 0,
+      "homeSupplyCenters": 0,
+      "startingUnits": 0,
+      "adjacentWards": 0
+    },
+    {
+      "wardId": "26111",
+      "enabled": 0,
+      "supplyCenters": 0,
+      "homeSupplyCenters": 0,
+      "startingUnits": 0,
+      "adjacentWards": 0
+    },
+    {
+      "wardId": "26109",
+      "enabled": 0,
+      "supplyCenters": 0,
+      "homeSupplyCenters": 0,
+      "startingUnits": 0,
+      "adjacentWards": 0
+    }
+  ],
+  "degrees": {},
+  "crossWardPairs": []
+}

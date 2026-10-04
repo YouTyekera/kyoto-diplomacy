@@ -1,0 +1,1617 @@
+{
+  "version": 1,
+  "gameId": "f8b9fa22-6376-43b3-9e04-22bd92b40d51",
+  "scenarioHash": "9b24c285cc16b692967dc4c179c538430638656d4d5a1cdb623690e0a055598c",
+  "playerCount": 3,
+  "wardAssignment": {
+    "765aaa41-a7fa-4bc5-b066-3c38e6f0da90": "26111",
+    "d04a023c-38eb-4f89-871a-2ba398f7a35a": "26102",
+    "df2fde78-b09c-4059-82be-e6255d33ca0a": "26104"
+  },
+  "players": [
+    {
+      "playerId": "765aaa41-a7fa-4bc5-b066-3c38e6f0da90",
+      "nickname": "YouTyekera",
+      "wardId": "26111"
+    },
+    {
+      "playerId": "d04a023c-38eb-4f89-871a-2ba398f7a35a",
+      "nickname": "ふにゃ",
+      "wardId": "26102"
+    },
+    {
+      "playerId": "df2fde78-b09c-4059-82be-e6255d33ca0a",
+      "nickname": "ほにゃ",
+      "wardId": "26104"
+    }
+  ],
+  "inactiveWards": [
+    "26101",
+    "26103",
+    "26105",
+    "26106",
+    "26107",
+    "26108",
+    "26109",
+    "26110"
+  ],
+  "rngSeed": "a7f859d23f64b0005017db4f1e8f7083",
+  "eventSettings": {
+    "weights": {
+      "bicycle": 1,
+      "barricade": 1,
+      "roadwork": 1,
+      "bus": 1
+    }
+  },
+  "victorySettings": {
+    "baseVictoryTargetSC": 15,
+    "referencePlayerCount": 11,
+    "missingPlayerSCBonus": 1,
+    "maxYears": 5
+  },
+  "victoryTargetSC": 23,
+  "finalResult": null,
+  "timeline": [
+    {
+      "type": "game-start",
+      "timestamp": "2026-10-03T12:09:09.520Z",
+      "year": 1,
+      "season": "spring",
+      "phase": "orders",
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 6,
+          "controlledRegions": 17,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 6,
+          "controlledRegions": 23,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 5,
+          "controlledRegions": 13,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "phase-start",
+      "timestamp": "2026-10-03T12:09:09.520Z",
+      "year": 1,
+      "season": "spring",
+      "phase": "orders",
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 6,
+          "controlledRegions": 17,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 6,
+          "controlledRegions": 23,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 5,
+          "controlledRegions": 13,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "event-generation",
+      "timestamp": "2026-10-03T12:09:09.520Z",
+      "year": 1,
+      "season": "spring",
+      "phase": "orders",
+      "events": [
+        {
+          "type": "roadwork",
+          "edge": {
+            "a": "kyoto-26101-13",
+            "b": "kyoto-26102-07"
+          }
+        }
+      ],
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 6,
+          "controlledRegions": 17,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 6,
+          "controlledRegions": 23,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 5,
+          "controlledRegions": 13,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "player-finalized",
+      "timestamp": "2026-10-03T12:11:21.348Z",
+      "year": 1,
+      "season": "spring",
+      "phase": "orders",
+      "playerId": "765aaa41-a7fa-4bc5-b066-3c38e6f0da90",
+      "elapsedSeconds": 131.828,
+      "submittedOrderCount": 5,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 6,
+          "controlledRegions": 17,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 6,
+          "controlledRegions": 23,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 5,
+          "controlledRegions": 13,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "player-finalized",
+      "timestamp": "2026-10-03T12:16:19.837Z",
+      "year": 1,
+      "season": "spring",
+      "phase": "orders",
+      "playerId": "d04a023c-38eb-4f89-871a-2ba398f7a35a",
+      "elapsedSeconds": 430.317,
+      "submittedOrderCount": 6,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 6,
+          "controlledRegions": 17,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 6,
+          "controlledRegions": 23,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 5,
+          "controlledRegions": 13,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "player-finalized",
+      "timestamp": "2026-10-03T12:16:27.053Z",
+      "year": 1,
+      "season": "spring",
+      "phase": "orders",
+      "playerId": "df2fde78-b09c-4059-82be-e6255d33ca0a",
+      "elapsedSeconds": 437.533,
+      "submittedOrderCount": 6,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 6,
+          "controlledRegions": 17,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 6,
+          "controlledRegions": 23,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 5,
+          "controlledRegions": 13,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "all-finalized",
+      "timestamp": "2026-10-03T12:16:27.053Z",
+      "year": 1,
+      "season": "spring",
+      "phase": "orders",
+      "elapsedSeconds": 437.533,
+      "submittedOrderCount": 17,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 6,
+          "controlledRegions": 17,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 6,
+          "controlledRegions": 23,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 5,
+          "controlledRegions": 13,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "adjudication",
+      "timestamp": "2026-10-03T12:16:27.053Z",
+      "year": 1,
+      "season": "spring",
+      "phase": "orders",
+      "elapsedSeconds": 437.533,
+      "submittedOrderCount": 17,
+      "resolvedOrders": [
+        {
+          "unitId": "initial-kyoto-26102-01",
+          "type": "move",
+          "destination": "kyoto-26102-08"
+        },
+        {
+          "unitId": "initial-kyoto-26102-02",
+          "type": "move",
+          "destination": "kyoto-26102-03"
+        },
+        {
+          "unitId": "initial-kyoto-26102-06",
+          "type": "move",
+          "destination": "kyoto-26102-17"
+        },
+        {
+          "unitId": "initial-kyoto-26102-11",
+          "type": "move",
+          "destination": "kyoto-26103-22"
+        },
+        {
+          "unitId": "initial-kyoto-26102-14",
+          "type": "move",
+          "destination": "kyoto-26104-01"
+        },
+        {
+          "unitId": "initial-kyoto-26102-16",
+          "type": "move",
+          "destination": "kyoto-26101-14"
+        },
+        {
+          "unitId": "initial-kyoto-26104-05",
+          "type": "move",
+          "destination": "kyoto-26104-01"
+        },
+        {
+          "unitId": "initial-kyoto-26104-07",
+          "type": "move",
+          "destination": "kyoto-26104-06"
+        },
+        {
+          "unitId": "initial-kyoto-26104-09",
+          "type": "hold"
+        },
+        {
+          "unitId": "initial-kyoto-26104-17",
+          "type": "move",
+          "destination": "kyoto-26102-12"
+        },
+        {
+          "unitId": "initial-kyoto-26104-18",
+          "type": "hold"
+        },
+        {
+          "unitId": "initial-kyoto-26104-21",
+          "type": "move",
+          "destination": "kyoto-26105-09"
+        },
+        {
+          "unitId": "initial-kyoto-26111-01",
+          "type": "move",
+          "destination": "kyoto-26108-17"
+        },
+        {
+          "unitId": "initial-kyoto-26111-03",
+          "type": "move",
+          "destination": "kyoto-26111-04"
+        },
+        {
+          "unitId": "initial-kyoto-26111-04",
+          "type": "move",
+          "destination": "kyoto-26108-13"
+        },
+        {
+          "unitId": "initial-kyoto-26111-12",
+          "type": "move",
+          "destination": "kyoto-26111-03"
+        },
+        {
+          "unitId": "initial-kyoto-26111-13",
+          "type": "move",
+          "destination": "kyoto-26111-10"
+        }
+      ],
+      "standoffCount": 1,
+      "dislodgementCount": 0,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 6,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 6,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 5,
+          "controlledRegions": 15,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "phase-start",
+      "timestamp": "2026-10-03T12:16:27.053Z",
+      "year": 1,
+      "season": "spring",
+      "phase": "retreats",
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 6,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 6,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 5,
+          "controlledRegions": 15,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "all-finalized",
+      "timestamp": "2026-10-03T12:16:27.190Z",
+      "year": 1,
+      "season": "spring",
+      "phase": "retreats",
+      "elapsedSeconds": 0.137,
+      "submittedOrderCount": 0,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 6,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 6,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 5,
+          "controlledRegions": 15,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "retreat",
+      "timestamp": "2026-10-03T12:16:27.190Z",
+      "year": 1,
+      "season": "spring",
+      "phase": "retreats",
+      "disbandCount": 0,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 6,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 6,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 5,
+          "controlledRegions": 15,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "phase-start",
+      "timestamp": "2026-10-03T12:16:27.190Z",
+      "year": 1,
+      "season": "spring",
+      "phase": "sc-update",
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 6,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 6,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 5,
+          "controlledRegions": 15,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "sc-update",
+      "timestamp": "2026-10-03T12:16:27.190Z",
+      "year": 1,
+      "season": "spring",
+      "phase": "sc-update",
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 6,
+          "controlledRegions": 15,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "phase-start",
+      "timestamp": "2026-10-03T12:16:27.190Z",
+      "year": 1,
+      "season": "autumn",
+      "phase": "orders",
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 6,
+          "controlledRegions": 15,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "event-generation",
+      "timestamp": "2026-10-03T12:16:27.190Z",
+      "year": 1,
+      "season": "autumn",
+      "phase": "orders",
+      "events": [
+        {
+          "type": "barricade",
+          "regionId": "kyoto-26104-14"
+        }
+      ],
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 6,
+          "controlledRegions": 15,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "player-finalized",
+      "timestamp": "2026-10-03T12:19:01.104Z",
+      "year": 1,
+      "season": "autumn",
+      "phase": "orders",
+      "playerId": "d04a023c-38eb-4f89-871a-2ba398f7a35a",
+      "elapsedSeconds": 153.914,
+      "submittedOrderCount": 6,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 6,
+          "controlledRegions": 15,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "player-finalized",
+      "timestamp": "2026-10-03T12:19:02.120Z",
+      "year": 1,
+      "season": "autumn",
+      "phase": "orders",
+      "playerId": "df2fde78-b09c-4059-82be-e6255d33ca0a",
+      "elapsedSeconds": 154.93,
+      "submittedOrderCount": 6,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 6,
+          "controlledRegions": 15,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "player-finalized",
+      "timestamp": "2026-10-03T12:19:30.852Z",
+      "year": 1,
+      "season": "autumn",
+      "phase": "orders",
+      "playerId": "765aaa41-a7fa-4bc5-b066-3c38e6f0da90",
+      "elapsedSeconds": 183.662,
+      "submittedOrderCount": 5,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 6,
+          "controlledRegions": 15,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "all-finalized",
+      "timestamp": "2026-10-03T12:19:30.853Z",
+      "year": 1,
+      "season": "autumn",
+      "phase": "orders",
+      "elapsedSeconds": 183.663,
+      "submittedOrderCount": 17,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 6,
+          "controlledRegions": 15,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "adjudication",
+      "timestamp": "2026-10-03T12:19:30.853Z",
+      "year": 1,
+      "season": "autumn",
+      "phase": "orders",
+      "elapsedSeconds": 183.663,
+      "submittedOrderCount": 17,
+      "resolvedOrders": [
+        {
+          "unitId": "initial-kyoto-26102-01",
+          "type": "hold"
+        },
+        {
+          "unitId": "initial-kyoto-26102-02",
+          "type": "hold"
+        },
+        {
+          "unitId": "initial-kyoto-26102-06",
+          "type": "hold"
+        },
+        {
+          "unitId": "initial-kyoto-26102-11",
+          "type": "hold"
+        },
+        {
+          "unitId": "initial-kyoto-26102-14",
+          "type": "hold"
+        },
+        {
+          "unitId": "initial-kyoto-26102-16",
+          "type": "hold"
+        },
+        {
+          "unitId": "initial-kyoto-26104-05",
+          "type": "move",
+          "destination": "kyoto-26104-01"
+        },
+        {
+          "unitId": "initial-kyoto-26104-07",
+          "type": "hold"
+        },
+        {
+          "unitId": "initial-kyoto-26104-09",
+          "type": "hold"
+        },
+        {
+          "unitId": "initial-kyoto-26104-17",
+          "type": "hold"
+        },
+        {
+          "unitId": "initial-kyoto-26104-18",
+          "type": "hold"
+        },
+        {
+          "unitId": "initial-kyoto-26104-21",
+          "type": "hold"
+        },
+        {
+          "unitId": "initial-kyoto-26111-01",
+          "type": "move",
+          "destination": "kyoto-26108-21"
+        },
+        {
+          "unitId": "initial-kyoto-26111-03",
+          "type": "move",
+          "destination": "kyoto-26108-12"
+        },
+        {
+          "unitId": "initial-kyoto-26111-04",
+          "type": "move",
+          "destination": "kyoto-26108-14"
+        },
+        {
+          "unitId": "initial-kyoto-26111-12",
+          "type": "move",
+          "destination": "kyoto-26111-06"
+        },
+        {
+          "unitId": "initial-kyoto-26111-13",
+          "type": "move",
+          "destination": "kyoto-26111-08"
+        }
+      ],
+      "standoffCount": 0,
+      "dislodgementCount": 0,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 6,
+          "controlledRegions": 18,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "phase-start",
+      "timestamp": "2026-10-03T12:19:30.853Z",
+      "year": 1,
+      "season": "autumn",
+      "phase": "retreats",
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 6,
+          "controlledRegions": 18,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "all-finalized",
+      "timestamp": "2026-10-03T12:19:30.986Z",
+      "year": 1,
+      "season": "autumn",
+      "phase": "retreats",
+      "elapsedSeconds": 0.133,
+      "submittedOrderCount": 0,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 6,
+          "controlledRegions": 18,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "retreat",
+      "timestamp": "2026-10-03T12:19:30.986Z",
+      "year": 1,
+      "season": "autumn",
+      "phase": "retreats",
+      "disbandCount": 0,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 6,
+          "controlledRegions": 18,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "phase-start",
+      "timestamp": "2026-10-03T12:19:30.986Z",
+      "year": 1,
+      "season": "autumn",
+      "phase": "sc-update",
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 6,
+          "controlledRegions": 18,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "sc-update",
+      "timestamp": "2026-10-03T12:19:30.986Z",
+      "year": 1,
+      "season": "autumn",
+      "phase": "sc-update",
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 7,
+          "controlledRegions": 18,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "phase-start",
+      "timestamp": "2026-10-03T12:19:30.986Z",
+      "year": 1,
+      "season": "winter",
+      "phase": "adjustments",
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 7,
+          "controlledRegions": 18,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "player-finalized",
+      "timestamp": "2026-10-03T12:20:03.023Z",
+      "year": 1,
+      "season": "winter",
+      "phase": "adjustments",
+      "playerId": "765aaa41-a7fa-4bc5-b066-3c38e6f0da90",
+      "elapsedSeconds": 32.037,
+      "submittedOrderCount": 2,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 7,
+          "controlledRegions": 18,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "player-finalized",
+      "timestamp": "2026-10-03T12:20:15.413Z",
+      "year": 1,
+      "season": "winter",
+      "phase": "adjustments",
+      "playerId": "df2fde78-b09c-4059-82be-e6255d33ca0a",
+      "elapsedSeconds": 44.427,
+      "submittedOrderCount": 2,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 7,
+          "controlledRegions": 18,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "player-finalized",
+      "timestamp": "2026-10-03T12:20:20.603Z",
+      "year": 1,
+      "season": "winter",
+      "phase": "adjustments",
+      "playerId": "d04a023c-38eb-4f89-871a-2ba398f7a35a",
+      "elapsedSeconds": 49.617,
+      "submittedOrderCount": 3,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 7,
+          "controlledRegions": 18,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "all-finalized",
+      "timestamp": "2026-10-03T12:20:20.603Z",
+      "year": 1,
+      "season": "winter",
+      "phase": "adjustments",
+      "elapsedSeconds": 49.617,
+      "submittedOrderCount": 7,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 6,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 7,
+          "controlledRegions": 18,
+          "units": 5,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "winter-adjustment",
+      "timestamp": "2026-10-03T12:20:20.603Z",
+      "year": 1,
+      "season": "winter",
+      "phase": "adjustments",
+      "buildCount": 7,
+      "disbandCount": 0,
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 9,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 8,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 7,
+          "controlledRegions": 18,
+          "units": 7,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "phase-start",
+      "timestamp": "2026-10-03T12:20:20.603Z",
+      "year": 1,
+      "season": "winter",
+      "phase": "end-of-year",
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 9,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 8,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 7,
+          "controlledRegions": 18,
+          "units": 7,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "phase-start",
+      "timestamp": "2026-10-03T12:20:20.603Z",
+      "year": 2,
+      "season": "spring",
+      "phase": "orders",
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 9,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 8,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 7,
+          "controlledRegions": 18,
+          "units": 7,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    },
+    {
+      "type": "event-generation",
+      "timestamp": "2026-10-03T12:20:20.603Z",
+      "year": 2,
+      "season": "spring",
+      "phase": "orders",
+      "events": [
+        {
+          "type": "roadwork",
+          "edge": {
+            "a": "kyoto-26104-12",
+            "b": "kyoto-26108-06"
+          }
+        }
+      ],
+      "stats": [
+        {
+          "wardId": "26102",
+          "supplyCenters": 9,
+          "controlledRegions": 18,
+          "units": 9,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26104",
+          "supplyCenters": 8,
+          "controlledRegions": 25,
+          "units": 8,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        },
+        {
+          "wardId": "26111",
+          "supplyCenters": 7,
+          "controlledRegions": 18,
+          "units": 7,
+          "inventory": {
+            "bicycle": 0,
+            "barricade": 0
+          }
+        }
+      ]
+    }
+  ]
+}

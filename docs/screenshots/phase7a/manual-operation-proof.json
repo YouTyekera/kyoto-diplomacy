@@ -1,0 +1,23 @@
+{
+  "proofs": [
+    {
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "move": true,
+      "arrows": 1,
+      "dock": "移動 → 西陣"
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "move": true,
+      "arrows": 1,
+      "dock": "移動 → 西陣"
+    }
+  ],
+  "support": "小川 → 西陣への移動を支援"
+}

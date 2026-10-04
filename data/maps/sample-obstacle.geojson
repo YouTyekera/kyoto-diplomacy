@@ -1,0 +1,15 @@
+{
+  "type": "FeatureCollection",
+  "features": [{
+    "type": "Feature",
+    "id": "sample-stripe",
+    "properties": {
+      "name": "架空の分断テスト用障害物",
+      "source": "手作成のテスト用形状。京都御苑ではありません。架空サンプル地図で使用。"
+    },
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[135.744, 35.039], [135.746, 35.039], [135.746, 35.052], [135.744, 35.052], [135.744, 35.039]]]
+    }
+  }]
+}

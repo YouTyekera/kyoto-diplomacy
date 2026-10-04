@@ -1,0 +1,58 @@
+[
+  {
+    "cue": "select",
+    "duration": 0.064989,
+    "currentTime": 0.003875,
+    "volume": 0.315,
+    "loop": false,
+    "readyState": 4
+  },
+  {
+    "cue": "order-confirm",
+    "duration": 0.130023,
+    "currentTime": 0.00236,
+    "volume": 0.315,
+    "loop": false,
+    "readyState": 4
+  },
+  {
+    "cue": "march",
+    "duration": 0.32,
+    "currentTime": 0.00348,
+    "volume": 0.315,
+    "loop": false,
+    "readyState": 4
+  },
+  {
+    "cue": "support-success",
+    "duration": 0.2,
+    "currentTime": 0.005388,
+    "volume": 0.315,
+    "loop": false,
+    "readyState": 4
+  },
+  {
+    "cue": "sc-capture",
+    "duration": 0.3,
+    "currentTime": 0.003186,
+    "volume": 0.315,
+    "loop": false,
+    "readyState": 4
+  },
+  {
+    "cue": "standoff",
+    "duration": 0.18,
+    "currentTime": 0.007278,
+    "volume": 0.315,
+    "loop": false,
+    "readyState": 4
+  },
+  {
+    "cue": "victory",
+    "duration": 0.9,
+    "currentTime": 0.006788,
+    "volume": 0.315,
+    "loop": false,
+    "readyState": 4
+  }
+]

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document id="root_doc"><Document id="fixture">
+    <name>10_01架空地域disv4326</name>
+    <Placemark id="fixture.1"><Polygon>
+      <outerBoundaryIs><LinearRing><coordinates>135.74,35.04,100 135.75,35.04,100 135.75,35.05,100 135.74,35.05,100 135.74,35.04,100</coordinates></LinearRing></outerBoundaryIs>
+      <innerBoundaryIs><LinearRing><coordinates>135.742,35.042 135.742,35.044 135.744,35.044 135.744,35.042 135.742,35.042</coordinates></LinearRing></innerBoundaryIs>
+    </Polygon></Placemark>
+  </Document></Document>
+</kml>

@@ -1,0 +1,37 @@
+/* Phase 6B: warm paper, readable tokens and original non-playable terrain. */
+.board-first, .local-trial { --surface: #f6f2e6; --surface-soft: #e7ebdf; --surface-panel: #f6f2e6ef; --border: #c6cfb9; --shadow: 0 3px 14px #283c3518; }
+.online-shell:has(.board-first) { background: #dedfcf; }
+.board-first .game-topbar { background: #eee9db; }
+.board-first .game-map .map-section, .player-map { background: #c1d0bb; }
+.board-first .left-hud, .board-first .right-hud, .board-first .command-dock { background: #f6f2e6f2; }
+.board-first .map-controls button, .board-first .game-map-caption label, .region-inspector { background: #f6f2e6eb; }
+.player-map .region { stroke: #748d7a; stroke-width: .85px; fill-opacity: .91; }
+.player-map .region[data-controller-ward-id=''] { fill: #e9e5d6; }
+.player-map .region.excluded-region { fill: transparent; fill-opacity: 0; stroke: none; pointer-events: none; }
+.player-map .region.selected { stroke: #fffce7; stroke-width: 2px; filter: drop-shadow(0 0 1px #287f96); }
+.player-map .region.legal-target:not(.selected) { fill-opacity: .94; }
+.player-map .region-marker-label { stroke: #fffcec; stroke-width: 2.5px; vector-effect: non-scaling-stroke; font-weight: 600; }
+/* SVG groups otherwise receive Chromium's automatic black focus outline. */
+.supply-region-marker:focus, [data-ground-equipment]:focus { outline: none; }
+.supply-selection-ring { opacity: 0; }
+.marker-active .supply-selection-ring, .supply-region-marker:focus-visible .supply-selection-ring { opacity: 1; }
+.marker-active .supply-marker { filter: none; }
+.supply-region-marker:focus-visible .supply-selection-ring { stroke-dasharray: 3 2; }
+[data-ground-equipment]:focus-visible > rect { stroke: #287f96; stroke-width: 2; }
+.player-map .supply-marker[data-supply-owner=neutral] .supply-circle { fill: #fffbeb; stroke: #607a70; }
+.player-map .selected-army .unit-frame { filter: drop-shadow(0 0 1px #287f96); }
+.board-first .map-footer { min-height: 20px; padding: 0; }
+.board-first .map-footer::before { content: '山地・森：プレイ範囲外'; padding: 3px 8px; background: #f6f2e6d9; border-radius: var(--radius-sm); font-size: 10px; }
+.board-first .map-footer span { display: none; }
+.sfx-preview { margin: 8px 0 0; }
+.sfx-preview-buttons { display: flex; flex-wrap: wrap; gap: 5px; padding-top: 5px; }
+.sfx-preview-buttons button { font-size: 11px; padding: 4px 7px; }
+.board-first .game-topbar .audio-settings[open] { max-height: calc(100dvh - 30px); overflow-y: auto; }
+.victory-help { position: relative; }
+.victory-conditions { position: absolute; z-index: 40; right: 0; top: calc(100% + 6px); width: min(360px, calc(100vw - 24px)); max-height: calc(100dvh - 100px); overflow: auto; padding: 14px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); line-height: 1.65; }
+.victory-conditions h3 { margin: 12px 0 4px; font-size: 13px; }
+.victory-conditions p { margin: 4px 0; font-size: 12px; }
+.victory-conditions .tray-heading { position: static; }
+.connection-state { display:flex; align-items:center; flex-wrap:wrap; gap:.6rem; padding:.65rem 1rem; background:#e9eee5; color:#33584c; border-radius:8px; }
+.connection-state small { flex-basis:100%; font-size:.8rem; }
+.connection-unavailable { background:#f3e6cd; color:#755529; }

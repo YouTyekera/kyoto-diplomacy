@@ -1,0 +1,1448 @@
+{
+    "version":  1,
+    "mapId":  "phase4b-test-only-kyoto",
+    "regions":  {
+                    "kyoto-26101-01":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26101",
+                                           "startingUnit":  {
+                                                                "ownerWardId":  "26101",
+                                                                "type":  "army"
+                                                            }
+                                       },
+                    "kyoto-26101-02":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26101",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-03":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26101",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-04":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  "26101",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-05":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-06":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-07":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-08":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-09":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-10":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-11":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-12":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-13":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-14":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-15":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-16":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-17":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-18":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26101-19":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-01":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26102",
+                                           "startingUnit":  {
+                                                                "ownerWardId":  "26102",
+                                                                "type":  "army"
+                                                            }
+                                       },
+                    "kyoto-26102-02":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26102",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-03":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26102",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-04":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  "26102",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-05":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-06":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-07":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-08":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-09":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-10":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-11":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-12":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-13":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-14":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-15":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-16":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26102-17":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-01":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26103",
+                                           "startingUnit":  {
+                                                                "ownerWardId":  "26103",
+                                                                "type":  "army"
+                                                            }
+                                       },
+                    "kyoto-26103-02":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26103",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-03":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26103",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-04":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  "26103",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-05":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-06":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-07":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-08":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-09":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-10":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-11":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-12":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-13":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-14":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-15":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-16":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-17":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-18":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-19":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-20":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-21":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-22":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-23":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-24":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-25":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26103-26":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-01":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26104",
+                                           "startingUnit":  {
+                                                                "ownerWardId":  "26104",
+                                                                "type":  "army"
+                                                            }
+                                       },
+                    "kyoto-26104-02":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26104",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-03":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26104",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-04":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  "26104",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-05":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-06":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-07":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-08":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-09":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-10":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-11":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-12":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-13":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-14":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-15":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-16":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-17":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-18":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-19":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-20":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-21":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-22":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26104-23":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26105-01":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26105",
+                                           "startingUnit":  {
+                                                                "ownerWardId":  "26105",
+                                                                "type":  "army"
+                                                            }
+                                       },
+                    "kyoto-26105-02":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26105",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26105-03":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26105",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26105-04":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  "26105",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26105-05":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26105-06":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26105-07":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26105-08":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26105-09":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26105-10":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26105-11":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-01":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26106",
+                                           "startingUnit":  {
+                                                                "ownerWardId":  "26106",
+                                                                "type":  "army"
+                                                            }
+                                       },
+                    "kyoto-26106-02":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26106",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-03":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26106",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-04":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  "26106",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-05":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-06":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-07":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-08":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-09":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-10":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-11":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-12":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-13":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-14":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-15":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-16":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-17":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-18":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-19":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-20":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-21":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-22":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26106-23":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-01":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26107",
+                                           "startingUnit":  {
+                                                                "ownerWardId":  "26107",
+                                                                "type":  "army"
+                                                            }
+                                       },
+                    "kyoto-26107-02":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26107",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-03":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26107",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-04":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  "26107",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-05":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-06":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-07":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-08":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-09":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-10":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-11":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-12":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-13":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-14":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26107-15":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-01":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26108",
+                                           "startingUnit":  {
+                                                                "ownerWardId":  "26108",
+                                                                "type":  "army"
+                                                            }
+                                       },
+                    "kyoto-26108-02":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26108",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-03":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26108",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-04":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  "26108",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-05":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-06":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-07":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-08":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-09":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-10":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-11":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-12":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-13":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-14":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-15":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-16":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-17":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-18":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-19":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-20":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-21":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-22":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-23":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-24":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-25":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-26":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-27":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26108-28":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-01":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26109",
+                                           "startingUnit":  {
+                                                                "ownerWardId":  "26109",
+                                                                "type":  "army"
+                                                            }
+                                       },
+                    "kyoto-26109-02":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26109",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-03":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26109",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-04":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  "26109",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-05":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-06":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-07":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-08":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-09":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-10":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-11":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-12":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-13":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-14":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-15":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-16":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-17":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-18":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-19":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-20":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-21":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-22":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-23":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-24":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-25":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-26":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-27":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-28":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-29":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-30":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-31":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-32":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-33":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-34":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26109-35":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26110-01":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26110",
+                                           "startingUnit":  {
+                                                                "ownerWardId":  "26110",
+                                                                "type":  "army"
+                                                            }
+                                       },
+                    "kyoto-26110-02":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26110",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26110-03":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26110",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26110-04":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  "26110",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26110-05":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26110-06":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26110-07":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26110-08":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26110-09":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26110-10":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26110-11":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26110-12":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26110-13":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-01":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26111",
+                                           "startingUnit":  {
+                                                                "ownerWardId":  "26111",
+                                                                "type":  "army"
+                                                            }
+                                       },
+                    "kyoto-26111-02":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26111",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-03":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  true,
+                                           "homeWardId":  "26111",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-04":  {
+                                           "enabled":  true,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  "26111",
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-05":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-06":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-07":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-08":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-09":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-10":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-11":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-12":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-13":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-14":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-15":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-16":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       },
+                    "kyoto-26111-17":  {
+                                           "enabled":  false,
+                                           "isSupplyCenter":  false,
+                                           "homeWardId":  null,
+                                           "startingUnit":  null
+                                       }
+                },
+    "adjacency":  {
+                      "toleranceMeters":  0.5,
+                      "minSharedBoundaryMeters":  5
+                  },
+    "adjacencyAdd":  [
+
+                     ],
+    "adjacencyRemove":  [
+
+                        ],
+    "obstacles":  [
+                      {
+                          "type":  "Feature",
+                          "id":  "kyoto-gyoen-game-obstacle",
+                          "properties":  {
+                                             "name":  "京都御苑（ゲーム用境界案）",
+                                             "source":  "2026-10-03 Phase 2A。地理院タイル（標準地図）https://maps.gsi.go.jp/development/ichiran.html および環境省御苑案内図 https://www.env.go.jp/garden/kyotogyoen/2_guide/map.html を参照したPhase 1.5案の上辺・左右の経度を維持。ユーザー指定により下側2頂点を滋野source geometryの南端（緯度35.0173548653）まで延長した単純なゲーム用境界であり、実敷地の精密再現ではない。滋野と京極へ一括適用。分断しても同一logical regionのまま、必要な通行可否はユーザーがadjacency overrideで調整する。画面で修正可。地理院コンテンツ利用規約 https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html 。参照画像は配布しない。"
+                                         },
+                          "geometry":  {
+                                           "type":  "Polygon",
+                                           "coordinates":  [
+                                                               [
+                                                                   [
+                                                                       135.7595,
+                                                                       35.0173548653
+                                                                   ],
+                                                                   [
+                                                                       135.7672,
+                                                                       35.0173548653
+                                                                   ],
+                                                                   [
+                                                                       135.767,
+                                                                       35.029
+                                                                   ],
+                                                                   [
+                                                                       135.7595,
+                                                                       35.029
+                                                                   ],
+                                                                   [
+                                                                       135.7595,
+                                                                       35.0173548653
+                                                                   ]
+                                                               ]
+                                                           ]
+                                       }
+                      }
+                  ]
+}

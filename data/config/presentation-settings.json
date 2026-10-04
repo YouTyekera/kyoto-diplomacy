@@ -1,0 +1,7 @@
+{
+  "arrowsEndMs": 400,
+  "slideEndMs": 2000,
+  "impactEndMs": 2600,
+  "settleEndMs": 3400,
+  "focusPulseMs": 1600
+}

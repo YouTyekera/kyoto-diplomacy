@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+*.local
+.npm-cache/
+.playwright-browsers/
+.reference-cache/
+.env
+.env.*
+!.env.example
+dist-public/
+.phase*-*.log
+.phase*-*.mjs
+.phase*-baseline.json

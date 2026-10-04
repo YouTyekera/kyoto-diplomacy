@@ -1,0 +1,1143 @@
+{
+  "datasetId": "00670",
+  "url": "https://data.city.kyoto.lg.jp/dataset/00670/",
+  "copyright": "京都市",
+  "license": "CC BY 4.0",
+  "resources": [
+    {
+      "title": "北区 第1国勢統計区 待鳳",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19121",
+      "file": "10_01待鳳.kml"
+    },
+    {
+      "title": "北区 第2国勢統計区 紫竹",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19120",
+      "file": "10_02紫竹.kml"
+    },
+    {
+      "title": "北区 第3国勢統計区 鳳徳",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19119",
+      "file": "10_03鳳徳.kml"
+    },
+    {
+      "title": "北区 第4国勢統計区 紫野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19118",
+      "file": "10_04紫野.kml"
+    },
+    {
+      "title": "北区 第5国勢統計区 楽只",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19117",
+      "file": "10_05楽只.kml"
+    },
+    {
+      "title": "北区 第6国勢統計区 鷹峯",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19116",
+      "file": "10_06鷹峯.kml"
+    },
+    {
+      "title": "北区 第7国勢統計区 大宮",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19115",
+      "file": "10_07大宮.kml"
+    },
+    {
+      "title": "北区 第8国勢統計区 柊野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19114",
+      "file": "10_08柊野.kml"
+    },
+    {
+      "title": "北区 第9国勢統計区 上賀茂",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19113",
+      "file": "10_09上賀茂.kml"
+    },
+    {
+      "title": "北区 第10国勢統計区 元町",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19112",
+      "file": "10_10元町.kml"
+    },
+    {
+      "title": "北区 第11国勢統計区 紫明",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19111",
+      "file": "10_11紫明.kml"
+    },
+    {
+      "title": "北区 第12国勢統計区 出雲路",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19110",
+      "file": "10_12出雲路.kml"
+    },
+    {
+      "title": "北区 第13国勢統計区 柏野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19109",
+      "file": "10_13柏野.kml"
+    },
+    {
+      "title": "北区 第14国勢統計区 大将軍",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19108",
+      "file": "10_14大将軍.kml"
+    },
+    {
+      "title": "北区 第15国勢統計区 衣笠",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19107",
+      "file": "10_15衣笠.kml"
+    },
+    {
+      "title": "北区 第16国勢統計区 金閣",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19106",
+      "file": "10_16金閣.kml"
+    },
+    {
+      "title": "北区 第17国勢統計区 中川",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19105",
+      "file": "10_17中川.kml"
+    },
+    {
+      "title": "北区 第18国勢統計区 小野郷",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19104",
+      "file": "10_18小野郷.kml"
+    },
+    {
+      "title": "北区 第19国勢統計区 雲ヶ畑",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19103",
+      "file": "10_19雲ヶ畑.kml"
+    },
+    {
+      "title": "上京区 第1国勢統計区 桃薗",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19102",
+      "file": "12_01桃薗.kml"
+    },
+    {
+      "title": "上京区 第2国勢統計区 小川",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19101",
+      "file": "12_02小川.kml"
+    },
+    {
+      "title": "上京区 第3国勢統計区 中立",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19100",
+      "file": "12_03中立.kml"
+    },
+    {
+      "title": "上京区 第4国勢統計区 聚楽",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19099",
+      "file": "12_04聚楽.kml"
+    },
+    {
+      "title": "上京区 第5国勢統計区 正親",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19098",
+      "file": "12_05正親.kml"
+    },
+    {
+      "title": "上京区 第6国勢統計区 嘉楽",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19097",
+      "file": "12_06嘉楽.kml"
+    },
+    {
+      "title": "上京区 第7国勢統計区 乾隆",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19096",
+      "file": "12_07乾隆.kml"
+    },
+    {
+      "title": "上京区 第8国勢統計区 西陣",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19095",
+      "file": "12_08西陣.kml"
+    },
+    {
+      "title": "上京区 第9国勢統計区 成逸",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19094",
+      "file": "12_09成逸.kml"
+    },
+    {
+      "title": "上京区 第10国勢統計区 室町",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19093",
+      "file": "12_10室町.kml"
+    },
+    {
+      "title": "上京区 第11国勢統計区 京極",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19092",
+      "file": "12_11京極.kml"
+    },
+    {
+      "title": "上京区 第12国勢統計区 春日",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19091",
+      "file": "12_12春日.kml"
+    },
+    {
+      "title": "上京区 第13国勢統計区 滋野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19090",
+      "file": "12_13滋野.kml"
+    },
+    {
+      "title": "上京区 第14国勢統計区 待賢",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19089",
+      "file": "12_14待賢.kml"
+    },
+    {
+      "title": "上京区 第15国勢統計区 出水",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19088",
+      "file": "12_15出水.kml"
+    },
+    {
+      "title": "上京区 第16国勢統計区 仁和",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19087",
+      "file": "12_16仁和.kml"
+    },
+    {
+      "title": "上京区 第17国勢統計区 翔鸞",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19086",
+      "file": "12_17翔鸞.kml"
+    },
+    {
+      "title": "左京区 第1国勢統計区 岩倉北",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19085",
+      "file": "14_01岩倉北.kml"
+    },
+    {
+      "title": "左京区 第2国勢統計区 明徳",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19084",
+      "file": "14_02明徳.kml"
+    },
+    {
+      "title": "左京区 第3国勢統計区 岩倉南",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19083",
+      "file": "14_03岩倉南.kml"
+    },
+    {
+      "title": "左京区 第4国勢統計区 静市",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19082",
+      "file": "14_04静市.kml"
+    },
+    {
+      "title": "左京区 第5国勢統計区 鞍馬",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19081",
+      "file": "14_05鞍馬.kml"
+    },
+    {
+      "title": "左京区 第6国勢統計区 花脊",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19080",
+      "file": "14_06花脊.kml"
+    },
+    {
+      "title": "左京区 第7国勢統計区 久多",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19079",
+      "file": "14_07久多.kml"
+    },
+    {
+      "title": "左京区 第8国勢統計区 広河原",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19078",
+      "file": "14_08広河原.kml"
+    },
+    {
+      "title": "左京区 第9国勢統計区 大原",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19077",
+      "file": "14_09大原.kml"
+    },
+    {
+      "title": "左京区 第10国勢統計区 八瀬",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19076",
+      "file": "14_10八瀬.kml"
+    },
+    {
+      "title": "左京区 第11国勢統計区 上高野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19075",
+      "file": "14_11上高野.kml"
+    },
+    {
+      "title": "左京区 第12国勢統計区 修学院第一",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19074",
+      "file": "14_12修学院第一.kml"
+    },
+    {
+      "title": "左京区 第13国勢統計区 修学院第二",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19073",
+      "file": "14_13修学院第二.kml"
+    },
+    {
+      "title": "左京区 第14国勢統計区 北白川",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19072",
+      "file": "14_14北白川.kml"
+    },
+    {
+      "title": "左京区 第15国勢統計区 浄楽",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19071",
+      "file": "14_15浄楽.kml"
+    },
+    {
+      "title": "左京区 第16国勢統計区 錦林東山",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19070",
+      "file": "14_16錦林東山.kml"
+    },
+    {
+      "title": "左京区 第17国勢統計区 岡崎",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19069",
+      "file": "14_17岡崎.kml"
+    },
+    {
+      "title": "左京区 第18国勢統計区 新洞",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19068",
+      "file": "14_18新洞.kml"
+    },
+    {
+      "title": "左京区 第19国勢統計区 川東",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19067",
+      "file": "14_19川東.kml"
+    },
+    {
+      "title": "左京区 第20国勢統計区 聖護院",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19066",
+      "file": "14_20聖護院.kml"
+    },
+    {
+      "title": "左京区 第21国勢統計区 吉田",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19065",
+      "file": "14_21吉田.kml"
+    },
+    {
+      "title": "左京区 第22国勢統計区 養正",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19064",
+      "file": "14_22養正.kml"
+    },
+    {
+      "title": "左京区 第23国勢統計区 養徳",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19063",
+      "file": "14_23養徳.kml"
+    },
+    {
+      "title": "左京区 第24国勢統計区 下鴨",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19062",
+      "file": "14_24下鴨.kml"
+    },
+    {
+      "title": "左京区 第25国勢統計区 葵",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19061",
+      "file": "14_25葵.kml"
+    },
+    {
+      "title": "左京区 第26国勢統計区 松ヶ崎",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19060",
+      "file": "14_26松ヶ崎.kml"
+    },
+    {
+      "title": "中京区 第1国勢統計区 教業",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19059",
+      "file": "16_01教業.kml"
+    },
+    {
+      "title": "中京区 第2国勢統計区 城巽",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19058",
+      "file": "16_02城巽.kml"
+    },
+    {
+      "title": "中京区 第3国勢統計区 龍池",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19057",
+      "file": "16_03龍池.kml"
+    },
+    {
+      "title": "中京区 第4国勢統計区 明倫",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19056",
+      "file": "16_04明倫.kml"
+    },
+    {
+      "title": "中京区 第5国勢統計区 本能",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19055",
+      "file": "16_05本能.kml"
+    },
+    {
+      "title": "中京区 第6国勢統計区 乾",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19054",
+      "file": "16_06乾.kml"
+    },
+    {
+      "title": "中京区 第7国勢統計区 朱雀第一",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19053",
+      "file": "16_07朱雀第一.kml"
+    },
+    {
+      "title": "中京区 第8国勢統計区 朱雀第三",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19052",
+      "file": "16_08朱雀第三.kml"
+    },
+    {
+      "title": "中京区 第9国勢統計区 朱雀第七",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19051",
+      "file": "16_09朱雀第七.kml"
+    },
+    {
+      "title": "中京区 第10国勢統計区 朱雀第五",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19050",
+      "file": "16_10朱雀第五.kml"
+    },
+    {
+      "title": "中京区 第11国勢統計区 朱雀第四",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19049",
+      "file": "16_11朱雀第四.kml"
+    },
+    {
+      "title": "中京区 第12国勢統計区 朱雀第八",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19048",
+      "file": "16_12朱雀第八.kml"
+    },
+    {
+      "title": "中京区 第13国勢統計区 朱雀第二",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19047",
+      "file": "16_13朱雀第二.kml"
+    },
+    {
+      "title": "中京区 第14国勢統計区 朱雀第六",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19046",
+      "file": "16_14朱雀第六.kml"
+    },
+    {
+      "title": "中京区 第15国勢統計区 梅屋",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19045",
+      "file": "16_15梅屋.kml"
+    },
+    {
+      "title": "中京区 第16国勢統計区 竹間",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19044",
+      "file": "16_16竹間.kml"
+    },
+    {
+      "title": "中京区 第17国勢統計区 富有",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19043",
+      "file": "16_17富有.kml"
+    },
+    {
+      "title": "中京区 第18国勢統計区 初音",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19042",
+      "file": "16_18初音.kml"
+    },
+    {
+      "title": "中京区 第19国勢統計区 柳池",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19041",
+      "file": "16_19柳池.kml"
+    },
+    {
+      "title": "中京区 第20国勢統計区 銅駝",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19040",
+      "file": "16_20銅駝.kml"
+    },
+    {
+      "title": "中京区 第21国勢統計区 立誠",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19039",
+      "file": "16_21立誠.kml"
+    },
+    {
+      "title": "中京区 第22国勢統計区 生祥",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19038",
+      "file": "16_22生祥.kml"
+    },
+    {
+      "title": "中京区 第23国勢統計区 日彰",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19037",
+      "file": "16_23日彰.kml"
+    },
+    {
+      "title": "東山区 第1国勢統計区 修道",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19036",
+      "file": "20_01修道.kml"
+    },
+    {
+      "title": "東山区 第2国勢統計区 六原",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19035",
+      "file": "20_02六原.kml"
+    },
+    {
+      "title": "東山区 第3国勢統計区 清水",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19034",
+      "file": "20_03清水.kml"
+    },
+    {
+      "title": "東山区 第4国勢統計区 今熊野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19033",
+      "file": "20_04今熊野.kml"
+    },
+    {
+      "title": "東山区 第5国勢統計区 月輪",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19032",
+      "file": "20_05月輪.kml"
+    },
+    {
+      "title": "東山区 第6国勢統計区 一橋",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19031",
+      "file": "20_06一橋.kml"
+    },
+    {
+      "title": "東山区 第7国勢統計区 貞教",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19030",
+      "file": "20_07貞教.kml"
+    },
+    {
+      "title": "東山区 第8国勢統計区 新道",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19029",
+      "file": "20_08新道.kml"
+    },
+    {
+      "title": "東山区 第9国勢統計区 弥栄",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19028",
+      "file": "20_09弥栄.kml"
+    },
+    {
+      "title": "東山区 第10国勢統計区 有済",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19027",
+      "file": "20_10有済.kml"
+    },
+    {
+      "title": "東山区 第11国勢統計区 粟田",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19026",
+      "file": "20_11粟田.kml"
+    },
+    {
+      "title": "山科区 第1国勢統計区 勧修",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19025",
+      "file": "22_01勧修.kml"
+    },
+    {
+      "title": "山科区 第2国勢統計区 山階南",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19024",
+      "file": "22_02山階南.kml"
+    },
+    {
+      "title": "山科区 第3国勢統計区 鏡山",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19023",
+      "file": "22_03鏡山.kml"
+    },
+    {
+      "title": "山科区 第4国勢統計区 西野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19022",
+      "file": "22_04西野.kml"
+    },
+    {
+      "title": "山科区 第5国勢統計区 山階",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19021",
+      "file": "22_05山階.kml"
+    },
+    {
+      "title": "山科区 第6国勢統計区 音羽川",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19020",
+      "file": "22_06音羽川.kml"
+    },
+    {
+      "title": "山科区 第7国勢統計区 音羽",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19019",
+      "file": "22_07音羽.kml"
+    },
+    {
+      "title": "山科区 第8国勢統計区 大塚",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19018",
+      "file": "22_08大塚.kml"
+    },
+    {
+      "title": "山科区 第9国勢統計区 大宅",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19017",
+      "file": "22_09大宅.kml"
+    },
+    {
+      "title": "山科区 第10国勢統計区 小野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19016",
+      "file": "22_10小野.kml"
+    },
+    {
+      "title": "山科区 第11国勢統計区 百々",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19015",
+      "file": "22_11百々.kml"
+    },
+    {
+      "title": "山科区 第12国勢統計区 陵ヶ岡",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19014",
+      "file": "22_12陵ヶ岡.kml"
+    },
+    {
+      "title": "山科区 第13国勢統計区 安朱",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19013",
+      "file": "22_13安朱.kml"
+    },
+    {
+      "title": "下京区 第1国勢統計区 修徳",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19012",
+      "file": "24_01修徳.kml"
+    },
+    {
+      "title": "下京区 第2国勢統計区 尚徳",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19011",
+      "file": "24_02尚徳.kml"
+    },
+    {
+      "title": "下京区 第3国勢統計区 植柳",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19010",
+      "file": "24_03植柳.kml"
+    },
+    {
+      "title": "下京区 第4国勢統計区 皆山",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19009",
+      "file": "24_04皆山.kml"
+    },
+    {
+      "title": "下京区 第5国勢統計区 安寧",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19008",
+      "file": "24_05安寧.kml"
+    },
+    {
+      "title": "下京区 第6国勢統計区 梅逕",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19007",
+      "file": "24_06梅逕.kml"
+    },
+    {
+      "title": "下京区 第7国勢統計区 大内",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19006",
+      "file": "24_07大内.kml"
+    },
+    {
+      "title": "下京区 第8国勢統計区 七条",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19005",
+      "file": "24_08七条.kml"
+    },
+    {
+      "title": "下京区 第9国勢統計区 西大路",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19004",
+      "file": "24_09西大路.kml"
+    },
+    {
+      "title": "下京区 第10国勢統計区 七条第三",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19003",
+      "file": "24_10七条第三.kml"
+    },
+    {
+      "title": "下京区 第11国勢統計区 光徳",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19002",
+      "file": "24_11光徳.kml"
+    },
+    {
+      "title": "下京区 第12国勢統計区 淳風",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19001",
+      "file": "24_12淳風.kml"
+    },
+    {
+      "title": "下京区 第13国勢統計区 醒泉",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=19000",
+      "file": "24_13醒泉.kml"
+    },
+    {
+      "title": "下京区 第14国勢統計区 郁文",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18999",
+      "file": "24_14郁文.kml"
+    },
+    {
+      "title": "下京区 第15国勢統計区 格致",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18998",
+      "file": "24_15格致.kml"
+    },
+    {
+      "title": "下京区 第16国勢統計区 成徳",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18997",
+      "file": "24_16成徳.kml"
+    },
+    {
+      "title": "下京区 第17国勢統計区 豊園",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18996",
+      "file": "24_17豊園.kml"
+    },
+    {
+      "title": "下京区 第18国勢統計区 開智",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18995",
+      "file": "24_18開智.kml"
+    },
+    {
+      "title": "下京区 第19国勢統計区 永松",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18994",
+      "file": "24_19永松.kml"
+    },
+    {
+      "title": "下京区 第20国勢統計区 有隣",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18993",
+      "file": "24_20有隣.kml"
+    },
+    {
+      "title": "下京区 第21国勢統計区 稚松",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18992",
+      "file": "24_21稚松.kml"
+    },
+    {
+      "title": "下京区 第22国勢統計区 菊浜",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18991",
+      "file": "24_22菊浜.kml"
+    },
+    {
+      "title": "下京区 第23国勢統計区 崇仁",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18990",
+      "file": "24_23崇仁.kml"
+    },
+    {
+      "title": "南区 第1国勢統計区 九条塔南",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18989",
+      "file": "26_01九条塔南.kml"
+    },
+    {
+      "title": "南区 第2国勢統計区 南大内",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18988",
+      "file": "26_02南大内.kml"
+    },
+    {
+      "title": "南区 第3国勢統計区 梅逕",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18987",
+      "file": "26_03梅逕.kml"
+    },
+    {
+      "title": "南区 第4国勢統計区 東梅逕",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18986",
+      "file": "26_04東梅逕.kml"
+    },
+    {
+      "title": "南区 第5国勢統計区 九条",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18985",
+      "file": "26_05九条.kml"
+    },
+    {
+      "title": "南区 第6国勢統計区 九条弘道",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18984",
+      "file": "26_06九条弘道.kml"
+    },
+    {
+      "title": "南区 第7国勢統計区 山王",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18983",
+      "file": "26_07山王.kml"
+    },
+    {
+      "title": "南区 第8国勢統計区 陶化",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18982",
+      "file": "26_08陶化.kml"
+    },
+    {
+      "title": "南区 第9国勢統計区 東和",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18981",
+      "file": "26_09東和.kml"
+    },
+    {
+      "title": "南区 第10国勢統計区 上鳥羽",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18980",
+      "file": "26_10上鳥羽.kml"
+    },
+    {
+      "title": "南区 第11国勢統計区 久世",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18979",
+      "file": "26_11久世.kml"
+    },
+    {
+      "title": "南区 第12国勢統計区 祥栄",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18978",
+      "file": "26_12祥栄.kml"
+    },
+    {
+      "title": "南区 第13国勢統計区 吉祥院",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18977",
+      "file": "26_13吉祥院.kml"
+    },
+    {
+      "title": "南区 第14国勢統計区 祥豊",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18976",
+      "file": "26_14祥豊.kml"
+    },
+    {
+      "title": "南区 第15国勢統計区 唐橋",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18975",
+      "file": "26_15唐橋.kml"
+    },
+    {
+      "title": "右京区 第1国勢統計区 太秦",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18974",
+      "file": "28_01太秦.kml"
+    },
+    {
+      "title": "右京区 第2国勢統計区 南太秦",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18973",
+      "file": "28_02南太秦.kml"
+    },
+    {
+      "title": "右京区 第3国勢統計区 嵯峨野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18972",
+      "file": "28_03嵯峨野.kml"
+    },
+    {
+      "title": "右京区 第4国勢統計区 常磐野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18971",
+      "file": "28_04常磐野.kml"
+    },
+    {
+      "title": "右京区 第5国勢統計区 花園",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18970",
+      "file": "28_05花園.kml"
+    },
+    {
+      "title": "右京区 第6国勢統計区 安井",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18969",
+      "file": "28_06安井.kml"
+    },
+    {
+      "title": "右京区 第7国勢統計区 山ノ内",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18968",
+      "file": "28_07山ノ内.kml"
+    },
+    {
+      "title": "右京区 第8国勢統計区 西院第一",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18967",
+      "file": "28_08西院第一.kml"
+    },
+    {
+      "title": "右京区 第9国勢統計区 西院第二",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18966",
+      "file": "28_09西院第二.kml"
+    },
+    {
+      "title": "右京区 第10国勢統計区 西京極",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18965",
+      "file": "28_10西京極.kml"
+    },
+    {
+      "title": "右京区 第11国勢統計区 西京極西",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18964",
+      "file": "28_11西京極西.kml"
+    },
+    {
+      "title": "右京区 第12国勢統計区 葛野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18963",
+      "file": "28_12葛野.kml"
+    },
+    {
+      "title": "右京区 第13国勢統計区 梅津",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18962",
+      "file": "28_13梅津.kml"
+    },
+    {
+      "title": "右京区 第14国勢統計区 北梅津",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18961",
+      "file": "28_14北梅津.kml"
+    },
+    {
+      "title": "右京区 第15国勢統計区 嵐山",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18960",
+      "file": "28_15嵐山.kml"
+    },
+    {
+      "title": "右京区 第16国勢統計区 広沢",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18959",
+      "file": "28_16広沢.kml"
+    },
+    {
+      "title": "右京区 第17国勢統計区 嵯峨",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18958",
+      "file": "28_17嵯峨.kml"
+    },
+    {
+      "title": "右京区 第18国勢統計区 水尾",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18957",
+      "file": "28_18水尾.kml"
+    },
+    {
+      "title": "右京区 第19国勢統計区 宕陰",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18956",
+      "file": "28_19宕陰.kml"
+    },
+    {
+      "title": "右京区 第20国勢統計区 高雄",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18955",
+      "file": "28_20高雄.kml"
+    },
+    {
+      "title": "右京区 第21国勢統計区 宇多野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18954",
+      "file": "28_21宇多野.kml"
+    },
+    {
+      "title": "右京区 第22国勢統計区 御室",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18953",
+      "file": "28_22御室.kml"
+    },
+    {
+      "title": "右京区 第23国勢統計区 黒田",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18952",
+      "file": "40_23黒田.kml"
+    },
+    {
+      "title": "右京区 第24国勢統計区 山国",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18951",
+      "file": "40_24山国.kml"
+    },
+    {
+      "title": "右京区 第25国勢統計区 弓削",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18950",
+      "file": "40_25弓削.kml"
+    },
+    {
+      "title": "右京区 第26国勢統計区 周山",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18949",
+      "file": "40_26周山.kml"
+    },
+    {
+      "title": "右京区 第27国勢統計区 宇津",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18948",
+      "file": "40_27宇津.kml"
+    },
+    {
+      "title": "右京区 第28国勢統計区 細野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18947",
+      "file": "40_28細野.kml"
+    },
+    {
+      "title": "西京区 第1国勢統計区 嵐山東",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18946",
+      "file": "30_01嵐山東.kml"
+    },
+    {
+      "title": "西京区 第2国勢統計区 松尾",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18945",
+      "file": "30_02松尾.kml"
+    },
+    {
+      "title": "西京区 第3国勢統計区 松陽",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18944",
+      "file": "30_03松陽.kml"
+    },
+    {
+      "title": "西京区 第4国勢統計区 桂川",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18943",
+      "file": "30_04桂川.kml"
+    },
+    {
+      "title": "西京区 第5国勢統計区 桂徳",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18942",
+      "file": "30_05桂徳.kml"
+    },
+    {
+      "title": "西京区 第6国勢統計区 桂",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18941",
+      "file": "30_06桂.kml"
+    },
+    {
+      "title": "西京区 第7国勢統計区 桂東",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18940",
+      "file": "30_07桂東.kml"
+    },
+    {
+      "title": "西京区 第8国勢統計区 川岡",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18939",
+      "file": "30_08川岡.kml"
+    },
+    {
+      "title": "西京区 第9国勢統計区 川岡東",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18938",
+      "file": "30_09川岡東.kml"
+    },
+    {
+      "title": "西京区 第10国勢統計区 樫原",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18937",
+      "file": "30_10樫原.kml"
+    },
+    {
+      "title": "西京区 第11国勢統計区 大枝",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18936",
+      "file": "38_11大枝.kml"
+    },
+    {
+      "title": "西京区 第12国勢統計区 桂坂",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18935",
+      "file": "38_12桂坂.kml"
+    },
+    {
+      "title": "西京区 第13国勢統計区 新林",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18934",
+      "file": "38_13新林.kml"
+    },
+    {
+      "title": "西京区 第14国勢統計区 福西",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18933",
+      "file": "38_14福西.kml"
+    },
+    {
+      "title": "西京区 第15国勢統計区 境谷",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18932",
+      "file": "38_15境谷.kml"
+    },
+    {
+      "title": "西京区 第16国勢統計区 竹の里",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18931",
+      "file": "38_16竹の里.kml"
+    },
+    {
+      "title": "西京区 第17国勢統計区 大原野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18930",
+      "file": "38_17大原野.kml"
+    },
+    {
+      "title": "伏見区 第1国勢統計区 竹田",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18929",
+      "file": "32_01竹田.kml"
+    },
+    {
+      "title": "伏見区 第2国勢統計区 住吉",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18928",
+      "file": "32_02住吉.kml"
+    },
+    {
+      "title": "伏見区 第3国勢統計区 板橋",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18927",
+      "file": "32_03板橋.kml"
+    },
+    {
+      "title": "伏見区 第4国勢統計区 下鳥羽",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18926",
+      "file": "32_04下鳥羽.kml"
+    },
+    {
+      "title": "伏見区 第5国勢統計区 久我",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18925",
+      "file": "32_05久我.kml"
+    },
+    {
+      "title": "伏見区 第6国勢統計区 久我の杜",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18924",
+      "file": "32_06久我の杜.kml"
+    },
+    {
+      "title": "伏見区 第7国勢統計区 羽束師",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18923",
+      "file": "32_07羽束師.kml"
+    },
+    {
+      "title": "伏見区 第8国勢統計区 淀",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18922",
+      "file": "32_08淀.kml"
+    },
+    {
+      "title": "伏見区 第9国勢統計区 美豆",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18921",
+      "file": "32_09美豆.kml"
+    },
+    {
+      "title": "伏見区 第10国勢統計区 納所",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18920",
+      "file": "32_10納所.kml"
+    },
+    {
+      "title": "伏見区 第11国勢統計区 横大路",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18919",
+      "file": "32_11横大路.kml"
+    },
+    {
+      "title": "伏見区 第12国勢統計区 南浜",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18918",
+      "file": "32_12南浜.kml"
+    },
+    {
+      "title": "伏見区 第13国勢統計区 向島",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18917",
+      "file": "32_13向島.kml"
+    },
+    {
+      "title": "伏見区 第14国勢統計区 向島南",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18916",
+      "file": "32_14向島南.kml"
+    },
+    {
+      "title": "伏見区 第15国勢統計区 向島二ノ丸",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18915",
+      "file": "32_15向島二ノ丸.kml"
+    },
+    {
+      "title": "伏見区 第16国勢統計区 向島二ノ丸北",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18914",
+      "file": "32_16向島二ノ丸北.kml"
+    },
+    {
+      "title": "伏見区 第17国勢統計区 向島藤ノ木",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18913",
+      "file": "32_17向島藤ノ木.kml"
+    },
+    {
+      "title": "伏見区 第18国勢統計区 桃山",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18912",
+      "file": "32_18桃山.kml"
+    },
+    {
+      "title": "伏見区 第19国勢統計区 桃山東",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18911",
+      "file": "32_19桃山東.kml"
+    },
+    {
+      "title": "伏見区 第20国勢統計区 桃山南",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18910",
+      "file": "32_20桃山南.kml"
+    },
+    {
+      "title": "伏見区 第21国勢統計区 稲荷",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18909",
+      "file": "34_21稲荷.kml"
+    },
+    {
+      "title": "伏見区 第22国勢統計区 砂川",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18908",
+      "file": "34_22砂川.kml"
+    },
+    {
+      "title": "伏見区 第23国勢統計区 深草",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18907",
+      "file": "34_23深草.kml"
+    },
+    {
+      "title": "伏見区 第24国勢統計区 藤ノ森",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18905",
+      "file": "34_24藤ノ森.kml"
+    },
+    {
+      "title": "伏見区 第25国勢統計区 藤城",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18904",
+      "file": "34_25藤城.kml"
+    },
+    {
+      "title": "伏見区 第26国勢統計区 北醍醐",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18902",
+      "file": "36_26北醍醐.kml"
+    },
+    {
+      "title": "伏見区 第27国勢統計区 醍醐西",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18900",
+      "file": "36_27醍醐西.kml"
+    },
+    {
+      "title": "伏見区 第28国勢統計区 醍醐",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18899",
+      "file": "36_28醍醐.kml"
+    },
+    {
+      "title": "伏見区 第29国勢統計区 池田",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18898",
+      "file": "36_29池田.kml"
+    },
+    {
+      "title": "伏見区 第30国勢統計区 池田東",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18897",
+      "file": "36_30池田東.kml"
+    },
+    {
+      "title": "伏見区 第31国勢統計区 小栗栖",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18896",
+      "file": "36_31小栗栖.kml"
+    },
+    {
+      "title": "伏見区 第32国勢統計区 小栗栖宮山",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18895",
+      "file": "36_32小栗栖宮山.kml"
+    },
+    {
+      "title": "伏見区 第33国勢統計区 石田",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18894",
+      "file": "36_33石田.kml"
+    },
+    {
+      "title": "伏見区 第34国勢統計区 日野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18891",
+      "file": "36_34日野.kml"
+    },
+    {
+      "title": "伏見区 第35国勢統計区 春日野",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=18890",
+      "file": "36_35春日野.kml"
+    }
+  ]
+}

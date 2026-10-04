@@ -1,0 +1,24 @@
+import { it, expect } from 'vitest';
+import { RoomManager, serializePublicState } from './room-manager';
+import { sampleDataset, sampleConfig } from '../map-core/sample';
+import { completeSyntheticScenario } from '../../tests/scenario-fixture';
+import { noEvents } from '../game-core';
+it('表示用ファイル名とHostの年数を公開し、地図・hash・開始規則を変更しない', () => {
+  const f = completeSyntheticScenario(sampleDataset, structuredClone(sampleConfig));
+  const manager = new RoomManager({ sample: f.dataset, 'kyoto-kml': f.dataset }, undefined, { settings: noEvents });
+  const created = manager.request('host', { action: 'create', nickname: 'Host', preferredWardId: '26101', datasetKind: 'sample', config: f.config });
+  if (!created.ok || !created.credentials) throw new Error('create failed');
+  const room = manager.rooms.get(created.credentials.roomCode)!;
+  const originalHash = room.scenario.hash;
+  expect(manager.request('host', { action: 'scenario', json: JSON.stringify(f.config), fileName: '京都試遊.json' }).ok).toBe(true);
+  expect(room.scenario.hash).toBe(originalHash);
+  expect(serializePublicState(manager, room).scenario.fileName).toBe('京都試遊.json');
+  for (let i = 1; i < 3; i++) manager.request(`guest${i}`, { action: 'join', roomCode: room.code, nickname: `Guest${i}`, preferredWardId: null });
+  expect(manager.request('guest1', { action: 'lobby-years', yearLimit: 3 }).ok).toBe(false);
+  expect(manager.request('host', { action: 'lobby-years', yearLimit: 3 }).ok).toBe(true);
+  expect(serializePublicState(manager, room).scenario.maxYears).toBe(3);
+  expect(manager.request('host', { action: 'start', yearLimit: 3 }).ok).toBe(true);
+  expect(room.game?.state.maxYears).toBe(3);
+  expect(manager.request('host', { action: 'lobby-years', yearLimit: 10 }).ok).toBe(false);
+  expect(manager.request('host', { action: 'scenario', json: JSON.stringify(f.config), fileName: 'other.json' }).ok).toBe(false);
+});

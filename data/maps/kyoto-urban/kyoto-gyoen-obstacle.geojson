@@ -1,0 +1,40 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "kyoto-gyoen-game-obstacle",
+      "properties": {
+        "name": "京都御苑（ゲーム用境界案）",
+        "source": "2026-10-03 Phase 2A。地理院タイル（標準地図）https://maps.gsi.go.jp/development/ichiran.html および環境省御苑案内図 https://www.env.go.jp/garden/kyotogyoen/2_guide/map.html を参照したPhase 1.5案の上辺・左右の経度を維持。ユーザー指定により下側2頂点を滋野source geometryの南端（緯度35.0173548653）まで延長した単純なゲーム用境界であり、実敷地の精密再現ではない。滋野と京極へ一括適用。分断しても同一logical regionのまま、必要な通行可否はユーザーがadjacency overrideで調整する。画面で修正可。地理院コンテンツ利用規約 https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html 。参照画像は配布しない。"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              135.7595,
+              35.0173548653
+            ],
+            [
+              135.7672,
+              35.0173548653
+            ],
+            [
+              135.767,
+              35.029
+            ],
+            [
+              135.7595,
+              35.029
+            ],
+            [
+              135.7595,
+              35.0173548653
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

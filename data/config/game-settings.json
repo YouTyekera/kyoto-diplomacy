@@ -1,0 +1,7 @@
+{
+  "baseVictoryTargetSC": 15,
+  "referencePlayerCount": 11,
+  "missingPlayerSCBonus": 1,
+  "maxYears": 5,
+  "requiredRivalInitialSupplyCentersForInstantWin": 2
+}
