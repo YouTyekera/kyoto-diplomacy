@@ -16,6 +16,8 @@ interface Submission { orders:GameOrder[];retreats:RetreatOrder[];winter:{buildR
 export interface PlayerSession { playerId:string;nickname:string;preferredWardId:WardId|null;reconnectToken:string;socketId:string|null;submission:Submission }
 export interface OnlineGameSession extends Assignment { state:GameSessionState;seed:string;activePlayerCount:number;phaseSerial:number;locked:boolean;lastResult:PublicResult|null;movementResolutions:number;presentationSkips:Set<string>;matchLog:MatchLog }
 export interface Room { code:string;hostId:string;map:MapDefinition;scenario:Scenario;datasetKind:RegionDataset['kind'];players:Map<string,PlayerSession>;game:OnlineGameSession|null;lobbyMaxYears?:number }
+export interface SessionDiagnostic { event:'socket-disconnect'|'reconnect-success'|'reconnect-failed'|'host-grace-start'|'host-grace-cancel'|'host-transferred';roomCode?:string;player?:string;connection?:string }
+export const hostReconnectGraceMs=15000;
 const blank=():Submission=>({orders:[],retreats:[],winter:{buildRegionIds:[],disbandUnitIds:[]},finalized:false});
 const fail=(...errors:string[]):OnlineResponse=>({ok:false,errors});
 const emptyWinter=()=>({buildRegionIds:[],disbandUnitIds:[]});
@@ -25,6 +27,13 @@ function requireResult(response:GameResponse):GameSessionState {if(!response.ok)
 export class RoomManager {
   readonly rooms=new Map<string,Room>();
   private readonly identities=new Map<string,{roomCode:string;playerId:string}>();
+  private readonly hostGrace=new Map<string,{playerId:string;timer:ReturnType<typeof setTimeout>}>();
+  private readonly sessionListeners=new Set<(event:SessionDiagnostic)=>void>();
+  private disposed=false;
+  onSessionEvent(listener:(event:SessionDiagnostic)=>void){this.sessionListeners.add(listener);return ()=>{this.sessionListeners.delete(listener);};}
+  private sessionEvent(event:SessionDiagnostic['event'],room?:Room,playerId?:string,socketId?:string){for(const listener of this.sessionListeners)listener({event,roomCode:room?.code,player:playerId?.slice(0,8),connection:socketId?.slice(0,8)});}
+  private cancelHostGrace(room:Room){const grace=this.hostGrace.get(room.code);if(!grace)return;clearTimeout(grace.timer);this.hostGrace.delete(room.code);this.sessionEvent('host-grace-cancel',room,grace.playerId);}
+  dispose(){this.disposed=true;for(const grace of this.hostGrace.values())clearTimeout(grace.timer);this.hostGrace.clear();this.sessionListeners.clear();}
   constructor(private datasets:Record<RegionDataset['kind'],RegionDataset>,private settings=defaultGameSettings,private eventOptions:{settings?:EventSettings;seedFactory?:()=>string;now?:()=>string;standardScenarioJson?:string}={}) {}
   private standardScenario(diagnostic?:(value:ScenarioDiagnostic)=>void) {
     const json=this.eventOptions.standardScenarioJson;
@@ -64,15 +73,17 @@ export class RoomManager {
   }
   request(socketId:string,input:unknown,diagnostic?:(value:ScenarioDiagnostic)=>void):OnlineResponse {
     const parsed=requestSchema.safeParse(input);
-    if(!parsed.success) {diagnostic?.({stage:'request-schema-failed'});return fail(...parsed.error.issues.map(i=>`${i.path.join('.')}: ${i.message}`));}
+    if(!parsed.success) {if(input&&typeof input==='object'&&'action' in input&&input.action==='reconnect')this.sessionEvent('reconnect-failed',undefined,undefined,socketId);diagnostic?.({stage:'request-schema-failed'});return fail(...parsed.error.issues.map(i=>`${i.path.join('.')}: ${i.message}`));}
     const request=parsed.data;
     if(request.action==='reconnect') {
       const room=this.rooms.get(request.roomCode),player=room?.players.get(request.playerId);
-      if(!room||!player||!timingSafeEqual(Buffer.from(player.reconnectToken),Buffer.from(request.reconnectToken))) return fail('復帰情報が一致しません。サーバー再起動時はルームを作り直してください');
-      const current=this.playerForSocket(socketId);if(current&&current!==player) return fail('別の参加者として接続中です');
+      if(!room||!player||!timingSafeEqual(Buffer.from(player.reconnectToken),Buffer.from(request.reconnectToken))) {this.sessionEvent('reconnect-failed',room,player?.playerId,socketId);return fail('復帰情報が一致しません。サーバー再起動時はルームを作り直してください');}
+      const current=this.playerForSocket(socketId);if(current&&current!==player) {this.sessionEvent('reconnect-failed',room,current.playerId);return fail('別の参加者として接続中です');}
       if(player.socketId) this.identities.delete(player.socketId);
       player.socketId=socketId;this.identities.set(socketId,{roomCode:room.code,playerId:player.playerId});
+      if(room.hostId===player.playerId)this.cancelHostGrace(room);
       if(!room.game) this.transferHost(room);
+      this.sessionEvent('reconnect-success',room,player.playerId);
       return {ok:true};
     }
     if(request.action==='create'||request.action==='join') {
@@ -131,6 +142,7 @@ export class RoomManager {
     if(request.action==='leave') {
       if(room.game) return fail('開始後の退出は再接続を待つ切断として扱います');
       room.players.delete(player.playerId);this.identities.delete(socketId);
+      if(room.hostId===player.playerId)this.cancelHostGrace(room);
       this.transferHost(room);if(!room.players.size) this.rooms.delete(room.code);return {ok:true};
     }
     if(request.action==='preference') {
@@ -191,14 +203,23 @@ export class RoomManager {
     player.submission.winter=structuredClone(draft);return null;
   }
   private transferHost(room:Room) {
+    if(this.hostGrace.has(room.code))return;
     if(room.players.get(room.hostId)?.socketId) return;
     const next=[...room.players.values()].filter(p=>p.socketId).sort((a,b)=>a.playerId.localeCompare(b.playerId))[0];
-    if(next) room.hostId=next.playerId;
+    if(next&&next.playerId!==room.hostId) {room.hostId=next.playerId;this.sessionEvent('host-transferred',room,next.playerId);}
   }
   disconnect(socketId:string) {
     const room=this.roomForSocket(socketId),player=this.playerForSocket(socketId);this.identities.delete(socketId);
     if(!room||!player||player.socketId!==socketId) return;
-    player.socketId=null;if(!room.game) this.transferHost(room);
+    player.socketId=null;this.sessionEvent('socket-disconnect',room,player.playerId);
+    if(!room.game&&room.hostId===player.playerId&&!this.disposed&&!this.hostGrace.has(room.code)){
+      const grace={playerId:player.playerId,timer:setTimeout(()=>{
+        if(this.hostGrace.get(room.code)!==grace)return;
+        this.hostGrace.delete(room.code);
+        if(this.rooms.get(room.code)===room&&!room.game&&!room.players.get(grace.playerId)?.socketId)this.transferHost(room);
+      },hostReconnectGraceMs)};
+      grace.timer.unref();this.hostGrace.set(room.code,grace);this.sessionEvent('host-grace-start',room,player.playerId);
+    }
   }
   /** Traverse only phases with no required input; each new Orders phase waits for players. */
   private resolveReady(room:Room) {

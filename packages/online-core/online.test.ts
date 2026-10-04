@@ -94,7 +94,7 @@ describe('ルーム・ロビー',()=>{
   it('開始前の退出で人数減少・ホスト移譲、切断者がいる間は開始不可',()=>{
     const {manager,room,sockets}=setup(4);success(manager.request(sockets[0],{action:'leave'}));expect(room.players.size).toBe(3);expect(room.players.get(room.hostId)?.socketId).toBeTruthy();manager.disconnect(sockets[1]);expect(manager.startErrors(room)).toContain('全参加者の接続を待っています');
   });
-  it('開始前ホスト切断時は接続中playerId順で移譲する',()=>{const {manager,room,sockets}=setup();manager.disconnect(sockets[0]);expect(room.hostId).toBe([...room.players.values()].filter(p=>p.socketId).map(p=>p.playerId).sort()[0]);});
+  it('開始前ホスト瞬断は猶予中の権限を保持する',()=>{const {manager,room,sockets}=setup(),host=room.hostId;manager.disconnect(sockets[0]);expect(room.hostId).toBe(host);manager.dispose();});
   it('希望を変更でき、他人の希望は公開しない',()=>{const {manager,room,sockets}=setup();success(manager.request(sockets[1],{action:'preference',preferredWardId:'26109'}));expect(serializePublicState(manager,room).players.every(p=>!('preferredWardId'in p))).toBe(true);expect(serializePrivateState(manager,room,manager.playerForSocket(sockets[1])!).preferredWardId).toBe('26109');});
   it('空nickname/余分なフィールド/不正区/壊れた設定を拒否する',()=>{
     const {manager,room}=setup();for(const nickname of ['', 'x'.repeat(33), '\n'])expect(manager.request(nickname,{action:'join',roomCode:room.code,nickname,preferredWardId:null}).ok).toBe(false);

@@ -1,8 +1,10 @@
-export type ConnectionState='connecting'|'waking'|'retrying'|'online'|'unavailable';
+export type ConnectionState='connecting'|'waking'|'retrying'|'restoring'|'online'|'unavailable';
+export class PermanentConnectionError extends Error {}
 export const connectionText:Record<ConnectionState,string>={
   connecting:'サーバーへ接続しています…',
   waking:'サーバーを起動しています。初回はしばらくかかることがあります。',
   retrying:'サーバーへ再接続しています。接続が戻るまでお待ちください。',
+  restoring:'ルームへ再接続しています…',
   online:'サーバー接続中',
   unavailable:'サーバーに接続できませんでした。少し待ってから再試行してください。',
 };
@@ -38,7 +40,7 @@ export class OnlineConnection {
           if(signal.aborted)break;
           if(healthy){
             try{await this.ports.connect(signal);if(signal.aborted)break;clearTimeout(deadline);this.ports.state('online');return;}
-            catch{if(signal.aborted)break;this.ports.state('retrying');}
+            catch(error){if(signal.aborted)break;if(error instanceof PermanentConnectionError){clearTimeout(deadline);this.ports.state('unavailable');return;}this.ports.state('retrying');}
           }else this.ports.state('waking');
           await pause(backoffMs(attempt++),signal);
         }

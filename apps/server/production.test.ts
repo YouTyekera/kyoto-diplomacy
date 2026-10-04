@@ -2,7 +2,8 @@ import {it,expect,vi} from 'vitest';
 import {io} from 'socket.io-client';
 import {serverConfig,permittedOrigin} from './config';
 import {createOnlineServer} from './server';
-import {RoomManager} from '../../packages/online-core/room-manager';
+import {RoomManager,hostReconnectGraceMs} from '../../packages/online-core/room-manager';
+import type {Credentials,PublicRoomView} from '../../packages/shared/online';
 import {sampleDataset,sampleConfig} from '../../packages/map-core/sample';
 const origin='https://kyoto-web.example';
 it.each([undefined,'','development','test','production','production '])('RenderはNODE_ENV=%jでもPORT/0.0.0.0と本番CORSを固定する',nodeEnv=>{
@@ -52,3 +53,25 @@ it('health/CORS・pollingとWebSocketのorigin拒否・debug非公開・秘密�
   const disconnected=new Promise<void>(resolve=>good.once('disconnect',()=>resolve()));const first=server.close();expect(server.close()).toBe(first);await first;await disconnected;expect(server.http.listening).toBe(false);
  }finally{log.mockRestore();clients.forEach(c=>c.disconnect());await server.close();}
 },15000);
+it('productionの復帰診断は秘密を含まず、Host猶予の期限移譲を他クライアントへ配信する',async()=>{
+ const server=createOnlineServer(new RoomManager({sample:sampleDataset,'kyoto-kml':sampleDataset}),{production:true,frontendOrigin:origin});
+ await new Promise<void>(resolve=>server.http.listen(0,'127.0.0.1',resolve));
+ const address=server.http.address();if(!address||typeof address==='string')throw Error('address');const url=`http://127.0.0.1:${address.port}`;
+ const clients:ReturnType<typeof io>[]=[],credentials:Credentials[]=[],views:PublicRoomView[]=[];
+ const log=vi.spyOn(console,'info').mockImplementation(()=>{});
+ const connect=async()=>{const client=io(url,{transports:['websocket'],autoConnect:false,reconnection:false,extraHeaders:{Origin:origin}});clients.push(client);client.on('publicState',view=>views.push(view));await new Promise<void>(resolve=>{client.once('connect',resolve);client.connect();});return client;};
+ try{
+  for(let i=0;i<3;i++){const client=await connect(),result=await client.timeout(3000).emitWithAck('request',i===0?{action:'create',nickname:'診断ホスト',preferredWardId:null,datasetKind:'sample',config:sampleConfig}:{action:'join',nickname:`診断参加者${i}`,preferredWardId:null,roomCode:credentials[0].roomCode});expect(result.ok).toBe(true);credentials.push(result.credentials);}
+  clients[0].disconnect();await vi.waitFor(()=>expect(JSON.stringify(log.mock.calls)).toContain('host-grace-start'));
+  const returned=await connect();expect((await returned.timeout(3000).emitWithAck('request',{action:'reconnect',...credentials[0]})).ok).toBe(true);
+  expect((await returned.timeout(3000).emitWithAck('request',{action:'reconnect',...credentials[0],reconnectToken:'0'.repeat(64)})).ok).toBe(false);
+  returned.disconnect();
+  await vi.waitFor(()=>expect(views.at(-1)?.hostId).not.toBe(credentials[0].playerId),{timeout:hostReconnectGraceMs+3000,interval:100});
+  const next=views.at(-1)!.hostId,index=credentials.findIndex(c=>c.playerId===next);expect(index).toBeGreaterThan(0);
+  expect((await clients[index].timeout(3000).emitWithAck('request',{action:'leave'})).ok).toBe(true);
+  const output=JSON.stringify(log.mock.calls);
+  for(const event of ['socket-disconnect','reconnect-success','reconnect-failed','host-grace-start','host-grace-cancel','host-transferred'])expect(output).toContain(event);
+  for(const credential of credentials)expect(output).not.toContain(credential.reconnectToken);
+  expect(output).not.toContain('reconnectToken');
+ }finally{clients.forEach(c=>c.disconnect());await server.close();log.mockRestore();}
+},25000);

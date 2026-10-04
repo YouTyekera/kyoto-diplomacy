@@ -44,6 +44,11 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
       socket?.emit('privateState',serializePrivateState(manager,room,player));
     }
   }
+  const unsubscribe=manager.onSessionEvent(event=>{
+    console.info('[online-session]',JSON.stringify(event));
+    // A grace timeout runs outside the socket request transaction.
+    if(event.event==='host-transferred'&&event.roomCode)publish(manager.rooms.get(event.roomCode));
+  });
   io.on('connection',socket=>{
     socket.on('request',(request,ack)=>{
       if(typeof ack!=='function') return;
@@ -65,6 +70,7 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
   function close(){
     if(closing)return closing;
     draining=true;
+    unsubscribe();manager.dispose();
     closing=new Promise<void>(resolve=>{
       const limit=setTimeout(()=>{io.disconnectSockets(true);http.closeAllConnections();},8000);limit.unref();
       io.close(()=>{clearTimeout(limit);resolve();});http.closeIdleConnections();
