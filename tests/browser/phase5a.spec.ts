@@ -12,7 +12,8 @@ async function entry(page: Page, nickname: string, ward: string, url = '/') {
   await page.getByLabel('オンライン希望区').selectOption(ward);
   await expect(page.getByText('サーバー接続中', { exact: true })).toBeVisible();
 }
-async function closePresentation(pages:Page[]){for(const page of pages){if(!await page.locator('.left-hud').count())await page.getByRole('button',{name:'イベント・結果',exact:true}).click();await expect(page.getByLabel('裁定演出')).toBeVisible();if(await page.getByRole('button',{name:'スキップ',exact:true}).isVisible())await page.getByRole('button',{name:'スキップ',exact:true}).click();await page.getByRole('button',{name:'結果を閉じる',exact:true}).click();const submit=page.getByRole('button',{name:'命令書を確定',exact:true});if(await submit.count())await expect(submit).toBeEnabled();}}
+// A presentation may finish naturally between isVisible() and clicking Skip. Keep real click errors fatal.
+async function closePresentation(pages:Page[]){for(const page of pages){if(!await page.locator('.left-hud').count())await page.getByRole('button',{name:'イベント・結果',exact:true}).click();await expect(page.getByLabel('裁定演出')).toBeVisible();const skip=page.getByRole('button',{name:'スキップ',exact:true});if(await skip.isVisible()){try{await skip.click({timeout:1500});}catch(error){if(await skip.isVisible())throw error;}}await page.getByRole('button',{name:'結果を閉じる',exact:true}).click();const submit=page.getByRole('button',{name:'命令書を確定',exact:true});if(await submit.count())await expect(submit).toBeEnabled();}}
 async function finalize(pages: Page[]) { for (const page of pages) await page.getByRole('button', { name: '命令書を確定', exact: true }).click();await closePresentation(pages); }
 async function audioManifest(page: Page) {
   // Test-only source override: production slots remain empty; no dummy music is added.
@@ -29,7 +30,7 @@ async function audioManifest(page: Page) {
 
 test('トップ・設定保存・開発ツールの分離・ローカルの地図入力', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
-  await page.goto('/'); await expect(page.getByRole('heading', { name: '京都市版 Diplomacy', exact: true })).toBeVisible();
+  await page.goto('/'); await expect(page.getByRole('heading', { name: '京都ま市ー', exact: true })).toBeVisible();
   await expect(page.getByTestId('connection-scope')).toContainText('LOCAL');
   await expect(page.getByLabel('設定JSONを読込')).toHaveCount(0);
   await page.getByRole('button', { name: '設定', exact: true }).click();

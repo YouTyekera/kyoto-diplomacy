@@ -244,7 +244,7 @@ export function App() {
   }
   return <div className={`app-shell ${localPlayer && screenMode === 'game' ? 'local-trial' : ''}`}>
     <header>
-      <div><span className="eyebrow">KYOTO DIPLOMACY / {localPlayer?'LOCAL':'DEVELOPMENT TOOLS'}</span><h1>{screenMode === 'game' ? '年間進行（ローカル）' : screenMode === 'rules' ? 'ルールサンドボックス' : screenMode === 'preview' ? 'ゲームプレビュー' : '地図エディタ'}</h1>{localPlayer&&sessionState&&<p>第{sessionState.year}年 · {sessionState.season==='spring'?'春':sessionState.season==='autumn'?'秋':'冬'} · {sessionState.phase==='orders'?'移動命令':sessionState.phase==='retreats'?'撤退':sessionState.phase==='adjustments'?'冬の増減員':sessionState.phase==='finished'?'終了':'進行確認'}</p>}</div>
+      <div><span className="eyebrow">京都ま市ー / {localPlayer?'LOCAL':'DEVELOPMENT TOOLS'}</span><h1>{screenMode === 'game' ? '年間進行（ローカル）' : screenMode === 'rules' ? 'ルールサンドボックス' : screenMode === 'preview' ? 'ゲームプレビュー' : '地図エディタ'}</h1>{localPlayer&&sessionState&&<p>第{sessionState.year}年 · {sessionState.season==='spring'?'春':sessionState.season==='autumn'?'秋':'冬'} · {sessionState.phase==='orders'?'移動命令':sessionState.phase==='retreats'?'撤退':sessionState.phase==='adjustments'?'冬の増減員':sessionState.phase==='finished'?'終了':'進行確認'}</p>}</div>
       <div className="header-actions">
         <button onClick={() => {setLocalPlayer(false);setScreenMode('home');}}>トップへ戻る</button><AudioSettings compact />
         {!localPlayer&&<>
