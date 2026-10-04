@@ -1,0 +1,15 @@
+{
+  "scenario": "data/default-scenarios/kyoto-standard.json",
+  "sha256": "0890799a41e08e9049a1c6709b74437acdaf22b38022811561d5766665359652",
+  "state": "Game Previewを標準設定から再生成し、ローカル試遊の開始前盤面を作戦表示。11勢力の表示確認状態。",
+  "armies": 59,
+  "centers": 72,
+  "hero": {
+    "width": 1600,
+    "height": 900
+  },
+  "og": {
+    "width": 1200,
+    "height": 630
+  }
+}

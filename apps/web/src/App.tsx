@@ -19,13 +19,13 @@ import type { GameOrder } from '../../../packages/shared/events';
 import type { Order, Unit } from '../../../packages/rules-core/model';
 import gyoenProposal from '../../../data/maps/kyoto-urban/kyoto-gyoen-obstacle.geojson?raw';
 import { useAudio,AudioSettings, useBgm } from './audio/AudioProvider';
-import { ConnectionScope } from './ConnectionScope';
 import { invitedRoom } from './RoomCard';
 import { BottomActionBar, useMapCommands } from './BottomActionBar';
 import { recordMatch } from '../../../packages/game-core/match-log';
 import { legalGameOrders } from '../../../packages/game-core/equipment-orders';
 
 import { useEventLocator } from './EventsPanel';
+import { LandingPage } from './LandingPage';
 import { usePresentation,PresentationControls } from './AdjudicationPresentation';
 import { PhaseTransition,useBoardFeedback,useResultCues } from './GameFeel';
 function storageKey(dataset: RegionDataset) { return `kyoto-map-v1-${dataset.kind}-${dataset.regions.map(r => r.regionId).join('|')}`; }
@@ -158,11 +158,9 @@ export function App() {
   if (!dataset || !config) return <main className="loading">地図を読み込んでいます…</main>;
   if (screenMode === 'online') return <OnlineGame dataset={dataset} config={config} developer={developer} onBack={()=>setScreenMode(developer?'edit':'home')} />;
   if (screenMode === 'settings') return <main className="main-menu"><button onClick={() => setScreenMode('home')}>トップへ戻る</button><h1>設定</h1><AudioSettings /></main>;
-  if (screenMode === 'home') return <main className="main-menu"><p className="eyebrow">KYOTO DIPLOMACY</p><h1>京都市版 Diplomacy</h1><p>京都の地図を舞台に、交渉と同時命令で領域を広げる。</p><ConnectionScope />
-    <div className="menu-actions"><button className="primary" onClick={() => {setDeveloper(false);setScreenMode('online');}}>オンライン対戦</button><button disabled={!preview || busy} onClick={() => {setDeveloper(false);setLocalPlayer(true);setScreenMode('game');}}>ローカルで試す</button><button onClick={() => setScreenMode('settings')}>設定</button></div>
-    <p className="hint">オンラインは3～11人。ホストが編集済みのシナリオJSONを読み込んで開始します。</p>
-    <section className="developer-tools"><h2>開発ツール</h2><div className="action-buttons"><button onClick={() => {setDeveloper(true);setLocalPlayer(false);setScreenMode('edit');}}>地図エディタ</button><button disabled={!preview || busy} onClick={() => {setDeveloper(true);setLocalPlayer(false);setScreenMode('preview');}}>Game Preview</button><button disabled={!preview || busy || !!result?.report.issues.some(i => i.severity === 'error')} onClick={() => {const initial=structuredClone(preview!);setSandboxInitial(initial);setSandboxState(initial);setSandboxOrders([]);setSandboxOrderUnits(initial.units);setDeveloper(true);setLocalPlayer(false);setScreenMode('rules');}}>Rules Sandbox</button></div></section>
-    <p className="source-note">© 京都市 · Dataset 00670 · CC BY 4.0</p></main>;
+  if (screenMode === 'home') return <LandingPage online={()=>{setDeveloper(false);setScreenMode('online');}} local={()=>{setDeveloper(false);setLocalPlayer(true);setScreenMode('game');}} settings={()=>setScreenMode('settings')} localDisabled={!preview||busy}>
+    <div className="action-buttons"><button onClick={() => {setDeveloper(true);setLocalPlayer(false);setScreenMode('edit');}}>地図エディタ</button><button disabled={!preview || busy} onClick={() => {setDeveloper(true);setLocalPlayer(false);setScreenMode('preview');}}>Game Preview</button><button disabled={!preview || busy || !!result?.report.issues.some(i => i.severity === 'error')} onClick={() => {const initial=structuredClone(preview!);setSandboxInitial(initial);setSandboxState(initial);setSandboxOrders([]);setSandboxOrderUnits(initial.units);setDeveloper(true);setLocalPlayer(false);setScreenMode('rules');}}>Rules Sandbox</button></div>
+  </LandingPage>;
   const region = dataset.regions.find(r => r.regionId === selected);
   const settings = selected ? config.regions[selected] : undefined;
   const neighbors = selected ? result?.map.adjacency[selected] ?? [] : [];

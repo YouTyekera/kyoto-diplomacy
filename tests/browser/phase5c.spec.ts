@@ -7,7 +7,7 @@ import {legalOrders} from '../../packages/rules-core';
 async function start(pages:Page[],config:MapConfig,wards:string[]){
  for(let i=0;i<pages.length;i++){await pages[i].goto('/');await pages[i].getByRole('button',{name:'オンライン対戦',exact:true}).click();await pages[i].getByLabel('オンラインニックネーム').fill(`5C-${i}`);await pages[i].getByLabel('オンライン希望区').selectOption(wards[i]);await expect(pages[i].getByText('サーバー接続中',{exact:true})).toBeVisible();}
  await pages[0].getByRole('button',{name:'ルームを作成',exact:true}).click();const code=await pages[0].getByTestId('room-code').innerText();
- await pages[0].getByLabel('京都シナリオJSONを読み込む').setInputFiles({name:'phase5c-test-only.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(config))});
+ await pages[0].getByLabel('カスタムJSONを読み込む').setInputFiles({name:'phase5c-test-only.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(config))});
  for(const page of pages.slice(1)){await page.getByLabel('参加ルームコード').fill(code);await page.getByRole('button',{name:'ルームへ参加',exact:true}).click();}
  await pages[0].getByRole('button',{name:'オンラインゲーム開始',exact:true}).click();for(const page of pages){await expect(page.getByTestId('online-phase')).toContainText('第1年 · 春');await page.getByRole('button',{name:'イベント・結果',exact:true}).click();}
 }

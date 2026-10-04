@@ -69,7 +69,7 @@ export function BottomActionBar({commands:c,draft,units,regionName}:{commands:Ma
  const equipmentType=c.action==='bicycle-move'?'bicycle':c.action==='deploy-barricade'?'barricade':null;
  const equipment=c.inventory.filter(e=>e.type===equipmentType&&c.choices.some(o=>'equipmentId'in o&&o.equipmentId===e.equipmentId&&o.type===c.action));
  const parts=c.feedback.split(':');
- return <section className="bottom-action-bar command-dock" aria-label="選択軍の操作"><div className="command-dock-heading"><span className="command-army-icon" aria-hidden="true">▲</span><div><small>選択中のArmy · 現在地</small><strong>{regionName(c.unit.regionId)}の軍</strong></div><span className="command-summary" role="status">{draft?describeOrder(draft,units,regionName):'命令未入力'}</span></div>
+ return <section className="bottom-action-bar command-dock" aria-label="選択軍の操作"><div className="command-dock-heading"><span className="command-army-icon" aria-hidden="true">▲</span><div><small>選択中の陸軍 · 現在地</small><strong>{regionName(c.unit.regionId)}の軍</strong></div><span className="command-summary" role="status">{draft?describeOrder(draft,units,regionName):'命令未入力'}</span></div>
  <fieldset disabled={c.locked}><div className="action-buttons">
  <button onClick={()=>c.commit(c.choices.find(o=>o.type==='hold'))}>待機</button>
  <button disabled={!c.primary.length} aria-pressed={c.action==='move'} onClick={()=>c.begin('move')}>移動</button>

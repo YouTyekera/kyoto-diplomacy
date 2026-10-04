@@ -1,0 +1,2 @@
+# Preserve the user-approved standard scenario byte for byte across checkouts.
+/data/default-scenarios/kyoto-standard.json -text

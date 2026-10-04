@@ -25,7 +25,14 @@ function requireResult(response:GameResponse):GameSessionState {if(!response.ok)
 export class RoomManager {
   readonly rooms=new Map<string,Room>();
   private readonly identities=new Map<string,{roomCode:string;playerId:string}>();
-  constructor(private datasets:Record<RegionDataset['kind'],RegionDataset>,private settings=defaultGameSettings,private eventOptions:{settings?:EventSettings;seedFactory?:()=>string;now?:()=>string}={}) {}
+  constructor(private datasets:Record<RegionDataset['kind'],RegionDataset>,private settings=defaultGameSettings,private eventOptions:{settings?:EventSettings;seedFactory?:()=>string;now?:()=>string;standardScenarioJson?:string}={}) {}
+  private standardScenario(diagnostic?:(value:ScenarioDiagnostic)=>void) {
+    const json=this.eventOptions.standardScenarioJson;
+    if(!json)throw new Error('標準シナリオを読み込めません。サーバー管理者へお知らせください。');
+    const loaded=compileUploadedScenario(this.datasets,'kyoto-kml',json,undefined,diagnostic);
+    loaded.scenario.name='標準シナリオ';loaded.scenario.fileName='kyoto-standard.json';loaded.scenario.source='standard';
+    return loaded;
+  }
   private now(){return this.eventOptions.now?.()??new Date().toISOString();}
   configuredMaxYears(){return this.settings.maxYears;}
   preflight(room:Room){return validateScenarioForOnlinePlay(room.map,room.scenario.config,room.players.size,this.settings,room.scenario.report);}
@@ -76,25 +83,29 @@ export class RoomManager {
         const credentials=this.addPlayer(room,socketId,request.nickname,request.preferredWardId);this.transferHost(room);
         return {ok:true,credentials};
       }
-      let scenario:Scenario;try {scenario=compileScenario(this.datasets[request.datasetKind],request.config,false);}catch(error){return fail(error instanceof Error?error.message:'シナリオを読み込めません');}
+      let scenario:Scenario,datasetKind=request.datasetKind;
+      try {
+        if(request.scenario==='standard'){const loaded=this.standardScenario(diagnostic);scenario=loaded.scenario;datasetKind=loaded.datasetKind;}
+        else scenario=compileScenario(this.datasets[datasetKind],request.config,false);
+      }catch(error){return fail(error instanceof Error?error.message:'シナリオを読み込めません');}
       let code:string;do {code=Array.from(randomBytes(6),n=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n%32]).join('');} while(this.rooms.has(code));
-      const room:Room={code,hostId:'',map:scenario.map,scenario,datasetKind:request.datasetKind,players:new Map(),game:null};this.rooms.set(code,room);
+      const room:Room={code,hostId:'',map:scenario.map,scenario,datasetKind,players:new Map(),game:null};this.rooms.set(code,room);
       const credentials=this.addPlayer(room,socketId,request.nickname,request.preferredWardId);room.hostId=credentials.playerId;
       return {ok:true,credentials};
     }
     const room=this.roomForSocket(socketId),player=this.playerForSocket(socketId);
     if(!room||!player) return fail('先にルームへ参加してください');
-    if(request.action==='scenario') {
+    if(request.action==='scenario'||request.action==='standard-scenario') {
       if(room.game)return fail('開始後はシナリオを変更できません');if(room.hostId!==player.playerId)return fail('ホストだけが読み込めます');
       try {
-        const loaded=compileUploadedScenario(this.datasets,room.datasetKind,request.json,request.counts,diagnostic);
+        const loaded=request.action==='standard-scenario'?this.standardScenario(diagnostic):compileUploadedScenario(this.datasets,room.datasetKind,request.json,request.counts,diagnostic);
         // Complete preflight before replacing anything. Its existing start errors
         // remain visible in the lobby; no balance or start rule is changed.
         const preflight=validateScenarioForOnlinePlay(loaded.scenario.map,loaded.scenario.config,room.players.size,this.settings,loaded.scenario.report);
         diagnostic?.({stage:'room-preflight',counts:loaded.counts,compiledCounts:loaded.compiledCounts,datasetKind:loaded.datasetKind});
         if(preflight.enabledRegions!==loaded.compiledCounts.enabledRegions||preflight.totalSC!==loaded.compiledCounts.totalSC||preflight.totalStartingUnits!==loaded.compiledCounts.totalStartingUnits)
           return fail('アップロード設定とサーバーコンパイル結果が一致しません。');
-        loaded.scenario.fileName=request.fileName;
+        if(request.action==='scenario'){loaded.scenario.fileName=request.fileName;loaded.scenario.source='custom';}
         room.scenario=loaded.scenario;room.map=loaded.scenario.map;room.datasetKind=loaded.datasetKind;
         diagnostic?.({stage:'replaced',counts:loaded.counts,compiledCounts:loaded.compiledCounts,datasetKind:loaded.datasetKind});
         return {ok:true};
@@ -227,7 +238,7 @@ export class RoomManager {
 export function serializePublicState(manager:RoomManager,room:Room,includeMap=true):PublicRoomView {
   const game=room.game,state=game?.state,preflight=manager.preflight(room);
   return publicRoomSchema.parse({roomCode:room.code,hostId:room.hostId,...(includeMap?{map:room.map}:{}),startErrors:game?[]:manager.startErrors(room),
-    scenario:{scenarioId:room.scenario.id,scenarioName:room.scenario.name,scenarioHash:room.scenario.hash,fileName:room.scenario.fileName,loaded:room.scenario.loaded,enabledRegions:preflight.enabledRegions,totalSC:preflight.totalSC,totalStartingUnits:preflight.totalStartingUnits,errors:preflight.errors,warnings:preflight.warnings,maxYears:state?.maxYears??room.lobbyMaxYears??manager.configuredMaxYears()},
+    scenario:{scenarioId:room.scenario.id,scenarioName:room.scenario.name,scenarioHash:room.scenario.hash,fileName:room.scenario.fileName,source:room.scenario.source??(room.scenario.loaded?'custom':'editor'),loaded:room.scenario.loaded,enabledRegions:preflight.enabledRegions,totalSC:preflight.totalSC,totalStartingUnits:preflight.totalStartingUnits,errors:preflight.errors,warnings:preflight.warnings,maxYears:state?.maxYears??room.lobbyMaxYears??manager.configuredMaxYears()},
     players:[...room.players.values()].map(p=>{
       const wardId=game?.playerWards[p.playerId]??null,required=manager.required(room,p),finalized=p.submission.finalized;
       const eliminated=!!state?.end?.eliminated.some(e=>e.wardId===wardId);

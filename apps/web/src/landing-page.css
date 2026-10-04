@@ -1,0 +1,25 @@
+.landing-page { max-width: 1440px; margin: 0 auto; padding: clamp(24px, 5vw, 72px); }
+.landing-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); grid-template-areas: "intro hero" "actions hero"; gap: 24px 36px; align-items: center; }
+.landing-intro { grid-area: intro; align-self: end; }
+.landing-intro h1 { font-size: clamp(28px, 3.1vw, 46px); letter-spacing: -.03em; line-height: 1.3; margin: 12px 0 22px; }
+.title-copy { white-space: pre-line; line-height: 1.95; font-size: clamp(14px, 1.12vw, 16px); margin: 0; }
+.landing-hero { grid-area: hero; margin: 0; min-width: 0; }
+.landing-hero img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
+.landing-hero figcaption { color: var(--muted); font-size: var(--font-small); margin-top: 10px; text-align: right; }
+.landing-actions { grid-area: actions; align-self: start; }
+.landing-actions > .primary { width: min(100%, 360px); padding: 16px 24px; font-size: 18px; text-align: left; }
+.landing-actions > .primary span { float: right; }
+.landing-actions > p { font-size: var(--font-small); margin: 10px 0 6px; color: var(--muted); }
+.landing-secondary { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.landing-page .developer-tools { margin-top: 36px; padding-top: 16px; color: var(--muted); }
+.landing-page .developer-tools summary { cursor: pointer; font-size: var(--font-small); }
+.landing-page .developer-tools[open] .action-buttons { margin-top: 14px; }
+.scenario-options { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 16px 0; }
+.scenario-options .file-button { margin: 0; }
+.scenario-options button[aria-pressed="true"] { border-color: var(--accent); background: var(--surface-soft); }
+@media (max-width: 800px) {
+  .landing-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "intro" "hero" "actions"; gap: 20px; }
+  .landing-intro h1 { margin-bottom: 16px; }
+  .landing-actions > .primary { width: 100%; }
+  .title-copy { font-size: 14px; line-height: 1.8; }
+}

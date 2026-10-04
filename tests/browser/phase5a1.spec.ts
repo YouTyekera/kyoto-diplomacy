@@ -41,12 +41,12 @@ test('実京都JSONをサンプル作成ルームへuploadし190/72/59を公開�
   await page.getByLabel('オンラインニックネーム').fill('実設定確認');
   await expect(page.getByText('サーバー接続中',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'ルームを作成',exact:true}).click();
-  await page.getByLabel('京都シナリオJSONを読み込む').setInputFiles({name:'kyoto-urban-config(3).json',mimeType:'application/json',buffer:Buffer.from(json)});
+  await page.getByLabel('カスタムJSONを読み込む').setInputFiles({name:'kyoto-urban-config(3).json',mimeType:'application/json',buffer:Buffer.from(json)});
   await expect(page.getByTestId('scenario-summary')).toContainText('採用 190地域 / 補給拠点 72 / 初期軍 59');
-  await expect(page.getByLabel('シナリオ検証')).toContainText('シナリオJSON読込済み');
+  await expect(page.getByLabel('シナリオ検証')).toContainText('カスタムJSON読込済み');
   await expect(page.getByLabel('シナリオ検証')).toContainText('Error 0');
   const before=await page.getByTestId('scenario-summary').innerText();
-  await page.getByLabel('京都シナリオJSONを読み込む').setInputFiles({name:'unknown.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({...JSON.parse(json),regions:{}}))});
+  await page.getByLabel('カスタムJSONを読み込む').setInputFiles({name:'unknown.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({...JSON.parse(json),regions:{}}))});
   await expect(page.getByRole('alert').filter({hasText:'Dataset照合'})).toBeVisible();
   expect(await page.getByTestId('scenario-summary').innerText()).toBe(before);
 });
@@ -70,7 +70,7 @@ test('同じ実ファイルをEditorと京都ルームで読み190/72/59・地�
       await expect(pages[i].getByText('サーバー接続中',{exact:true})).toBeVisible();
     }
     await pages[0].getByRole('button',{name:'ルームを作成',exact:true}).click();
-    await pages[0].getByLabel('京都シナリオJSONを読み込む').setInputFiles({name:'kyoto-urban-config(3).json',mimeType:'application/json',buffer:Buffer.from(json)});
+    await pages[0].getByLabel('カスタムJSONを読み込む').setInputFiles({name:'kyoto-urban-config(3).json',mimeType:'application/json',buffer:Buffer.from(json)});
     const code=await pages[0].getByTestId('room-code').innerText();
     for(let i=1;i<3;i++){await pages[i].getByLabel('参加ルームコード').fill(code);await pages[i].getByRole('button',{name:'ルームへ参加',exact:true}).click();}
     for(const page of pages)await expect(page.getByTestId('scenario-summary')).toContainText('採用 190地域 / 補給拠点 72 / 初期軍 59');

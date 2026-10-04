@@ -13,12 +13,13 @@ const preference=wardSchema.nullable();
 export const winterDraftSchema=z.object({buildRegionIds:z.array(id).max(227),disbandUnitIds:z.array(id).max(227)}).strict();
 const phaseKey=id;
 export const requestSchema=z.discriminatedUnion('action',[
-  z.object({action:z.literal('create'),nickname,preferredWardId:preference,datasetKind:z.enum(['sample','kyoto-kml']),config:configSchema}).strict(),
+  z.object({action:z.literal('create'),nickname,preferredWardId:preference,datasetKind:z.enum(['sample','kyoto-kml']),config:configSchema,scenario:z.literal('standard').optional()}).strict(),
   z.object({action:z.literal('join'),nickname,preferredWardId:preference,roomCode:z.string().trim().toUpperCase().regex(/^[A-Z2-9]{6}$/)}).strict(),
   z.object({action:z.literal('reconnect'),...credentialsSchema.shape}).strict(),
   z.object({action:z.literal('preference'),preferredWardId:preference}).strict(),
   z.object({action:z.literal('leave')}).strict(),
   z.object({action:z.literal('scenario'),json:z.string().max(4*1024*1024),counts:scenarioCountsSchema.optional(),fileName:z.string().min(1).max(255).refine(v=>[...v].every(c=>c!=='/'&&c!=='\\'&&c.charCodeAt(0)>=32&&c.charCodeAt(0)!==127)).optional()}).strict(),
+  z.object({action:z.literal('standard-scenario')}).strict(),
   z.object({action:z.literal('export-log')}).strict(),
   z.object({action:z.literal('presentation-skipped'),presentationId:id}).strict(),
   z.object({action:z.literal('lobby-years'),yearLimit:z.number().int().positive().nullable()}).strict(),
@@ -58,7 +59,7 @@ export const publicGameSchema=z.object({year:z.number().int(),season:z.enum(['sp
   presentation:presentationSchema.nullable(),requiredRivalInitialSupplyCentersForInstantWin:z.number().int().nonnegative(),rivalInitialSCByWard:z.record(z.string(),z.number().int().nonnegative()),events:publicEventsSchema,inventoryCounts:z.record(z.string(),z.object({bicycle:z.number().int().nonnegative(),barricade:z.number().int().nonnegative()}).strict()),
   end:gameEndSchema.nullable(),lastResult:publicResultSchema.nullable()}).strict();
 export type PublicGameView=z.infer<typeof publicGameSchema>;
-export const publicRoomSchema=z.object({roomCode:z.string(),hostId:id,map:mapDefinitionSchema.optional(),players:z.array(publicPlayerSchema),startErrors:strings,scenario:z.object({scenarioId:z.string(),scenarioName:z.string(),scenarioHash:z.string(),fileName:z.string().optional(),loaded:z.boolean(),enabledRegions:z.number().int(),totalSC:z.number().int(),totalStartingUnits:z.number().int(),errors:strings,warnings:strings,maxYears:z.number().int().positive()}).strict(),game:publicGameSchema.nullable()}).strict();
+export const publicRoomSchema=z.object({roomCode:z.string(),hostId:id,map:mapDefinitionSchema.optional(),players:z.array(publicPlayerSchema),startErrors:strings,scenario:z.object({scenarioId:z.string(),scenarioName:z.string(),scenarioHash:z.string(),fileName:z.string().optional(),source:z.enum(['standard','custom','editor']).optional(),loaded:z.boolean(),enabledRegions:z.number().int(),totalSC:z.number().int(),totalStartingUnits:z.number().int(),errors:strings,warnings:strings,maxYears:z.number().int().positive()}).strict(),game:publicGameSchema.nullable()}).strict();
 export type PublicRoomView=z.infer<typeof publicRoomSchema>;
 const winterBudgetSchema=z.object({supplyCenters:z.number().int(),units:z.number().int(),nonSCRegions:z.number().int(),buildCount:z.number().int(),disbandCount:z.number().int(),buildRegionIds:strings}).strict();
 export const privatePlayerSchema=z.object({playerId:id,preferredWardId:preference,wardId:wardSchema.nullable(),phaseKey:phaseKey.nullable(),finalized:z.boolean(),

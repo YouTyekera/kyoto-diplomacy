@@ -82,7 +82,7 @@ Renderが供給する `RENDER=true` を最優先で判定し、Backendは必ず 
 3. Backendの実URLに `/health` を付けてブラウザで開き、`{"ok":true}`を確認します。Backend rootの404は正常です。RenderがTLSを管理し、FrontendはHTTPS、Socket.IOはWSSへupgradeします。[公式WebSocket説明](https://render.com/docs/websocket)
 4. Frontendの実URLを開きます。「公開サーバー」と表示されることを確認します。
 5. Online入口で「サーバー接続中」まで待ちます。Backend休止後は「サーバーを起動しています。初回はしばらくかかることがあります。」と表示します。約90秒後も接続できなければ「接続を再試行」。Frontendは待ち時間中も表示されます。
-6. 3人でルーム作成→招待リンク参加→希望区→シナリオJSON読込→開始。**標準京都設定は採用0地域**です。ホストは自分たちが承認した保存済みMapConfigを読み込んでください。検証用fixtureを確定ゲーム地図として自動採用する処理はありません。
+6. 3人でルーム作成→招待リンク参加→希望区→開始。Phase 7Bではユーザー提供の正式な標準シナリオが選択済みです。ファイル選択は不要です。独自設定を使う場合だけ「カスタムJSONを読み込む」を選びます。「標準シナリオ」で正式設定へ戻せます。
 7. 自軍左クリック→合法地域右クリック→移動命令/矢印/dock、Support、3人の命令確定、裁定を確認します。同じタブを再読込し、本人として復帰することを確認します。BGM/SEのON/OFFと音量も確認します。
 8. Wi-Fi以外の回線や友達の端末からも招待URLを開いてください。この外部回線確認はローカルテストでは代替できません。
 
@@ -123,3 +123,12 @@ Free Backendは無通信が続くと休止し、次のHTTP/WSSで起動します
 - 友達へ公開FrontendのURLを共有。進行中の対局がない時にだけBackend更新。
 
 Codexはこれらのアカウント操作や実公開を完了したとは扱いません。
+
+## Phase 7Bを既存の公開サービスへ反映する
+
+1. コード、`data/default-scenarios/kyoto-standard.json`、public内のヒーロー/OGP画像をcommitし、GitHubへpushします。distはcommitせず、Renderのbuildで生成します。
+2. **Backend**でManual Deploy → Deploy latest commit。内蔵標準シナリオとリクエスト検証の更新が必要です。対局のない時間に行ってください。
+3. **Frontend**でもManual Deploy → Deploy latest commit。新トップ・文言・OGP・画像がbuildされます。環境変数の追加は不要です。
+4. https://kyoto-diplomacy-web.onrender.com/ と `/media/kyoto-board-hero.webp`、`/og/kyoto-diplomacy-og.png` を開き、画像が表示されることを確認します。標準のまま3人で開始し、カスタムJSONへの切替も確認します。
+
+**auto deployがOFFの場合、GitHubへpushしただけでは公開版は更新されない可能性があります。両サービスを手動Deployしてください。** OGP画像の絶対URLは今回指定された公開Frontend URLを使用します。別ドメインへ移す場合はapps/web/index.htmlのOGP URLも合わせて更新します。Discord側のリンクプレビューキャッシュの即時更新は保証しません。

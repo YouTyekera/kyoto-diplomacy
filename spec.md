@@ -1,6 +1,6 @@
 # 京都市版 Diplomacy 開発仕様書
-Version: 0.17-draft
-Status: Phase 6C/7Aの実装・ローカル検証完了。Phase 7Aで停止。実Render公開は利用者側の手動操作が未実施。
+Version: 0.18-draft
+Status: Phase 7B実装・検証完了。公開反映は利用者側の手動Deploy。
 Last updated: 2026-10-04
 
 ## 0. この文書の役割
@@ -3510,3 +3510,25 @@ FrontendはBackend起動を待たず表示する。health確認と約90秒の接
 render.yamlはroot package.jsonの実在するnpm scriptsを使用し、npm ci・package-lock・Node 24 major固定・本番branch main・autoDeployTrigger offで再現する。Room/Gameはメモリ保持のため、再起動・redeploy・休止で失われる可能性をREADMEと報告へ明記する。
 
 通常6コマンドに加え、公開origin想定接続・CORS・health・起動待ち/再試行・招待URL・再接続・本番音源path・localhost固定URLなしを検証する。3クライアントで作成から裁定/再読込まで可能な範囲で確認し、実Render公開とローカル検証を区別する。GitHub/Renderのユーザー側操作・環境変数・公開URL確認はDEPLOY_RENDER.mdへ具体的に記載する。未実施の公開を完了扱いにしない。
+
+## 34. Phase 7B — 公開トップ・正式標準シナリオ・用語統一
+
+2026-10-04のユーザー指示とCODEX_PHASE7B_PROMPT.mdを正本とする。以前の「正式配置は未確定」「標準は採用0」の記述はエディタ初期設定・過去フェイズの記録として保持し、プレイヤー向け標準シナリオについては本節を優先する。ゲームルール・裁定・勝利条件・イベント・通信方式は変更しない。
+
+ユーザー提供のkyoto-standard.jsonを `data/default-scenarios/kyoto-standard.json` へbyte単位で保持する。SHA-256は `0890799a41e08e9049a1c6709b74437acdaf22b38022811561d5766665359652`。enabled、補給拠点、homeWardId、startingUnit、隣接差分、御苑障害物を変更・再生成しない。通常のオンライン作成は標準を選択済みとし、ホストのファイル選択を要求しない。カスタムJSONと標準への復帰を提供し、どちらもサーバーの既存schema・Dataset照合・compile・preflightを通す。開始後の変更禁止・失敗時の既存シナリオ保持・ホスト権限を維持する。開発者のエディタ設定による検証導線も維持する。
+
+タイトルは「京都市版 Diplomacy」。主コピーは次の3行を一字一句保持する。
+
+```text
+京都の街を分け合い、交渉し、裏をかき、補給拠点を奪い合う。
+一手の読みと会話の駆け引きが、そのまま勝敗につながる。
+本家ディプロマシーに運の要素を加えた京都発戦略ボードゲーム
+```
+
+Frontendの表示、tooltip、aria-label、通知、ヘルプ、命令・撤退・冬・結果を「陸軍」「補給拠点」に統一する。内部type、JSON、schema、通信、telemetryのarmy/SC識別子は互換性のため維持する。
+
+実際の標準設定をアプリのMapCanvasへ読み込み、山地背景・勢力色・補給拠点・陸軍の見える盤面からヒーロー画像と1200×630のOGP画像を作る。他作品・外部素材を使わない。トップの主導線はオンライン対戦、補助導線はローカル試遊・設定。公開モードでは開発ツールを折りたたむ。1280×720・1920×1080・mobile幅を確認する。
+
+公開URLは `https://kyoto-diplomacy-web.onrender.com/`。静的HTMLにtitle、og:title、og:description、og:type=website、og:url、絶対HTTPSのog:image、画像寸法・alt、twitter:card=summary_large_imageと対応タイトル・説明・画像を設定する。説明は「京都の街を分け合い、交渉し、裏をかき、補給拠点を奪い合う。読みと会話の駆け引きで勝敗が決まる、京都発戦略ボードゲーム。」を使用する。
+
+lint / typecheck / test / build / test:browser / test:production / map:validateを実行し、標準の3人開始、カスタム回帰、用語、コピー完全一致、画像200、production HTML metadata、3サイズの画像を確認する。PHASE7B_REPORT.mdを作成して停止し、新ルール・永続DB・Discord Activityへ進まない。auto deployがOFFならpushだけでは反映されない可能性とFrontend / Backend両方のManual Deployを案内する。実公開へ未反映の変更を反映済みとは扱わない。

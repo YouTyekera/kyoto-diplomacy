@@ -16,10 +16,11 @@ async function closePresentation(pages:Page[]){for(const page of pages){if(!awai
 async function finalize(pages: Page[]) { for (const page of pages) await page.getByRole('button', { name: '命令書を確定', exact: true }).click();await closePresentation(pages); }
 async function audioManifest(page: Page) {
   // Test-only source override: production slots remain empty; no dummy music is added.
-  await page.route('**/assets/index-*.js', async route => {
+  // Support both Vite development modules and the production preview bundle.
+  await page.route(/(?:assets\/index-[^/]+\.js|audio\/bgm-manifest\.ts)(?:\?.*)?$/, async route => {
     const response = await route.fetch(); let body = await response.text();
     for (const slot of ['title', 'lobby', 'game', 'result']) {
-      const source = `id:"${slot}-main",src:""`; expect(body).toContain(source);
+      const source = new RegExp(`id:\\s*"${slot}-main",\\s*src:\\s*""`); expect(body).toMatch(source);
       body = body.replace(source, `id:"${slot}-main",src:"/audio/bgm/test-${slot}.mp3"`);
     }
     await route.fulfill({ response, body });
@@ -84,7 +85,7 @@ test('3人の招待・初期表示・シナリオ・地図命令・ready・1920/
     await pages[0].getByRole('button', { name: 'コードをコピー', exact: true }).click(); expect(await pages[0].evaluate(() => navigator.clipboard.readText())).toBe(code);
     await pages[0].getByRole('button', { name: '招待リンクをコピー', exact: true }).click(); const invite = await pages[0].evaluate(() => navigator.clipboard.readText()); expect(invite).toContain(`/?room=${code}`);
     await expect(pages[0].getByRole('status').filter({ hasText: '同じPCからのみ' })).toBeVisible();
-    await pages[0].getByLabel('京都シナリオJSONを読み込む').setInputFiles({ name: 'player-ui-test-only.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(config)) });
+    await pages[0].getByLabel('カスタムJSONを読み込む').setInputFiles({ name: 'player-ui-test-only.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(config)) });
     await expect(pages[0].getByTestId('scenario-summary')).toContainText('player-ui-test-only.json');
     await pages[0].setViewportSize({ width: 1280, height: 720 }); const compactCode = await pages[0].getByTestId('room-code').boundingBox(); expect(compactCode!.y + compactCode!.height).toBeLessThan(720); await pages[0].setViewportSize({ width: 1920, height: 1080 });
     for (let i = 1; i < 3; i++) { await pages[i].goto(invite); await expect(pages[i].getByLabel('参加ルームコード')).toHaveValue(code); await expect(pages[i].getByLabel('オンラインニックネーム')).toBeFocused(); await pages[i].getByLabel('オンラインニックネーム').fill(`Guest${i}`); await pages[i].getByLabel('オンライン希望区').selectOption(wards[i]); await pages[i].getByRole('button', { name: 'ルームへ参加', exact: true }).click(); await expect(pages[i].getByTestId('scenario-summary')).toContainText('player-ui-test-only.json'); }
@@ -135,7 +136,7 @@ test('Game OverでresultのBGM contextへ切替・再接続でも結果を保持
   try {
     for (let i = 0; i < 3; i++) await entry(pages[i], `Result${i}`, ['26101', '26102', '26103'][i]);
     await pages[0].getByRole('button', { name: 'ルームを作成', exact: true }).click(); const code = await pages[0].getByTestId('room-code').innerText();
-    await pages[0].getByLabel('京都シナリオJSONを読み込む').setInputFiles({ name: 'result-ui-test.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(config)) });
+    await pages[0].getByLabel('カスタムJSONを読み込む').setInputFiles({ name: 'result-ui-test.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(config)) });
     for (const page of pages.slice(1)) { await page.getByLabel('参加ルームコード').fill(code); await page.getByRole('button', { name: 'ルームへ参加', exact: true }).click(); }
     await pages[1].evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })); await pages[1].getByRole('button', { name: 'コードをコピー', exact: true }).click(); await expect(pages[1].getByText('コピーしました', { exact: true })).toBeVisible();
     await pages[0].getByRole('button', { name: 'オンラインゲーム開始', exact: true }).click(); await expect(pages[0].locator('html')).toHaveAttribute('data-bgm-context', 'domestic');
@@ -162,7 +163,7 @@ test('プレイヤーの地図操作で自転車2区間・バリケード設置�
   try {
     for (let i = 0; i < 3; i++) await entry(pages[i], `Gear${i}`, wards[i]);
     await pages[0].getByRole('button', { name: 'ルームを作成', exact: true }).click(); const code = await pages[0].getByTestId('room-code').innerText();
-    await pages[0].getByLabel('京都シナリオJSONを読み込む').setInputFiles({ name: 'gear-ui-test-only.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(config)) });
+    await pages[0].getByLabel('カスタムJSONを読み込む').setInputFiles({ name: 'gear-ui-test-only.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(config)) });
     for (const page of pages.slice(1)) { await page.getByLabel('参加ルームコード').fill(code); await page.getByRole('button', { name: 'ルームへ参加', exact: true }).click(); }
     await pages[0].getByRole('button', { name: 'オンラインゲーム開始', exact: true }).click(); await expect(pages[0].getByTestId('online-phase')).toContainText('春');
     for (const page of pages) { await page.getByRole('button', { name: 'イベント・結果', exact: true }).click(); await page.getByRole('button', { name: '参加者・装備', exact: true }).click(); }

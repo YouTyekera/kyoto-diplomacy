@@ -4,7 +4,7 @@ import { compileMap } from '../map-core/compile';
 import { validateMap, type ValidationReport, type Issue } from '../map-core/validation';
 import { victoryTarget, defaultGameSettings } from './initial';
 
-export interface Scenario {id:string;name:string;hash:string;config:MapConfig;map:MapDefinition;report:ValidationReport;loaded:boolean;fileName?:string}
+export interface Scenario {id:string;name:string;hash:string;config:MapConfig;map:MapDefinition;report:ValidationReport;loaded:boolean;fileName?:string;source?:'standard'|'custom'|'editor'}
 function canonical(value:unknown):string {
   if(Array.isArray(value))return '['+value.map(canonical).join(',')+']';
   if(value!==null&&typeof value==='object')return '{'+Object.entries(value).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>JSON.stringify(k)+':'+canonical(v)).join(',')+'}';

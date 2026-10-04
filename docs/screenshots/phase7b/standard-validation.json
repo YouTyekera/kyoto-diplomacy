@@ -1,0 +1,99 @@
+{
+  "errors": [],
+  "warnings": [
+    "京極: 障害物と重なります (kyoto-gyoen-game-obstacle)",
+    "滋野: 障害物と重なります (kyoto-gyoen-game-obstacle)",
+    "滋野: 障害物差し引き後は2部分です（原本1部分）。要確認。",
+    "竹間: 障害物と重なります (kyoto-gyoen-game-obstacle)",
+    "富有: 障害物と重なります (kyoto-gyoen-game-obstacle)",
+    "南大内: 原本から複数部分を持つ地域です",
+    "安井: 原本から複数部分を持つ地域です",
+    "砂川: 原本から複数部分を持つ地域です",
+    "区ごとの採用地域数に差があります: 北区 14、上京区 17、左京区 15、中京区 23、東山区 11、山科区 13、下京区 23、南区 15、右京区 20、西京区 13、伏見区 26",
+    "区ごとの初期SC数に差があります: 北区 5、上京区 6、左京区 5、中京区 6、東山区 6、山科区 5、下京区 6、南区 6、右京区 5、西京区 5、伏見区 5",
+    "区ごとの初期軍数に差があります: 北区 5、上京区 6、左京区 5、中京区 6、東山区 6、山科区 5、下京区 5、南区 6、右京区 5、西京区 5、伏見区 5",
+    "行政区境界に接する地域: SC 46/72、初期軍 33/59"
+  ],
+  "enabledRegions": 190,
+  "totalSC": 72,
+  "totalStartingUnits": 59,
+  "wardCounts": [
+    {
+      "wardId": "26101",
+      "name": "北区",
+      "regions": 14,
+      "supplyCenters": 5,
+      "armies": 5
+    },
+    {
+      "wardId": "26102",
+      "name": "上京区",
+      "regions": 17,
+      "supplyCenters": 6,
+      "armies": 6
+    },
+    {
+      "wardId": "26103",
+      "name": "左京区",
+      "regions": 15,
+      "supplyCenters": 5,
+      "armies": 5
+    },
+    {
+      "wardId": "26104",
+      "name": "中京区",
+      "regions": 23,
+      "supplyCenters": 6,
+      "armies": 6
+    },
+    {
+      "wardId": "26105",
+      "name": "東山区",
+      "regions": 11,
+      "supplyCenters": 6,
+      "armies": 6
+    },
+    {
+      "wardId": "26110",
+      "name": "山科区",
+      "regions": 13,
+      "supplyCenters": 5,
+      "armies": 5
+    },
+    {
+      "wardId": "26106",
+      "name": "下京区",
+      "regions": 23,
+      "supplyCenters": 6,
+      "armies": 5
+    },
+    {
+      "wardId": "26107",
+      "name": "南区",
+      "regions": 15,
+      "supplyCenters": 6,
+      "armies": 6
+    },
+    {
+      "wardId": "26108",
+      "name": "右京区",
+      "regions": 20,
+      "supplyCenters": 5,
+      "armies": 5
+    },
+    {
+      "wardId": "26111",
+      "name": "西京区",
+      "regions": 13,
+      "supplyCenters": 5,
+      "armies": 5
+    },
+    {
+      "wardId": "26109",
+      "name": "伏見区",
+      "regions": 26,
+      "supplyCenters": 5,
+      "armies": 5
+    }
+  ]
+}

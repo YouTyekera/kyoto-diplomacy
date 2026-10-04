@@ -329,7 +329,7 @@ export function MapCanvas({ dataset, config, result, selected, onSelect:handleSe
     {playerFacing&&inspected&&config.regions[inspected.regionId]?.enabled&&<div className="region-inspector" aria-label="地域インスペクタ"><strong>{inspected.name}</strong><span>{WARDS.find(w=>w.id===inspected.wardId)?.name} · 支配: {WARDS.find(w=>w.id===preview?.regionControl[inspected.regionId]?.controllerWardId)?.name??'中立'}</span>{config.regions[inspected.regionId]?.isSupplyCenter&&<div>補給拠点: {WARDS.find(w=>w.id===preview?.regionControl[inspected.regionId]?.supplyCenterOwnerWardId)?.name??'中立（未所有）'}</div>}</div>}
     {secondaryIds.length>0&&<p className="two-hop-hint">{secondaryTargetIds?'自転車の第2区間の移動先':'次の一歩の参考（現在の通行条件基準）'}</p>}
     <div className="map-footer"><span aria-live="polite">{hover || 'ドラッグで移動 · ホイールで拡大 · クリックで地域を選択'}</span>
-      <span>Armyピン: {preview ? '現在の陸軍' : '初期ユニット'} / 円: 補給拠点 / 濃色領域: 侵入不能 / 青実線: Move / 茶破線: Support</span></div>
+      <span>陸軍ピン: {preview ? '現在の陸軍' : '初期ユニット'} / 円: 補給拠点 / 濃色領域: 侵入不能 / 青実線: Move / 茶破線: Support</span></div>
   </section>;
 }
 

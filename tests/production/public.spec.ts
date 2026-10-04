@@ -1,5 +1,4 @@
 import {test,expect,type Page} from '@playwright/test';
-import {readFile} from 'node:fs/promises';
 import type {PrivatePlayerView,PublicRoomView} from '../../packages/shared/online';
 import {sfxManifest} from '../../apps/web/src/audio/sfx-manifest';
 const wards=['26102','26104','26111'];
@@ -14,8 +13,9 @@ test('production HTTPS/WSS・3クライアント招待/割当/実右クリック
  try{
   await page.goto(baseURL!);await page.getByRole('button',{name:'オンライン対戦',exact:true}).click();await expect(page.getByTestId('connection-scope')).toHaveText('公開サーバー');await expect(page.getByText('サーバー接続中',{exact:true})).toBeVisible();await page.getByLabel('オンラインニックネーム').fill('公開ホスト');await page.getByLabel('オンライン希望区').selectOption(wards[0]);await page.getByRole('button',{name:'ルームを作成',exact:true}).click();
   const code=await page.getByTestId('room-code').innerText();await page.getByRole('button',{name:'招待リンクをコピー',exact:true}).click();await expect(page.getByText('招待リンクをコピーしました。友達へこのURLを共有してください。',{exact:true})).toBeVisible();const invite=await page.evaluate(()=>navigator.clipboard.readText());expect(invite).toBe(`${baseURL}/?room=${code}`);
-  await page.getByLabel('京都シナリオJSONを読み込む').setInputFiles({name:'public-test-only.json',mimeType:'application/json',buffer:await readFile('tests/fixtures/phase5a1-kyoto-map-config.json')});
+  await expect(page.getByRole('button',{name:'標準シナリオ',exact:true})).toHaveAttribute('aria-pressed','true');await expect(page.getByLabel('シナリオ検証')).toContainText('ファイルの読み込みは不要');
   for(let i=1;i<3;i++){await pages[i].goto(invite);await expect(pages[i].getByLabel('参加ルームコード')).toHaveValue(code);await pages[i].getByLabel('オンラインニックネーム').fill(`公開ゲスト${i}`);await pages[i].getByLabel('オンライン希望区').selectOption(wards[i]);await expect(pages[i].getByText('サーバー接続中',{exact:true})).toBeVisible();await pages[i].getByRole('button',{name:'ルームへ参加',exact:true}).click();}
+  for(const s of states)await expect.poll(()=>s.room?.scenario.source).toBe('standard');
   await page.getByRole('button',{name:'オンラインゲーム開始',exact:true}).click();await expect(page.getByTestId('own-ward')).toContainText('上京区');for(const s of states)expect(s.urls.some(u=>u.startsWith('wss://kyoto-server.test:5444/'))).toBe(true);
   const state=states[0],units=state.room!.game!.board.units,own=units.filter(u=>u.ownerWardId===wards[0]);
   const support=own.flatMap(u=>state.self!.legalOrders[u.unitId]).find(o=>o.type==='support-move'&&own.some(u=>u.unitId===o.targetUnitId))!;if(support.type!=='support-move')throw Error('support fixture');
