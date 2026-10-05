@@ -1,0 +1,21 @@
+{
+  "delayMs": 2000,
+  "firstFrame": {
+    "arrows": 1,
+    "ms": 11.400000002235174,
+    "cues": 1
+  },
+  "orderLengths": [
+    1,
+    2,
+    3,
+    3
+  ],
+  "finalizationSentLatestDraft": true,
+  "armyPositionsUnchangedBeforeAdjudication": true,
+  "rollback": true,
+  "bgmSettings": {
+    "enabled": true,
+    "volume": 43
+  }
+}

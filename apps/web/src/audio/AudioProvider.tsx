@@ -39,7 +39,7 @@ export function useBgm(context: BgmContext) {
 }
 export function AudioSettings({ compact = false }: { compact?: boolean }) {
   const { settings, change, manager, blocked,sfxSettings,changeSfx,sfx } = useAudio();
-  const controls = <><button aria-label="BGM ON/OFF" aria-pressed={settings.enabled && !blocked} onClick={() => { manager.unlock(); change({ ...settings, enabled: blocked || !settings.enabled }); }}>音楽 {settings.enabled && !blocked ? 'ON' : 'OFF'}</button>
+  const controls = <><button aria-label="BGM ON/OFF" aria-pressed={settings.enabled} onClick={() => { manager.unlock(); change({ ...settings, enabled: settings.enabled && blocked || !settings.enabled }); }}>音楽 {settings.enabled ? blocked ? 'ON（再生待ち）' : 'ON' : 'OFF'}</button>
     <label>BGM音量 {settings.volume}<input aria-label="BGM音量" type="range" min="0" max="100" value={settings.volume} onChange={e => change({ ...settings, volume: Number(e.target.value) })} /></label>
     <button aria-label="効果音 ON/OFF" aria-pressed={sfxSettings.enabled} onClick={()=>changeSfx({...sfxSettings,enabled:!sfxSettings.enabled})}>効果音 {sfxSettings.enabled?'ON':'OFF'}</button>
     <label>効果音音量 {sfxSettings.volume}<input aria-label="効果音音量" type="range" min="0" max="100" value={sfxSettings.volume} onChange={e=>changeSfx({...sfxSettings,volume:Number(e.target.value)})}/></label>

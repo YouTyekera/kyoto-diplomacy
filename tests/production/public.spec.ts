@@ -32,7 +32,11 @@ test('production HTTPS/WSS・3クライアント招待/割当/実右クリック
   await pages[1].evaluate(()=>(window as unknown as {testSockets:WebSocket[]}).testSockets.forEach(s=>s.close()));await expect.poll(()=>states[1].urls.length,{timeout:20000}).toBeGreaterThan(connections);await expect(pages[1].locator('[data-connection-state]')).toHaveCount(0,{timeout:20000});await expect.poll(()=>states[1].self?.playerId).toBe(id);
   console.info('Public integration: transport reconnected.');
   for(const asset of Object.values(sfxManifest)){const response=await page.evaluate(async src=>{const r=await fetch(src);return{status:r.status,header:new TextDecoder().decode((await r.arrayBuffer()).slice(0,4))};},asset.src);expect(response.status).toBe(200);expect(response.header).toBe('RIFF');}
-  for(const src of ['/audio/bgm/domestic.mp3','/audio/bgm/adjudication.mp3'])expect(await page.evaluate(async path=>(await fetch(path)).status,src)).toBe(404); // Empty licensed slots remain safe and playable.
+  // User-owned, possibly untracked music is valid too. Never delete it to force a missing-asset fixture.
+  for(const src of ['/audio/bgm/domestic.mp3','/audio/bgm/adjudication.mp3']){
+   const asset=await page.evaluate(async path=>{const response=await fetch(path);return{status:response.status,type:response.headers.get('content-type'),bytes:(await response.arrayBuffer()).byteLength};},src);
+   expect([200,404]).toContain(asset.status);if(asset.status===200){expect(asset.type).toMatch(/^audio\/|application\/octet-stream/);expect(asset.bytes).toBeGreaterThan(0);}
+  }
   expect(errors).toEqual([]);await page.screenshot({path:'docs/screenshots/phase7a/public-reconnected-1280.png'});
   console.info('Public integration: production audio assets checked.');
  }catch(error){console.error('Public integration failed:',error);throw error;}

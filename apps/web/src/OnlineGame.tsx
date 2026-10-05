@@ -11,6 +11,7 @@ import { EquipmentOrderFields } from './EquipmentOrderFields';
 import { reasonText } from '../../../packages/shared/rules-explanations';
 import { MapCanvas } from './MapCanvas';
 import { useOnline } from './useOnline';
+import { useOptimisticOrders } from './useOptimisticOrders';
 import { victoryTarget, defaultGameSettings } from '../../../packages/online-core/initial';
 import { ConnectionScope } from './ConnectionScope';
 import { ConnectionStatus } from './ConnectionStatus';
@@ -76,7 +77,7 @@ export function OnlineGame({ dataset, config, onBack, developer = false }: { dat
       <button disabled={!online.connected || online.pending || !nickname.trim() || online.hasCredentials} onClick={() => void online.request({ action: 'create', nickname, preferredWardId: preferred || null, datasetKind: dataset.kind, config, ...(!developer?{scenario:'standard' as const}:{}) })}>ルームを作成</button></div></>}
       {online.hasCredentials && <><p>保存した参加情報で復帰を試みています。サーバー再起動でルームがなくなった場合は参加情報を消して作り直してください。</p><button onClick={online.forget}>保存した参加情報を消す</button></>}
       <p className="hint">同じPCで試す場合は新規タブを開いてください。同じタブの再読み込みで本人として復帰できます。</p>
-    </div> : game && map ? <OnlineMatch key={online.presentationEpoch} room={room} game={game} self={self} dataset={displayDataset} config={displayConfig} developer={developer} pending={roomLocked} sessionReady={online.roomSessionReady} request={online.request} onDownload={() => void downloadLog()} onBack={onBack} /> : <>
+    </div> : game && map ? <OnlineMatch key={online.presentationEpoch} room={room} game={game} self={self} dataset={displayDataset} config={displayConfig} developer={developer} pending={online.blockingPending||!online.roomSessionReady} sessionReady={online.roomSessionReady} request={online.request} onDownload={() => void downloadLog()} onBack={onBack} /> : <>
       <RoomCard room={room} years={room.hostId === self?.playerId ? yearLimit || room.scenario.maxYears : room.scenario.maxYears} target={room.players.length >= 3 ? victoryTarget(room.players.length) : '3人参加後に計算'} />
       <div className="lobby-layout"><main className="lobby-setup"><h2>開始の準備</h2>
         <section aria-label="シナリオ検証"><h3>{room.scenario.source==='standard'?'標準シナリオ':room.scenario.source==='custom'?'カスタムシナリオ':room.scenario.scenarioName}</h3><p>{room.scenario.source==='standard'?'標準シナリオを選択済みです。ファイルの読み込みは不要です。':room.scenario.loaded ? 'カスタムJSON読込済み' : '保存JSON未読込・作成時のエディタ設定'}</p>
@@ -113,11 +114,13 @@ function OnlineMatch({ room, game, self, dataset, config, developer, pending, se
   useEffect(()=>{sfx.setSliding(presentation.sliding);return()=>sfx.setSliding(false);},[sfx,presentation.sliding]);
   const regionName = (id: string) => map.regions.find(r => r.regionId === id)?.name ?? '地域';
   const compatible = self?.phaseKey === game.phaseKey;
-  const orders = compatible && self ? self.orders : [];
+  const draft = useOptimisticOrders(game.phaseKey, compatible && self ? self.orders : [], sessionReady, request);
+  const orders = draft.orders;
+  const orderLocked = presentation.active || pending || draft.finalizing || !compatible || !!self?.finalized || game.phase !== 'orders';
   const own = game.board.units.filter(u => u.ownerWardId === self?.wardId);
   const required = room.players.find(p => p.playerId === self?.playerId)?.required ?? false;
   const commands = useMapCommands({ units: game.board.units, ownUnits: own,ownOrders:orders, legalOrders: compatible && game.phase === 'orders' && self ? self.legalOrders : {}, inventory: compatible && self ? self.inventory : [],
-    choose: async order => (await request({ action: 'orders', phaseKey: game.phaseKey, orders: [...orders.filter(o => o.unitId !== order.unitId), order], finalize: false })).ok, remove: unitId => { void request({action:'orders',phaseKey:game.phaseKey,orders:orders.filter(o=>o.unitId!==unitId),finalize:false}); }, onCue: cue=>sfx.playCue(cue), locked: presentation.active || pending || !!self?.finalized || game.phase !== 'orders', contextKey: game.phaseKey });
+    choose: draft.choose, remove: unitId => { void draft.remove(unitId); }, onCue: cue=>sfx.playCue(cue), locked: orderLocked, contextKey: `${game.phaseKey}:${draft.rollback}` });
   const countSC = Object.values(game.board.regionControl).filter(r => r.supplyCenterOwnerWardId === self?.wardId && self?.wardId).length;
   const feedback=useBoardFeedback(game.board,self?.inventory.length??0,game.rivalInitialSCByWard[self?.wardId??'']??0,self?.wardId,presentation.active,game.events.groundEquipment,game.lastResult?.winter);
   useEffect(()=>{if(feedback.ownSC)sfx.playCue('sc-capture');},[sfx,feedback.key]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -150,8 +153,8 @@ function OnlineMatch({ room, game, self, dataset, config, developer, pending, se
         {game.phase === 'orders' && !developer && <details><summary>自分の命令一覧 · {orders.length} / {own.length}軍</summary><ul aria-label="自分の命令一覧">{own.map(u => <li key={u.unitId}>{regionName(u.regionId)}の軍: {orders.find(o => o.unitId === u.unitId) ? describeOrder(orders.find(o => o.unitId === u.unitId)!, game.board.units, regionName) : '未入力'}</li>)}</ul></details>}
       </aside>}
     </div>
-    {compatible && self && (developer || game.phase !== 'orders') && <div className="phase-input"><fieldset disabled={presentation.active}><OnlineCommands key={game.phaseKey} game={game} self={self} selected={selected} onSelect={setSelected} request={request} pending={pending} regionName={regionName} required={required} /></fieldset></div>}
-    {game.phase === 'orders' && !developer && compatible && self && <footer className="submission-bar"><span>入力済み {orders.length} / {own.length}軍 · 未入力{missing}軍はHoldになります。</span>{required && (!self.finalized ? <button className="primary" disabled={pending||presentation.active} onClick={() => void request({ action: 'orders', phaseKey: game.phaseKey, orders, finalize: true })}>命令書を確定</button> : <><strong>確定済み · 他の参加者を待っています</strong><button disabled={pending} onClick={() => void request({ action: 'unready', phaseKey: game.phaseKey })}>確定解除</button></>)}</footer>}
+    {compatible && self && (developer || game.phase !== 'orders') && <div className="phase-input"><fieldset disabled={presentation.active}><OnlineCommands key={game.phaseKey} game={game} self={self} selected={selected} onSelect={setSelected} request={request} pending={pending||draft.finalizing} regionName={regionName} required={required} orderDraft={draft} /></fieldset></div>}
+    {game.phase === 'orders' && !developer && compatible && self && <footer className="submission-bar"><span>{draft.finalizing ? '命令書を保存して確定しています…' : <>入力済み {orders.length} / {own.length}軍 · 未入力{missing}軍はHoldになります。</>}</span>{required && (!self.finalized ? <button className="primary" disabled={orderLocked} onClick={() => void draft.finalize()}>命令書を確定</button> : <><strong>確定済み · 他の参加者を待っています</strong><button disabled={pending} onClick={() => void request({ action: 'unready', phaseKey: game.phaseKey })}>確定解除</button></>)}</footer>}
     {game.endResult && <GameOver result={game.endResult} summary={game.summary} target={game.victoryTargetSC} players={room.players} currentPlayerWardId={self?.wardId} onDownload={onDownload} pending={pending} />}
   </div>;
 }
@@ -169,14 +172,14 @@ function PublicResults({ game, regionName, developer }: { game: PublicGameView; 
     {result.scChanges.map(c => <p key={c.regionId}>{regionName(c.regionId)}の補給拠点: {wardName(c.previous)} → {wardName(c.owner)}</p>)}
   </> : <p>まだ裁定していません。</p>}</section>;
 }
-function OnlineCommands({game,self,selected,onSelect,request,pending,regionName,required}:{game:PublicGameView;self:PrivatePlayerView;selected:string|null;onSelect:(id:string)=>void;request:(r:OnlineRequest)=>Promise<OnlineResponse>;pending:boolean;regionName:(id:string)=>string;required:boolean}) {
+function OnlineCommands({game,self,selected,onSelect,request,pending,regionName,required,orderDraft}:{game:PublicGameView;self:PrivatePlayerView;selected:string|null;onSelect:(id:string)=>void;request:(r:OnlineRequest)=>Promise<OnlineResponse>;pending:boolean;regionName:(id:string)=>string;required:boolean;orderDraft:ReturnType<typeof useOptimisticOrders>}) {
   const [retreatId,setRetreatId]=useState('');
   const [winterDraft,setWinterDraft]=useState(self.winterDraft);
   const own=game.board.units.filter(u=>u.ownerWardId===self.wardId),unit=own.find(u=>u.regionId===selected)??own[0];
-  const choices=unit?self.legalOrders[unit.unitId]??[]:[],draft=unit?self.orders.find(o=>o.unitId===unit.unitId)??choices[0]:undefined;
-  const locked=pending||self.finalized,missing=own.filter(u=>!self.orders.some(o=>o.unitId===u.unitId)).length;
+  const choices=unit?self.legalOrders[unit.unitId]??[]:[],draft=unit?orderDraft.orders.find(o=>o.unitId===unit.unitId)??choices[0]:undefined;
+  const locked=pending||self.finalized,missing=own.filter(u=>!orderDraft.orders.some(o=>o.unitId===u.unitId)).length;
   const label=(u:{regionId:string;ownerWardId:string})=>`${regionName(u.regionId)} · ${wardName(u.ownerWardId)}`;
-  function choose(order:Order|undefined) {if(order)void request({action:'orders',phaseKey:game.phaseKey,orders:[...self.orders.filter(o=>o.unitId!==order.unitId),order],finalize:false});}
+  function choose(order:Order|undefined) {if(order)void orderDraft.choose(order);}
   const retreating=self.retreatUnits.find(d=>d.unit.unitId===retreatId)??self.retreatUnits[0];
   const retreatOrder=retreating?self.retreatOrders.find(o=>o.unitId===retreating.unit.unitId):undefined;
   function winterChoice(key:'buildRegionIds'|'disbandUnitIds',id:string,checked:boolean) {
@@ -198,9 +201,9 @@ function OnlineCommands({game,self,selected,onSelect,request,pending,regionName,
         <EquipmentOrderFields draft={draft} choices={choices} choose={choose} regionName={regionName} prefix="オンライン" />
         <p className="hint">装備命令は所持装備・予約・合法経路がある場合だけ選択できます。各種類1軍まで。予約と経路は自分だけに表示されます。</p>
       </fieldset>}
-      <ul aria-label="自分の命令一覧">{own.map(u=>{const o=self.orders.find(o=>o.unitId===u.unitId);return <li key={u.unitId}>{label(u)}: {o?`${orderName[o.type]}${'destination'in o?` → ${regionName(o.destination)}`:''}${'targetUnitId'in o?` 支援 ${o.targetUnitId}`:''}`:'未入力'}</li>;})}</ul>
-      <p>未入力{missing}軍はHoldになります。</p>
-      {!self.finalized&&<button disabled={pending} onClick={()=>void request({action:'orders',phaseKey:game.phaseKey,orders:self.orders,finalize:true})}>命令書を確定</button>}
+      <ul aria-label="自分の命令一覧">{own.map(u=>{const o=orderDraft.orders.find(o=>o.unitId===u.unitId);return <li key={u.unitId}>{label(u)}: {o?`${orderName[o.type]}${'destination'in o?` → ${regionName(o.destination)}`:''}${'targetUnitId'in o?` 支援 ${o.targetUnitId}`:''}`:'未入力'}</li>;})}</ul>
+      <p>{orderDraft.finalizing ? '命令書を保存して確定しています…' : <>未入力{missing}軍はHoldになります。</>}</p>
+      {!self.finalized&&<button disabled={pending} onClick={()=>void orderDraft.finalize()}>命令書を確定</button>}
     </>}
     {required&&game.phase==='retreats'&&retreating&&<>
       <label>撤退する自軍<select aria-label="オンライン撤退軍" value={retreating.unit.unitId} disabled={locked} onChange={e=>setRetreatId(e.target.value)}>{self.retreatUnits.map(d=><option key={d.unit.unitId} value={d.unit.unitId}>{label(d.unit)}</option>)}</select></label>

@@ -56,4 +56,19 @@ describe('BGM manager', () => {
     expect(readMusicSettings({ getItem: () => JSON.stringify({ enabled: false, volume: 120 }) })).toEqual({ enabled: false, volume: 100 });
     for (const getItem of [() => '{', () => '{"enabled":true,"volume":"50"}', () => { throw new Error('blocked'); }]) expect(readMusicSettings({ getItem })).toEqual({ enabled: true, volume: 70 });
   });
+  it('autoplay blockedとDomestic→Adjudication→Domesticでも保存済みON/音量を変更しない', async () => {
+    vi.useFakeTimers();
+    const saved = JSON.stringify({ enabled: true, volume: 43 });
+    const settings = Object.freeze(readMusicSettings({ getItem: () => saved }));
+    const plays: string[] = []; let blocked = true;
+    const manager = new AudioManager(bgmManifest, settings, src => ({ volume: 0, loop: false, onerror: null,
+      pause: vi.fn(), play: () => { plays.push(src); return blocked ? Promise.reject(Error('NotAllowedError')) : Promise.resolve(); } }));
+    manager.setContext('domestic'); manager.unlock(); await vi.advanceTimersByTimeAsync(0);
+    expect(manager.blocked).toBe(true); expect(settings).toEqual({ enabled: true, volume: 43 });
+    blocked = false; manager.unlock(); await vi.advanceTimersByTimeAsync(1000);
+    manager.setContext('adjudication'); await vi.advanceTimersByTimeAsync(1000);
+    manager.setContext('domestic'); await vi.advanceTimersByTimeAsync(1000);
+    expect(manager.blocked).toBe(false); expect(settings).toEqual(readMusicSettings({ getItem: () => saved }));
+    expect(plays).toContain('/audio/bgm/domestic.mp3'); expect(plays).toContain('/audio/bgm/adjudication.mp3'); manager.dispose();
+  });
 });

@@ -19,7 +19,7 @@ export function useMapCommands({units,ownUnits,legalOrders,inventory,choose,lock
  const [target,setTarget]=useState(''),[via,setVia]=useState(''),[item,setItem]=useState(''),[feedback,setFeedback]=useState('');
  const serial=useRef(0),[accepted,setAccepted]=useState<{key:number;order:GameOrder}|null>(null);
  function cancel(){setAction(null);setTarget('');setVia('');setItem('');setFeedback('');}
- useEffect(()=>{setUnitId(null);cancel();setFeedback('');setAccepted(null);},[contextKey]);
+ useEffect(()=>{serial.current++;setUnitId(null);cancel();setFeedback('');setAccepted(null);},[contextKey]);
  useEffect(()=>{const escape=(e:KeyboardEvent)=>{if(e.key==='Escape')cancel();};window.addEventListener('keydown',escape);return()=>window.removeEventListener('keydown',escape);},[]);
  useEffect(()=>{if(!feedback)return;const timer=setTimeout(()=>setFeedback(''),2200);return()=>clearTimeout(timer);},[feedback]);
  const unit=ownUnits.find(u=>u.unitId===unitId),choices=unit?legalOrders[unit.unitId]??[]:[];
@@ -37,7 +37,14 @@ export function useMapCommands({units,ownUnits,legalOrders,inventory,choose,lock
  const recommended=ownUnits.some(u=>u.unitId===target)?ownOrders.find(o=>o.unitId===target&&o.type==='move'):undefined;
  const recommendedOrder=recommended&&'destination'in recommended?choices.find(o=>o.type==='support-move'&&o.targetUnitId===target&&o.destination===recommended.destination):undefined;
  function begin(next:Action){cancel();setAction(next);}
- async function commit(order:GameOrder|undefined){if(!order||locked)return false;cancel();const ok=await choose(order);if(ok===false)return false;setAccepted({key:++serial.current,order});onCue?.('order-confirm');return true;}
+ async function commit(order:GameOrder|undefined){
+   if(!order||locked)return false;
+   cancel();const key=++serial.current;
+   setAccepted({key,order});onCue?.('order-confirm');
+   const ok=await choose(order);
+   if(ok===false){if(serial.current===key){setAccepted(null);setFeedback('');}return false;}
+   return true;
+ }
  function change(){if(unit&&!locked){remove?.(unit.unitId);setAccepted(null);cancel();}}
  function select(regionId:string){
    if(locked)return;
@@ -50,7 +57,7 @@ export function useMapCommands({units,ownUnits,legalOrders,inventory,choose,lock
  async function rightClick(regionId:string){
    const order=rightClickOrder(choices,regionId,action,locked);
    if(!order){setFeedback(action&&action!=='move'?'操作中です。左クリックで対象を選んでください。':'移動できる地域を右クリックしてください。');return;}
-   if(await commit(order))setFeedback('move:'+unit?.regionId+':'+regionId);
+   const result=commit(order);setFeedback('move:'+unit?.regionId+':'+regionId);await result;
  }
  return {unit,choices,action,target,via,item:effectiveItem,targets:locked?[]:targets,primary:locked?[]:primary,inventory,locked,begin,cancel,change,select,commit,rightClick,feedback,recommendedOrder,accepted,
    supportKind:(next:'support-hold'|'support-move')=>{if(next==='support-hold')commit(supportChoices(choices,target).find(o=>o.type===next));else setAction(next);},

@@ -81,7 +81,7 @@ test('オンライン3人へイベント公開、装備取得、自転車予約�
     await pages[0].getByLabel('オンライン命令種別').selectOption('bicycle-move');await pages[0].getByLabel('オンライン自転車経由').selectOption(scs[0]);await pages[0].getByLabel('オンライン自転車移動先').selectOption(wallRegion);
     await expect(pages[0].locator('.bicycle-line')).toHaveCount(1);await expect(pages[1].locator('.bicycle-line')).toHaveCount(0);await expect(pages[1].getByLabel('自分の命令一覧')).not.toContainText('Bicycle');
     await pages[0].getByLabel('自分の装備と予約').locator('summary').click();await expect(pages[0].getByLabel('自分の装備と予約')).toContainText('今季予約');await expect(pages[1].getByLabel('自分の装備と予約')).not.toContainText('今季予約');
-    await pages[0].getByRole('button',{name:'命令書を確定',exact:true}).click();await pages[0].reload();await expect(pages[0].getByRole('button',{name:'確定解除',exact:true})).toBeVisible();await expect(pages[0].locator('.bicycle-line')).toHaveCount(1);
+    await pages[0].getByRole('button',{name:'命令書を確定',exact:true}).click();await expect(pages[0].getByRole('button',{name:'確定解除',exact:true})).toBeVisible();await pages[0].reload();await expect(pages[0].getByRole('button',{name:'確定解除',exact:true})).toBeVisible();await expect(pages[0].locator('.bicycle-line')).toHaveCount(1);
     expect(otherPackets.length).toBeGreaterThan(0);expect(otherPackets.every(p=>!p.includes('"reservations"')&&!p.includes('"bicycle-move"')&&!p.includes('"viaRegionId"'))).toBe(true);
     await finalize(pages.slice(1));for(const p of pages)await expect(p.getByTestId('online-phase')).toHaveText('第2年 · 春 · 移動命令');
     await expect(pages[0].getByLabel('直前の公開裁定結果').locator('[data-equipment-result="bicycle"]')).toContainText('両区間成功');await expect(pages[0].locator(`[data-marker-region="${wallRegion}"] .unit-pin`)).toBeVisible();

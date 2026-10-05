@@ -1,0 +1,47 @@
+[
+  {
+    "path": "apps/web/public/audio/bgm/README.md",
+    "size": 509,
+    "sha256": "5E8B714A0B46DD133123B00CA10429DF74CB296793048F298289EF16D6F38617"
+  },
+  {
+    "path": "apps/web/public/audio/sfx/march.wav",
+    "size": 14156,
+    "sha256": "D1F7089D6FB0EBA8CD8E97EFDF1A506B51DEE324ADE9A52A8677B1A1E0D35589"
+  },
+  {
+    "path": "apps/web/public/audio/sfx/order-confirm.wav",
+    "size": 5778,
+    "sha256": "001E8A45C5C2E380EAFBB7D06268E08C1FA6E871FD800ADDE4A8646C07C541CE"
+  },
+  {
+    "path": "apps/web/public/audio/sfx/README.md",
+    "size": 1915,
+    "sha256": "D23DE86AED005C13F7402E94E1E51CC886F0FE88319D6AD435A381ABC8397347"
+  },
+  {
+    "path": "apps/web/public/audio/sfx/sc-capture.wav",
+    "size": 13274,
+    "sha256": "83D66E481FD7B7BB47006CBE4FEAE6A0C509AECDD9F3D9BDADDB490920BFA27E"
+  },
+  {
+    "path": "apps/web/public/audio/sfx/select.wav",
+    "size": 2910,
+    "sha256": "CC3DCA5AB0C192612276179B0716ACF1A52BE7D6C3E724C3B181CF6A127F1A5C"
+  },
+  {
+    "path": "apps/web/public/audio/sfx/standoff.wav",
+    "size": 7982,
+    "sha256": "776D7EBF5497B74EC238A981C40A8D9E0CE7DDD0763E78F48550ABCC2EFA6601"
+  },
+  {
+    "path": "apps/web/public/audio/sfx/support-success.wav",
+    "size": 8864,
+    "sha256": "A26C513985B721D94AD71235C64B0B0E7FEF95B75AD9B7D5F0FDB09B010262A3"
+  },
+  {
+    "path": "apps/web/public/audio/sfx/victory.wav",
+    "size": 39734,
+    "sha256": "F79CF95BF3AA9ECA88E5976A2C20ACEFC03843B3B203107236B57A961C88E129"
+  }
+]

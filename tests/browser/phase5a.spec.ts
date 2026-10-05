@@ -125,7 +125,7 @@ test('3人の招待・初期表示・シナリオ・地図命令・ready・1920/
 test('実音声URLの404でも無音で継続し、音楽ボタンから再試行', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message)); await audioManifest(page);
   await page.route('**/audio/bgm/test-*.mp3', route => route.fulfill({ status: 404, body: '' }));
-  await page.goto('/'); await page.getByRole('button', { name: '設定', exact: true }).click(); await expect(page.getByLabel('BGM ON/OFF')).toHaveAttribute('aria-pressed', 'false');
+  await page.goto('/'); await page.getByRole('button', { name: '設定', exact: true }).click(); await expect(page.getByLabel('BGM ON/OFF')).toHaveAttribute('aria-pressed', 'true');
   await page.getByLabel('BGM ON/OFF').click(); await expect(page.getByRole('heading', { name: '設定', exact: true })).toBeVisible(); await expect(page.getByRole('alert')).toHaveCount(0); expect(errors).toEqual([]);
 });
 
@@ -177,7 +177,7 @@ test('プレイヤーの地図操作で自転車2区間・バリケード設置�
     await pages[0].locator(`[data-region-id="${scs[0]}"]`).press('Enter'); await expect(pages[0].getByLabel('選択軍の操作')).toContainText('次の移動先'); await expect(pages[0].locator(`[data-region-id="${wallRegion}"]`)).toHaveClass(/legal-target/);
     await pages[0].locator(`[data-region-id="${wallRegion}"]`).press('Enter'); await expect(pages[0].locator('.bicycle-line')).toHaveCount(1); await expect(pages[1].locator('.bicycle-line')).toHaveCount(0);
     await pages[0].getByLabel('自分の装備と予約').locator('summary').click(); await expect(pages[0].getByLabel('自分の装備と予約')).toContainText('今季予約'); await expect(pages[1].getByLabel('自分の装備と予約')).not.toContainText('今季予約');
-    await pages[0].getByRole('button', { name: '命令書を確定', exact: true }).click(); await pages[0].reload(); await expect(pages[0].getByRole('button', { name: '確定解除', exact: true })).toBeVisible(); await expect(pages[0].locator('.bicycle-line')).toHaveCount(1);
+    await pages[0].getByRole('button', { name: '命令書を確定', exact: true }).click(); await expect(pages[0].getByRole('button', { name: '確定解除', exact: true })).toBeVisible(); await pages[0].reload(); await expect(pages[0].getByRole('button', { name: '確定解除', exact: true })).toBeVisible(); await expect(pages[0].locator('.bicycle-line')).toHaveCount(1);
     expect(packets.length).toBeGreaterThan(0); expect(packets.every(p => !p.includes('"reservations"') && !p.includes('"bicycle-move"') && !p.includes('"viaRegionId"'))).toBe(true);
     await finalize(pages.slice(1));await closePresentation([pages[0]]); await expect(pages[0].getByTestId('online-phase')).toContainText('第2年 · 春');
     await pages[0].locator(`[data-marker-region="${wallRegion}"]`).press('Enter'); await pages[0].getByRole('button', { name: 'バリケード', exact: true }).click(); await expect(pages[0].locator(`[data-region-id="${scs[0]}"]`)).toHaveClass(/legal-target/);

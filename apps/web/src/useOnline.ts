@@ -10,12 +10,12 @@ import { sessionEndedSchema,privatePlayerSchema, publicRoomSchema, responseSchem
 export function useOnline(inviteRoom?:string) {
   const [history]=useState(browserIdentities);
   const socket=useRef<Socket<ServerToClientEvents,ClientToServerEvents>|null>(null);
-  const credentials=useRef<Credentials|null>(history.active(inviteRoom)),session=useRef(new OnlineSession()),inflight=useRef(0),latestPublic=useRef<PublicRoomView|null>(null);
+  const credentials=useRef<Credentials|null>(history.active(inviteRoom)),session=useRef(new OnlineSession()),inflight=useRef(0),blockingInflight=useRef(0),latestPublic=useRef<PublicRoomView|null>(null);
   const [savedIdentities,setSavedIdentities]=useState(()=>history.list()),[sessionNotice,setSessionNotice]=useState('');
   const waitingEnd=useRef<SessionEnded|null>(null);
   const [publicView,setPublicView]=useState<PublicRoomView|null>(null),[privateView,setPrivateView]=useState<PrivatePlayerView|null>(null);
   const [state,setState]=useState({transportConnected:false,roomSessionReady:false});
-  const [pending,setPending]=useState(false),[errors,setErrors]=useState<string[]>([]);
+  const [pending,setPending]=useState(false),[blockingPending,setBlockingPending]=useState(false),[errors,setErrors]=useState<string[]>([]);
   const [presentationEpoch,setPresentationEpoch]=useState(0);
   const [connectionState,setConnectionState]=useState<ConnectionState>('connecting');
   const recovery=useRef<OnlineConnection|null>(null);
@@ -25,7 +25,7 @@ export function useOnline(inviteRoom?:string) {
   function endIdentity(reason:'kicked'|'replaced'|'removed'){
     const active=credentials.current;if(!active)return;
     if(reason==='kicked')history.remove(active);else history.clearActive();
-    credentials.current=null;session.current.invalidate();sync();inflight.current=0;setPending(false);latestPublic.current=null;setPublicView(null);setPrivateView(null);setSavedIdentities(history.list());setErrors([]);
+    credentials.current=null;session.current.invalidate();sync();inflight.current=0;blockingInflight.current=0;setPending(false);setBlockingPending(false);latestPublic.current=null;setPublicView(null);setPrivateView(null);setSavedIdentities(history.list());setErrors([]);
     setSessionNotice(reason==='kicked'?'ホストによりルームから退出しました。':reason==='replaced'?'別のタブで復帰したため、このタブの参加を終了しました。':'保存した参加情報が削除されたため、このタブの参加を終了しました。');
     socket.current?.disconnect();recovery.current?.start(true);
   }
@@ -88,7 +88,7 @@ export function useOnline(inviteRoom?:string) {
       if(active.roomCode!==parsed.data.roomCode||active.playerId!==parsed.data.playerId)return;
       endIdentity(parsed.data.reason);
     });
-    client.on('disconnect',reason=>{if(disposed)return;gate.invalidate();sync();inflight.current=0;setPending(false);if(reason!=='io client disconnect')connection.start(true);});
+    client.on('disconnect',reason=>{if(disposed)return;gate.invalidate();sync();inflight.current=0;blockingInflight.current=0;setPending(false);setBlockingPending(false);if(reason!=='io client disconnect')connection.start(true);});
     connection.start();return ()=>{disposed=true;gate.invalidate();connection.dispose();recovery.current=null;socket.current=null;};
   },[]);
   async function request(input:OnlineRequest):Promise<OnlineResponse> {
@@ -98,7 +98,8 @@ export function useOnline(inviteRoom?:string) {
     }
     const entering=input.action==='create'||input.action==='join';
     if(entering){gate.begin();sync();}
-    const epoch=gate.epoch;inflight.current++;setPending(true);
+    const epoch=gate.epoch,blocking=input.action!=='orders'||input.finalize;
+    inflight.current++;setPending(true);if(blocking){blockingInflight.current++;setBlockingPending(true);}
     try {
       const response=responseSchema.parse(await client.timeout(10000).emitWithAck('request',input));
       if(!gate.current(epoch))return {ok:false,errors:[sessionWaitingMessage]};
@@ -111,15 +112,15 @@ export function useOnline(inviteRoom?:string) {
           if(ended&&ended.roomCode===response.credentials.roomCode&&ended.playerId===response.credentials.playerId){endIdentity(ended.reason);return {ok:false,errors:['このルームへの参加は終了しました。']};}
           gate.authenticated(epoch,response.credentials);sync();if(!gate.roomSessionReady)setConnectionState('restoring');
         }
-        if(input.action==='leave'){if(credentials.current)history.remove(credentials.current);history.clearActive();credentials.current=null;setSavedIdentities(history.list());inflight.current=0;setPending(false);gate.open(null);sync();setPublicView(null);setPrivateView(null);latestPublic.current=null;}
+        if(input.action==='leave'){if(credentials.current)history.remove(credentials.current);history.clearActive();credentials.current=null;setSavedIdentities(history.list());inflight.current=0;blockingInflight.current=0;setPending(false);setBlockingPending(false);gate.open(null);sync();setPublicView(null);setPrivateView(null);latestPublic.current=null;}
       }
       return response;
     }catch{const response={ok:false as const,errors:['応答を確認できません。再接続後の状態を確認してください']};if(gate.current(epoch))setErrors(response.errors);return response;}
-    finally{if(gate.current(epoch)){inflight.current=Math.max(0,inflight.current-1);setPending(inflight.current>0);}}
+    finally{if(gate.current(epoch)){inflight.current=Math.max(0,inflight.current-1);setPending(inflight.current>0);if(blocking){blockingInflight.current=Math.max(0,blockingInflight.current-1);setBlockingPending(blockingInflight.current>0);}}}
   }
-  function retry(){setErrors([]);session.current.invalidate();sync();inflight.current=0;setPending(false);socket.current?.disconnect();recovery.current?.start(true);}
+  function retry(){setErrors([]);session.current.invalidate();sync();inflight.current=0;blockingInflight.current=0;setPending(false);setBlockingPending(false);socket.current?.disconnect();recovery.current?.start(true);}
   function forget(){if(credentials.current)history.remove(credentials.current);history.clearActive();credentials.current=null;setSavedIdentities(history.list());setPublicView(null);setPrivateView(null);latestPublic.current=null;retry();}
   function restore(identity:SavedIdentity){if(publicView||credentials.current)return;credentials.current=identityCredentials(identity);remember(credentials.current,identity.nickname);setSessionNotice('');retry();}
   const connected=state.transportConnected&&(!credentials.current||state.roomSessionReady);
-  return {publicView,privateView,...state,connected,pending,errors,request,forget,retry,restore,savedIdentities,sessionNotice,connectionState,configurationError:target.error,presentationEpoch,hasCredentials:!!credentials.current};
+  return {publicView,privateView,...state,connected,pending,blockingPending,errors,request,forget,retry,restore,savedIdentities,sessionNotice,connectionState,configurationError:target.error,presentationEpoch,hasCredentials:!!credentials.current};
 }

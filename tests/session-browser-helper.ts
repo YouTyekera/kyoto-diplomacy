@@ -1,6 +1,7 @@
 import {expect,type Page,type Browser} from '@playwright/test';
-import type {PublicRoomView} from '../packages/shared/online';
-export interface RecoveryControl {holdReconnect:boolean;holdPrivate:boolean;holdAcks:boolean;failReconnect:boolean;held:{socket?:WebSocket;data:string}[];privateFrames:{socket?:WebSocket;data:string}[];ackFrames:{socket?:WebSocket;data:string}[];sockets:WebSocket[];upgraded?:WebSocket;acknowledgements:number;sent:string[]}
+import type {PublicRoomView,OnlineRequest} from '../packages/shared/online';
+export interface RecoveryControl {holdReconnect:boolean;holdPrivate:boolean;holdAcks:boolean;failReconnect:boolean;held:{socket?:WebSocket;data:string}[];privateFrames:{socket?:WebSocket;data:string}[];ackFrames:{socket?:WebSocket;data:string}[];sockets:WebSocket[];upgraded?:WebSocket;acknowledgements:number;sent:string[];
+ orderDelayMs?:number;rejectNextOrder?:boolean;orderRequests?:Extract<OnlineRequest,{action:'orders'}>[]}
 declare global {interface Window {recoveryTest:RecoveryControl}}
 /** Only browser test transport instrumentation. The application has no debug endpoint. */
 export async function instrument(page:Page){await page.addInitScript(()=>{
@@ -15,6 +16,11 @@ export async function instrument(page:Page){await page.addInitScript(()=>{
    if(typeof data==='string'&&data.startsWith('42')){
     const index=data.indexOf('[');if(index>=0){const [event,request]=JSON.parse(data.slice(index));if(event==='request'){
      control.sent.push(request.action);
+     if(request.action==='orders'){
+      (control.orderRequests??=[]).push(structuredClone(request));
+      if(control.rejectNextOrder){control.rejectNextOrder=false;request.phaseKey='deliberately-stale-test-phase';data=data.slice(0,index)+JSON.stringify([event,request]);}
+      if(control.orderDelayMs){const packet=data;setTimeout(()=>super.send(packet),control.orderDelayMs);return;}
+     }
      if(request.action==='reconnect'){
       if(control.holdReconnect){control.held.push({socket:this,data});return;}
       if(control.failReconnect){request.reconnectToken='0'.repeat(64);data=data.slice(0,index)+JSON.stringify([event,request]);}

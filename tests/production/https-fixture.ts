@@ -6,7 +6,7 @@ import {readFile,stat} from 'node:fs/promises';
 import {resolve,extname,sep} from 'node:path';
 import type {Socket} from 'node:net';
 const tls={key:await readFile('tests/production/fixture-key.pem'),cert:await readFile('tests/production/fixture-cert.pem')};
-const root=resolve('dist-public'),port=Number(process.env.PORT??3036);
+const root=resolve(process.env.E2E_PRODUCTION_BUILD_DIR??'dist-public'),port=Number(process.env.PORT??3036);
 const web=createServer(tls,async(req,res)=>{
  try{
   const path=resolve(root,'.'+new URL(req.url??'/', 'https://fixture.invalid').pathname);
