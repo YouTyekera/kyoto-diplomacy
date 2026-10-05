@@ -1,0 +1,140 @@
+{
+  "phase": "7G",
+  "checkedAt": "2026-10-05T08:11:43.178Z",
+  "protectedFiles": 11,
+  "unchanged": true,
+  "files": [
+    {
+      "path": "apps/web/public/audio/bgm/adjudication.mp3",
+      "before": {
+        "size": 55504104,
+        "sha256": "90923320B62E077AF13F41B5B761A7EB21D0ACAC80132B6AE900BC3B553133CD"
+      },
+      "after": {
+        "size": 55504104,
+        "sha256": "90923320B62E077AF13F41B5B761A7EB21D0ACAC80132B6AE900BC3B553133CD"
+      },
+      "unchanged": true
+    },
+    {
+      "path": "apps/web/public/audio/bgm/domestic.mp3",
+      "before": {
+        "size": 113267893,
+        "sha256": "74EA6CD1793EBC0D6F5013343DC4E436F9193F1245BF2B77BB5D51EE21B7366B"
+      },
+      "after": {
+        "size": 113267893,
+        "sha256": "74EA6CD1793EBC0D6F5013343DC4E436F9193F1245BF2B77BB5D51EE21B7366B"
+      },
+      "unchanged": true
+    },
+    {
+      "path": "apps/web/public/audio/bgm/README.md",
+      "before": {
+        "size": 509,
+        "sha256": "5E8B714A0B46DD133123B00CA10429DF74CB296793048F298289EF16D6F38617"
+      },
+      "after": {
+        "size": 509,
+        "sha256": "5E8B714A0B46DD133123B00CA10429DF74CB296793048F298289EF16D6F38617"
+      },
+      "unchanged": true
+    },
+    {
+      "path": "apps/web/public/audio/sfx/march.wav",
+      "before": {
+        "size": 14156,
+        "sha256": "D1F7089D6FB0EBA8CD8E97EFDF1A506B51DEE324ADE9A52A8677B1A1E0D35589"
+      },
+      "after": {
+        "size": 14156,
+        "sha256": "D1F7089D6FB0EBA8CD8E97EFDF1A506B51DEE324ADE9A52A8677B1A1E0D35589"
+      },
+      "unchanged": true
+    },
+    {
+      "path": "apps/web/public/audio/sfx/order-confirm.wav",
+      "before": {
+        "size": 5778,
+        "sha256": "001E8A45C5C2E380EAFBB7D06268E08C1FA6E871FD800ADDE4A8646C07C541CE"
+      },
+      "after": {
+        "size": 5778,
+        "sha256": "001E8A45C5C2E380EAFBB7D06268E08C1FA6E871FD800ADDE4A8646C07C541CE"
+      },
+      "unchanged": true
+    },
+    {
+      "path": "apps/web/public/audio/sfx/README.md",
+      "before": {
+        "size": 1915,
+        "sha256": "D23DE86AED005C13F7402E94E1E51CC886F0FE88319D6AD435A381ABC8397347"
+      },
+      "after": {
+        "size": 1915,
+        "sha256": "D23DE86AED005C13F7402E94E1E51CC886F0FE88319D6AD435A381ABC8397347"
+      },
+      "unchanged": true
+    },
+    {
+      "path": "apps/web/public/audio/sfx/sc-capture.wav",
+      "before": {
+        "size": 13274,
+        "sha256": "83D66E481FD7B7BB47006CBE4FEAE6A0C509AECDD9F3D9BDADDB490920BFA27E"
+      },
+      "after": {
+        "size": 13274,
+        "sha256": "83D66E481FD7B7BB47006CBE4FEAE6A0C509AECDD9F3D9BDADDB490920BFA27E"
+      },
+      "unchanged": true
+    },
+    {
+      "path": "apps/web/public/audio/sfx/select.wav",
+      "before": {
+        "size": 2910,
+        "sha256": "CC3DCA5AB0C192612276179B0716ACF1A52BE7D6C3E724C3B181CF6A127F1A5C"
+      },
+      "after": {
+        "size": 2910,
+        "sha256": "CC3DCA5AB0C192612276179B0716ACF1A52BE7D6C3E724C3B181CF6A127F1A5C"
+      },
+      "unchanged": true
+    },
+    {
+      "path": "apps/web/public/audio/sfx/standoff.wav",
+      "before": {
+        "size": 7982,
+        "sha256": "776D7EBF5497B74EC238A981C40A8D9E0CE7DDD0763E78F48550ABCC2EFA6601"
+      },
+      "after": {
+        "size": 7982,
+        "sha256": "776D7EBF5497B74EC238A981C40A8D9E0CE7DDD0763E78F48550ABCC2EFA6601"
+      },
+      "unchanged": true
+    },
+    {
+      "path": "apps/web/public/audio/sfx/support-success.wav",
+      "before": {
+        "size": 8864,
+        "sha256": "A26C513985B721D94AD71235C64B0B0E7FEF95B75AD9B7D5F0FDB09B010262A3"
+      },
+      "after": {
+        "size": 8864,
+        "sha256": "A26C513985B721D94AD71235C64B0B0E7FEF95B75AD9B7D5F0FDB09B010262A3"
+      },
+      "unchanged": true
+    },
+    {
+      "path": "apps/web/public/audio/sfx/victory.wav",
+      "before": {
+        "size": 39734,
+        "sha256": "F79CF95BF3AA9ECA88E5976A2C20ACEFC03843B3B203107236B57A961C88E129"
+      },
+      "after": {
+        "size": 39734,
+        "sha256": "F79CF95BF3AA9ECA88E5976A2C20ACEFC03843B3B203107236B57A961C88E129"
+      },
+      "unchanged": true
+    }
+  ]
+}

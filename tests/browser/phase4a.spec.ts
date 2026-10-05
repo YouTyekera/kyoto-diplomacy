@@ -1,3 +1,4 @@
+import { finishPlayback } from '../playback-browser-helper';
 import { test,expect,type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { sampleConfig,sampleDataset } from '../../packages/map-core/sample';
@@ -56,7 +57,7 @@ test('臨時バスが非隣接へのMoveを可能にし、撤退終了で消え�
 });
 
 async function entry(page:Page,nickname:string,ward:WardId){await page.getByRole('button',{name:'オンライン対戦',exact:true}).click();await page.getByLabel('オンラインニックネーム').fill(nickname);await page.getByLabel('オンライン希望区').selectOption(ward);await expect(page.getByText('サーバー接続中',{exact:true})).toBeVisible();}
-async function finalize(pages:Page[]){for(const p of pages)await p.getByRole('button',{name:'命令書を確定',exact:true}).click();}
+async function finalize(pages:Page[]){for(const p of pages)await p.getByRole('button',{name:'命令書を確定',exact:true}).click();await finishPlayback(pages);}
 test('オンライン3人へイベント公開、装備取得、自転車予約・復帰・秘密裁定、次季節の封鎖',async({browser})=>{
   test.setTimeout(120000);
   const dataset=datasetSchema.parse(JSON.parse(await readFile('data/generated/regions.json','utf8'))),config:MapConfig=createConfig(dataset),wards:WardId[]=['26101','26102','26103'];

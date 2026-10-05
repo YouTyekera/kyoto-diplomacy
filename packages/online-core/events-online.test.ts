@@ -1,6 +1,7 @@
 import { describe,it,expect } from 'vitest';
 import { sampleConfig,sampleDataset } from '../map-core/sample';
-import { RoomManager,serializePrivateState,serializePublicState } from './room-manager';
+import { serializePrivateState,serializePublicState } from './room-manager';
+import { RoomManager } from '../../tests/immediate-playback-manager';
 import { noEvents,effectiveMap } from '../game-core/events';
 import type { Credentials,OnlineResponse } from '../shared/online';
 import type { GameOrder } from '../shared/events';

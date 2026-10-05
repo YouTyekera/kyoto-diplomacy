@@ -23,6 +23,7 @@ export const requestSchema=z.discriminatedUnion('action',[
   z.object({action:z.literal('standard-scenario')}).strict(),
   z.object({action:z.literal('export-log')}).strict(),
   z.object({action:z.literal('presentation-skipped'),presentationId:id}).strict(),
+  z.object({action:z.literal('playback'),presentationId:id,control:z.enum(['start','fast-forward','skip'])}).strict(),
   z.object({action:z.literal('lobby-years'),yearLimit:z.number().int().positive().nullable()}).strict(),
   z.object({action:z.literal('start'),yearLimit:z.number().int().positive().nullable()}).strict(),
   z.object({action:z.literal('orders'),phaseKey,orders:z.array(gameOrderSchema).max(227),finalize:z.boolean()}).strict(),
@@ -54,10 +55,16 @@ export type PublicResult=z.infer<typeof publicResultSchema>;
 const publicPlayerSchema=z.object({playerId:id,nickname:z.string(),connected:z.boolean(),host:z.boolean(),wardId:wardSchema.nullable(),
   required:z.boolean(),finalized:z.boolean(),eliminated:z.boolean(),status:z.enum(['editing','finalized','not-required','disconnected','eliminated'])}).strict();
 export const presentationSchema=z.object({id,year:z.number().int().positive(),season:z.enum(['spring','autumn']),before:z.array(previewUnitSchema),after:z.array(previewUnitSchema),orders:z.array(z.union([orderSchema,bicycleOrderSchema.omit({equipmentId:true}),deployOrderSchema.omit({equipmentId:true})])),movement:movementSchema}).strict();
+export const turnSnapshotSchema=z.object({id,year:z.number().int().positive(),season:z.enum(['spring','autumn']),board:gameStatePreviewSchema,events:publicEventsSchema,presentation:presentationSchema}).strict();
+export type TurnSnapshot=z.infer<typeof turnSnapshotSchema>;
+export const playbackSchema=z.object({id,stage:z.enum(['reveal','playing']),year:z.number().int().positive(),season:z.enum(['spring','autumn']),orders:presentationSchema.shape.orders,before:presentationSchema.shape.before,
+  snapshot:presentationSchema.nullable(),elapsed:z.number().nonnegative(),sentAt:z.number(),speed:z.number().positive(),duration:z.number().positive()}).strict();
+export type OnlinePlayback=z.infer<typeof playbackSchema>;
 export const publicGameSchema=z.object({year:z.number().int(),season:z.enum(['spring','autumn','winter']),phase:z.enum(['orders','retreats','sc-update','adjustments','end-of-year','finished']),phaseKey,
   status:z.enum(['playing','finished']),maxYears:z.number().int().positive(),endResult:endResultSchema.nullable(),summary:metricsSchema,
   board:gameStatePreviewSchema,seed:z.string(),playerWards:z.record(z.string(),wardSchema),inactiveWards:z.array(wardSchema),activePlayerCount:z.number().int(),victoryTargetSC:z.number().int(),
   presentation:presentationSchema.nullable(),requiredRivalInitialSupplyCentersForInstantWin:z.number().int().nonnegative(),rivalInitialSCByWard:z.record(z.string(),z.number().int().nonnegative()),events:publicEventsSchema,inventoryCounts:z.record(z.string(),z.object({bicycle:z.number().int().nonnegative(),barricade:z.number().int().nonnegative()}).strict()),
+  playback:playbackSchema.nullable().optional(),history:z.array(turnSnapshotSchema).optional(),
   end:gameEndSchema.nullable(),lastResult:publicResultSchema.nullable()}).strict();
 export type PublicGameView=z.infer<typeof publicGameSchema>;
 export const publicRoomSchema=z.object({roomCode:z.string(),hostId:id,hostReconnectDeadline:z.number().nullable().optional(),map:mapDefinitionSchema.optional(),players:z.array(publicPlayerSchema),startErrors:strings,scenario:z.object({scenarioId:z.string(),scenarioName:z.string(),scenarioHash:z.string(),fileName:z.string().optional(),source:z.enum(['standard','custom','editor']).optional(),loaded:z.boolean(),enabledRegions:z.number().int(),totalSC:z.number().int(),totalStartingUnits:z.number().int(),errors:strings,warnings:strings,maxYears:z.number().int().positive()}).strict(),game:publicGameSchema.nullable()}).strict();

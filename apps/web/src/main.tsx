@@ -10,3 +10,5 @@ import './landing-page.css';
 import { AudioProvider } from './audio/AudioProvider';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><AudioProvider><App /></AudioProvider></React.StrictMode>);
+
+import './phase7g.css';

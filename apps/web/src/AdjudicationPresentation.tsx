@@ -1,15 +1,22 @@
-import { useEffect,useRef,useState,type ReactNode } from 'react';
+import { useEffect,useRef,useState,useMemo,type ReactNode } from 'react';
 import { uiMotion } from './ui-motion';
 import type { ResolutionPresentation } from '../../../packages/game-core/model';
 import settings from '../../../data/config/presentation-settings.json';
+import type { OnlinePlayback } from '../../../packages/shared/online';
+import { planPlayback, playbackGroup } from '../../../packages/shared/playback';
 export { settings as presentationSettings };
-export function usePresentation(snapshot:ResolutionPresentation|null|undefined){
+export function usePresentation(snapshot:ResolutionPresentation|null|undefined,remote?:OnlinePlayback|null){
+  const online=remote!==undefined;
+  const anchor=useRef({remote,at:Date.now()});if(anchor.current.remote!==remote)anchor.current={remote,at:Date.now()};
+  const [clock,setClock]=useState(Date.now);
+  useEffect(()=>{if(remote?.stage!=='playing')return;const timer=setInterval(()=>setClock(Date.now()),16);return()=>clearInterval(timer);},[remote?.id,remote?.stage]);
   const seen=useRef(snapshot?.id),[frame,setFrame]=useState<{snapshot:ResolutionPresentation;elapsed:number}|null>(null),[drawerOpen,setDrawerOpen]=useState(false);
   useEffect(()=>{
+    if(online){const changed=snapshot?.id!==seen.current;seen.current=snapshot?.id;setFrame(null);if(snapshot&&changed)setDrawerOpen(true);return;}
     if(!snapshot){seen.current=undefined;setFrame(null);setDrawerOpen(false);return;}
     if(snapshot.id===seen.current)return;
     seen.current=snapshot.id;setDrawerOpen(false);setFrame({snapshot,elapsed:-uiMotion.ready});
-  },[snapshot]);
+  },[snapshot,online]);
   useEffect(()=>{
     if(!frame||frame.elapsed>=settings.settleEndMs)return;
     const start=performance.now()-frame.elapsed;let raf=0;
@@ -26,8 +33,11 @@ export function usePresentation(snapshot:ResolutionPresentation|null|undefined){
   useEffect(()=>{const media=window.matchMedia('(prefers-reduced-motion: reduce)'),change=()=>setReduced(media.matches);media.addEventListener('change',change);return()=>media.removeEventListener('change',change);},[]);
   // Mark a newly received snapshot active on its first render. Board feedback must
   // queue before the effect starts RAF, rather than expire during the animation.
-  const visibleFrame=snapshot&&snapshot.id!==seen.current?{snapshot,elapsed:-uiMotion.ready}:frame;
-  return {frame:visibleFrame,active:!!visibleFrame&&visibleFrame.elapsed<settings.settleEndMs,result:visibleFrame?.snapshot??snapshot,drawerOpen,sliding:!!visibleFrame&&!reduced&&visibleFrame.elapsed>=settings.arrowsEndMs&&visibleFrame.elapsed<settings.slideEndMs&&visibleFrame.snapshot.orders.some(o=>o.type==='move'||o.type==='bicycle-move'),reduced,
+  const sequence=useMemo(()=>remote?.snapshot?planPlayback(remote.snapshot):undefined,[remote?.snapshot]);
+  const visibleFrame=online?remote?.stage==='playing'&&remote.snapshot?{snapshot:remote.snapshot,elapsed:Math.min(remote.duration,remote.elapsed+Math.max(0,clock-anchor.current.at)*remote.speed)}:null:snapshot&&snapshot.id!==seen.current?{snapshot,elapsed:-uiMotion.ready}:frame;
+  const group=sequence&&visibleFrame?playbackGroup(sequence,visibleFrame.elapsed):undefined;
+  const active=online?remote?.stage==='playing':!!visibleFrame&&visibleFrame.elapsed<settings.settleEndMs;
+  return {frame:visibleFrame,sequence,group,active:!!active,result:visibleFrame?.snapshot??snapshot,drawerOpen,sliding:!!visibleFrame&&!reduced&&(online?!!group:visibleFrame.elapsed>=settings.arrowsEndMs&&visibleFrame.elapsed<settings.slideEndMs)&&visibleFrame.snapshot.orders.some(o=>(o.type==='move'||o.type==='bicycle-move')&&(!group||group.unitIds.includes(o.unitId))),reduced,
     skip:()=>{setFrame(f=>f?{...f,elapsed:settings.settleEndMs}:null);setDrawerOpen(true);},close:()=>{setDrawerOpen(false);setFrame(null);},open:()=>setDrawerOpen(true)};
 }
 export type Presentation=ReturnType<typeof usePresentation>;

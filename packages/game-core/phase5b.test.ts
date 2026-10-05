@@ -6,7 +6,8 @@ import { createGameSession,adjudicateGameOrders,advanceGame,type GameResponse } 
 import { noEvents } from './events';
 import { conquestProgress,evaluateGameEnd } from './end';
 import { defaultGameSettings,createOnlineBoard } from '../online-core/initial';
-import { RoomManager,serializePublicState,serializePrivateState } from '../online-core/room-manager';
+import { serializePublicState,serializePrivateState } from '../online-core/room-manager';
+import { RoomManager } from '../../tests/immediate-playback-manager';
 import { completeSyntheticScenario } from '../../tests/scenario-fixture';
 import { summarizeMatch } from './match-log';
 const R='26101',B='26102',a='sample-a',b='sample-b',c='sample-c',d='sample-d';

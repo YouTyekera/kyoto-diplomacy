@@ -1,3 +1,4 @@
+import { startPlayback } from './playback-browser-helper';
 import { expect, type Browser, type Page } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import type { PublicRoomView, PrivatePlayerView } from '../packages/shared/online';
@@ -125,8 +126,9 @@ export async function gameplayPolish(browser: Browser, baseURL: string, folder: 
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('kyoto-music-v1')!))).toEqual(music);
     await page.getByRole('button', { name: '命令書を確定', exact: true }).click();
     for (const p of pages.slice(1)) await p.getByRole('button', { name: '命令書を確定', exact: true }).click();
+    await startPlayback(pages);
     await expect(page.locator('html')).toHaveAttribute('data-bgm-context', 'adjudication');
-    await page.getByRole('button', { name: 'スキップ', exact: true }).click(); await expect(page.locator('html')).toHaveAttribute('data-bgm-context', 'domestic');
+    await page.getByRole('button', { name: '演出をスキップ', exact: true }).click(); await expect(page.locator('html')).toHaveAttribute('data-bgm-context', 'domestic');
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('kyoto-music-v1')!))).toEqual(music);
     const plays = await page.evaluate(() => window.gameplayAudio.plays);
     expect(plays).toContain('/audio/bgm/domestic.mp3'); expect(plays).toContain('/audio/bgm/adjudication.mp3');

@@ -1,3 +1,4 @@
+import { startPlayback } from '../playback-browser-helper';
 import { test,expect,type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { configSchema,datasetSchema } from '../../packages/shared/model';
@@ -19,7 +20,7 @@ async function setup(pages:Page[]){
   for(const page of pages){await expect(page.getByTestId('online-phase')).toContainText('第1年 · 春');await page.getByRole('button',{name:'イベント・結果',exact:true}).click();}
 }
 async function rightClick(page:Page,id:string){return page.locator(`[data-region-id="${id}"]`).evaluate(e=>!e.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,button:2})));}
-async function close(page:Page){if(await page.getByRole('button',{name:'スキップ',exact:true}).isVisible())await page.getByRole('button',{name:'スキップ',exact:true}).click();await page.getByRole('button',{name:'結果を閉じる',exact:true}).click();}
+async function close(page:Page){if(await page.getByRole('button',{name:'演出をスキップ',exact:true}).isVisible())await page.getByRole('button',{name:'演出をスキップ',exact:true}).click();if(await page.getByRole('button',{name:'スキップ',exact:true}).isVisible())await page.getByRole('button',{name:'スキップ',exact:true}).click();await page.getByRole('button',{name:'結果を閉じる',exact:true}).click();}
 
 test('実京都190/72/59・3人密度で自軍、右クリック、2手先、支援の本人推薦と他軍秘密、裁定Audio・skip・復帰',async({browser})=>{
   test.setTimeout(120000);
@@ -53,7 +54,8 @@ test('実京都190/72/59・3人密度で自軍、右クリック、2手先、支
     await pages[0].locator(`[data-marker-region="${units.find(u=>u.unitId===foreign.unitId)!.regionId}"]`).press('Enter');await pages[0].getByRole('button',{name:'支援',exact:true}).click();await pages[0].locator(`[data-marker-region="${units.find(u=>u.unitId===foreign.targetUnitId)!.regionId}"]`).press('Enter');await expect(pages[0].getByRole('button',{name:/現在の移動命令:/})).toHaveCount(0);await pages[0].getByRole('button',{name:'この軍の移動を支援する',exact:true}).click();await pages[0].locator(`[data-region-id="${foreign.destination}"]`).press('Enter');await expect.poll(()=>privateViews[0]?.orders.some(o=>o.type==='support-move'&&o.targetUnitId===foreign.targetUnitId)).toBe(true);
     await pages[0].screenshot({path:'test-results/phase5b-kyoto-commands-1280.png',fullPage:true});
     for(const page of pages)await page.getByRole('button',{name:'命令書を確定',exact:true}).click();
-    await expect(pages[0].getByLabel('裁定演出')).toBeVisible();await expect(pages[0].locator('html')).toHaveAttribute('data-bgm-context','adjudication');await expect(pages[0].getByLabel('裁定演出')).toHaveAttribute('data-presentation-stage','slide');
+    await startPlayback(pages);
+    await expect(pages[0].getByLabel('裁定演出')).toBeVisible();await expect(pages[0].locator('html')).toHaveAttribute('data-bgm-context','adjudication');await expect(pages[0].getByLabel('裁定演出')).toHaveAttribute('data-presentation-stage','stage-2');
     const sounds=await pages[0].evaluate(()=>(window as unknown as {audioRecords:{src:string;plays:number}[]}).audioRecords.filter(a=>a.src.endsWith('/march.wav')));expect(sounds).toHaveLength(1);expect(sounds[0].plays).toBe(1);
     await pages[0].screenshot({path:'test-results/phase5b-kyoto-presentation.png',fullPage:true});await close(pages[0]);await expect(pages[0].locator('html')).toHaveAttribute('data-bgm-context','domestic');
     expect(await pages[0].evaluate(()=>(window as unknown as {audioRecords:{src:string;pauses:number}[]}).audioRecords.find(a=>a.src.endsWith('/march.wav'))!.pauses)).toBeGreaterThan(0);

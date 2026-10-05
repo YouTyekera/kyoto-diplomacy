@@ -19,6 +19,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       if (!event.isTrusted) return;
       document.removeEventListener('pointerdown', unlock); document.removeEventListener('keydown', unlock);
       manager.unlock();
+      sfx.unlock();
     };
     document.addEventListener('pointerdown', unlock, { once: true });
     document.addEventListener('keydown', unlock, { once: true });
@@ -44,6 +45,7 @@ export function AudioSettings({ compact = false }: { compact?: boolean }) {
     <button aria-label="効果音 ON/OFF" aria-pressed={sfxSettings.enabled} onClick={()=>changeSfx({...sfxSettings,enabled:!sfxSettings.enabled})}>効果音 {sfxSettings.enabled?'ON':'OFF'}</button>
     <label>効果音音量 {sfxSettings.volume}<input aria-label="効果音音量" type="range" min="0" max="100" value={sfxSettings.volume} onChange={e=>changeSfx({...sfxSettings,volume:Number(e.target.value)})}/></label>
     <details className="sfx-preview"><summary>効果音を試す</summary><div className="sfx-preview-buttons">{(Object.keys(sfxManifest) as SfxCue[]).map(cue=><button key={cue} disabled={!sfxSettings.enabled||sfxSettings.volume===0} onClick={()=>sfx.playCue(cue)} aria-label={`効果音を試す: ${sfxManifest[cue].label}`}>{sfxManifest[cue].label}</button>)}</div></details>
+    <button disabled={!sfxSettings.enabled||sfxSettings.volume===0} onClick={()=>void sfx.playHorn()}>全員確定の合図を試す</button>
     {!compact && <p className="hint">仮効果音を同梱しています。未設定の曲や再生できない音は無音で続行します。</p>}</>;
   return compact ? <details className="audio-settings"><summary>音量・設定</summary>{controls}</details> : <section className="audio-settings" aria-label="音楽設定">{controls}</section>;
 }

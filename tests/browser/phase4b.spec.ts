@@ -1,3 +1,4 @@
+import { finishPlayback } from '../playback-browser-helper';
 import { test,expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { configSchema } from '../../packages/shared/model';
@@ -20,7 +21,7 @@ test('3画面でHostシナリオ読込・Preflight・共通Game Over・秘密情
     for(let i=1;i<3;i++){await pages[i].getByLabel('参加ルームコード').fill(code);await pages[i].getByRole('button',{name:'ルームへ参加',exact:true}).click();await expect(pages[i].getByTestId('room-code')).toHaveText(code);await expect(pages[i].getByLabel('カスタムJSONを読み込む')).toHaveCount(0);}
     await expect(pages[0].getByLabel('シナリオ検証')).toContainText('Error 0');await expect(pages[0].getByLabel('オンライン規定年数')).toHaveValue('5');await expect(pages[0].getByRole('button',{name:'オンラインゲーム開始',exact:true})).toBeEnabled();
     await pages[0].getByRole('button',{name:'オンラインゲーム開始',exact:true}).click();for(const page of pages){await expect(page.getByTestId('online-phase')).toHaveText('第1年 · 春 · 移動命令');await expect(page.getByText('規定年数: 5年',{exact:true})).toBeVisible();await expect(page.getByLabel('カスタムJSONを読み込む')).toHaveCount(0);}
-    for(let season=0;season<2;season++)for(const page of pages)await page.getByRole('button',{name:'命令書を確定',exact:true}).click();
+    for(let season=0;season<2;season++){for(const page of pages)await page.getByRole('button',{name:'命令書を確定',exact:true}).click();await finishPlayback(pages);}
     for(const page of pages){await expect(page.getByRole('heading',{name:'共同勝利',exact:true})).toBeVisible();await expect(page.getByLabel('ゲーム終了結果')).toContainText('脱落発生により終了');await expect(page.getByLabel('ゲーム終了結果')).toContainText('同率勝者');await expect(page.getByRole('button',{name:'命令書を確定',exact:true})).toHaveCount(0);}
     const standings=await pages[0].getByRole('table',{name:'最終順位'}).innerText();for(const page of pages.slice(1))expect(await page.getByRole('table',{name:'最終順位'}).innerText()).toBe(standings);
     const downloadPromise=pages[0].waitForEvent('download');await pages[0].getByRole('button',{name:'試遊ログをダウンロード',exact:true}).click();const download=await downloadPromise;expect(download.suggestedFilename()).toBe('match-log.json');await download.saveAs('test-results/phase4b-match-log.json');

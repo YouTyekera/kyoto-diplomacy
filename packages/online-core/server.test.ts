@@ -2,7 +2,7 @@ import { it,expect,vi } from 'vitest';
 import { io,type Socket } from 'socket.io-client';
 import { createOnlineServer } from '../../apps/server/server';
 import { sampleConfig,sampleDataset } from '../map-core/sample';
-import { RoomManager } from './room-manager';
+import { RoomManager } from '../../tests/immediate-playback-manager';
 import { type ClientToServerEvents,type ServerToClientEvents,type PublicRoomView,type PrivatePlayerView,type Credentials } from '../shared/online';
 import { WARDS } from '../shared/model';
 import { noEvents } from '../game-core/events';

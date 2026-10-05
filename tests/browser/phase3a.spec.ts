@@ -1,3 +1,4 @@
+import { finishPlayback } from '../playback-browser-helper';
 import { test,expect,type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { datasetSchema,createConfig,type WardId } from '../../packages/shared/model';
@@ -10,7 +11,7 @@ async function online(page:Page,nickname:string,ward:WardId) {
   await expect(page.getByText('サーバー接続中',{exact:true})).toBeVisible();
 }
 async function join(page:Page,code:string) {await page.getByLabel('参加ルームコード').fill(code);await page.getByRole('button',{name:'ルームへ参加',exact:true}).click();await expect(page.getByTestId('room-code')).toHaveText(code);}
-async function submitOrders(pages:Page[]) {for(const page of pages)await page.getByRole('button',{name:'命令書を確定',exact:true}).click();}
+async function submitOrders(pages:Page[]) {for(const page of pages)await page.getByRole('button',{name:'命令書を確定',exact:true}).click();await finishPlayback(pages);}
 
 test('公式京都設定で3人ロビー・秘密命令・自動年間進行・冬・再読込復帰・hover/選択',async({browser})=>{
   test.setTimeout(90000);
@@ -61,7 +62,7 @@ test('公式京都設定で3人ロビー・秘密命令・自動年間進行・�
     await expect(pages[1].getByLabel('自分の命令一覧')).not.toContainText('Move');await expect(pages[1].locator('.move-line')).toHaveCount(0);
     await pages[2].getByRole('button',{name:'命令書を確定',exact:true}).click();await expect(pages[2].getByLabel('自分の命令一覧')).toContainText('Hold');
     await pages[1].getByLabel('オンライン命令種別').selectOption('move');await pages[1].getByLabel('オンライン移動先').selectOption(regions[1][1].regionId);
-    await pages[1].getByRole('button',{name:'命令書を確定',exact:true}).click();
+    await pages[1].getByRole('button',{name:'命令書を確定',exact:true}).click();await finishPlayback(pages);
     for(const p of pages){await expect(p.getByTestId('online-phase')).toHaveText('第1年 · 秋 · 移動命令');await expect(p.getByLabel('直前の公開裁定結果')).toContainText('移動');await expect(p.locator('.move-line')).toHaveCount(0);}
     await expect(pages[0].locator(`[data-marker-region="${regions[0][1].regionId}"] .unit-pin`)).toBeVisible();
     // New autumn secret draft remains private while public spring result stays available.

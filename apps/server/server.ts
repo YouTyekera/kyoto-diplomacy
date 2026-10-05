@@ -72,6 +72,7 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
   const unsubscribeEnds=manager.onSessionEnd((socketId,event)=>{
     sentMap.delete(socketId);io.sockets.sockets.get(socketId)?.emit('sessionEnded',event);
   });
+  const unsubscribeRooms=manager.onRoomUpdate(queuePublish);
   io.on('connection',socket=>{
     socket.on('request',(request,ack)=>{
       if(typeof ack!=='function') return;
@@ -103,7 +104,7 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
     if(closing)return closing;
     draining=true;
     if(scheduled)clearImmediate(scheduled);scheduled=undefined;queuedRooms.clear();
-    unsubscribe();unsubscribeEnds();manager.dispose();
+    unsubscribe();unsubscribeEnds();unsubscribeRooms();manager.dispose();
     closing=new Promise<void>(resolve=>{
       const limit=setTimeout(()=>{io.disconnectSockets(true);http.closeAllConnections();},8000);limit.unref();
       io.close(()=>{clearTimeout(limit);resolve();});http.closeIdleConnections();

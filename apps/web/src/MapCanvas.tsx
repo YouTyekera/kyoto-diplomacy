@@ -20,6 +20,8 @@ import type { GameOrder } from '../../../packages/shared/events';
 import { uiMotion } from './ui-motion';
 import { fitBoard, clampBoardView, neutralSupplyScale } from './board-camera';
 import { TerrainBackdrop } from './TerrainBackdrop';
+import { KyotoGeography } from './KyotoGeography';
+import { unitPlaybackTime } from '../../../packages/shared/playback';
 
 interface Props {
   dataset: RegionDataset; config: MapConfig; result?: Pick<CompileResult, 'map'>;
@@ -34,10 +36,11 @@ interface Props {
   eventFocus?:EventFocus|null;eventHighlight?:string[];presentation?:Presentation;
   feedback?:BoardFeedback;acceptedOrder?:{key:number;order:GameOrder}|null;
   retreatUnits?:Unit[];
+  readOnly?:boolean;
 }
 const defaultView = { x: 0, y: 0, width: 1000, height: 800 };
-export function MapCanvas({ dataset, config, result, selected, onSelect:handleSelect, ward, busy, preview, anchorMode, onAnchor, obstacleDraft = [], orders = [], orderUnits = [],events, legalTargetIds = [], playerFacing = false,currentPlayerWardId,onRightClick,previewNext=false,secondaryTargetIds,eventFocus,eventHighlight=[],presentation,feedback,acceptedOrder,retreatUnits=[] }: Props) {
-  const onSelect=useCallback((id:string)=>{if(!presentation?.active)handleSelect(id);},[handleSelect,presentation?.active]);
+export function MapCanvas({ dataset, config, result, selected, onSelect:handleSelect, ward, busy, preview, anchorMode, onAnchor, obstacleDraft = [], orders = [], orderUnits = [],events, legalTargetIds = [], playerFacing = false,currentPlayerWardId,onRightClick,previewNext=false,secondaryTargetIds,eventFocus,eventHighlight=[],presentation,feedback,acceptedOrder,retreatUnits=[],readOnly=false }: Props) {
+  const onSelect=useCallback((id:string)=>{if(!presentation?.active&&!readOnly)handleSelect(id);},[handleSelect,presentation?.active,readOnly]);
   const [acceptedRegion,setAcceptedRegion]=useState<string|null>(null);
   useEffect(()=>{const order=acceptedOrder?.order;if(!order){setAcceptedRegion(null);return;}const id='destination'in order?order.destination:order.type==='deploy-barricade'?order.targetRegionId:orderUnits.find(u=>u.unitId===order.unitId)?.regionId;setAcceptedRegion(id??null);const timer=setTimeout(()=>setAcceptedRegion(null),uiMotion.feedback);return()=>clearTimeout(timer);},[acceptedOrder?.key]); // eslint-disable-line react-hooks/exhaustive-deps
   const [view, setView] = useState(defaultView);
@@ -194,7 +197,8 @@ export function MapCanvas({ dataset, config, result, selected, onSelect:handleSe
     const title = `${unitOwner?(currentPlayerWardId===unitOwner?'自軍':`${unitName}軍`)+' / ':''}${r.name}${settings.isSupplyCenter ? ` · 補給拠点: ${owner ? WARDS.find(w => w.id === owner)?.name : '中立（未所有）'}` : ''}${command}`;
     return { marker, r, settings, unitOwner, owner, unitName, active, title };
   });
-  const impactStandoffs=presentation?.active&&presentation.frame&&presentation.frame.elapsed>=presentationSettings.slideEndMs&&presentation.frame.elapsed<presentationSettings.impactEndMs?presentation.frame.snapshot.movement.standoffRegions:undefined;
+  const impactElapsed=presentation?.frame&&presentation.sequence&&presentation.group?unitPlaybackTime(presentation.sequence,presentation.group.unitIds[0],presentation.frame.elapsed):presentation?.frame?.elapsed;
+  const impactStandoffs=presentation?.active&&presentation.frame&&impactElapsed!==undefined&&impactElapsed>=presentationSettings.slideEndMs&&impactElapsed<presentationSettings.impactEndMs?presentation.frame.snapshot.movement.standoffRegions.filter(id=>!presentation.group||presentation.group.regionIds.includes(id)):undefined;
   const regionElements=useMemo(()=>rendered.map(r => {
         const settings = config.regions[r.regionId], isSelected = r.regionId === selected;
         const fill = regionFill({ ...r, enabled: !!settings?.enabled, isSupplyCenter: !!settings?.isSupplyCenter }, preview);
@@ -232,7 +236,7 @@ export function MapCanvas({ dataset, config, result, selected, onSelect:handleSe
       {busy && <span className="calculating" role="status">隣接・検証を計算中…</span>}
     </div>
     <svg ref={svgRef} className="map" viewBox={`${view.x} ${view.y} ${view.width} ${view.height}`} preserveAspectRatio="xMidYMid meet"
-      onContextMenu={e=>{if(onRightClick){e.preventDefault();drag.current=null;const target=(e.target as Element).closest('[data-region-id],[data-marker-region],[data-supply-region],[data-ground-region]');onRightClick(target?.getAttribute('data-region-id')??target?.getAttribute('data-marker-region')??target?.getAttribute('data-supply-region')??target?.getAttribute('data-ground-region')??'');}}}
+      onContextMenu={e=>{if(onRightClick){e.preventDefault();drag.current=null;const target=(e.target as Element).closest('[data-region-id],[data-marker-region],[data-supply-region],[data-ground-region]');if(!readOnly&&!presentation?.active)onRightClick(target?.getAttribute('data-region-id')??target?.getAttribute('data-marker-region')??target?.getAttribute('data-supply-region')??target?.getAttribute('data-ground-region')??'');}}}
       aria-label="国勢統計区の地図"
       onClick={e => { if (anchorMode && !suppressClick.current) onAnchor?.(projection.unproject(pointInView(e.clientX, e.clientY))); }}
       onPointerDown={e => { suppressClick.current=false;drag.current=e.button===0?{ x: e.clientX, y: e.clientY, view, moved: false }:null; }}
@@ -243,7 +247,9 @@ export function MapCanvas({ dataset, config, result, selected, onSelect:handleSe
       </pattern><marker id="order-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#234e7a" /></marker>
       <marker id="support-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="#885022" strokeWidth="2" /></marker></defs>
       {playerFacing&&<TerrainBackdrop playablePaths={terrainPaths} view={view} unitsPerPixel={unitsPerPixel} />}
+      {playerFacing&&dataset.kind==='kyoto-kml'&&<KyotoGeography project={projection.project} scale={unitsPerPixel}/>}
       {regionElements}
+      {presentation?.group&&<g className="playback-focus" pointerEvents="none">{presentation.group.regionIds.map(id=>{const r=rendered.find(r=>r.regionId===id);return r?<path key={id} d={r.path} fill="#fff3b6" fillOpacity=".18" stroke="#bb8647" strokeWidth="2" vectorEffect="non-scaling-stroke"/>:null;})}</g>}
       {config.obstacles.map(o => <g key={o.id} data-obstacle-id={o.id}>
         <path d={projection.path(o.geometry)} fill="#354640" fillOpacity="0.6" stroke="#263b34"
           className="obstacle obstacle-fill" fillRule="evenodd"><title>{o.properties.name} · 侵入不能</title></path>
@@ -254,13 +260,13 @@ export function MapCanvas({ dataset, config, result, selected, onSelect:handleSe
         const from=rendered.find(r=>r.regionId===unit.regionId)?.center;
         if(order.type==='bicycle-move') {
           const via=rendered.find(r=>r.regionId===order.viaRegionId)?.center,to=rendered.find(r=>r.regionId===order.destination)?.center;
-          return from&&via&&to?<polyline key={order.unitId} className="order-line bicycle-line" points={[from,via,to].map(p=>p.join(',')).join(' ')} fill="none" stroke="#234e7a" strokeWidth="2" vectorEffect="non-scaling-stroke" markerEnd="url(#order-arrow)" />:null;
+          return from&&via&&to?<polyline key={order.unitId} opacity={presentation?.group&&!presentation.group.unitIds.includes(order.unitId)?.25:1} className="order-line bicycle-line" points={[from,via,to].map(p=>p.join(',')).join(' ')} fill="none" stroke="#234e7a" strokeWidth={presentation?.group?.unitIds.includes(order.unitId)?3:2} vectorEffect="non-scaling-stroke" markerEnd="url(#order-arrow)" />:null;
         }
         const targetId=order.type==='deploy-barricade'?order.targetRegionId:order.type==='move'||order.type==='support-move'?order.destination:orderUnits.find(u=>u.unitId===order.targetUnitId)?.regionId;
         const to=rendered.find(r=>r.regionId===targetId)?.center;if(!from||!to) return null;
         const support=order.type==='support-hold'||order.type==='support-move';
-        return <line key={order.unitId} className={support?'order-line support-line':'order-line move-line'} x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]}
-          stroke={support?'#885022':'#234e7a'} strokeWidth="2" strokeDasharray={support?'5 4':undefined} vectorEffect="non-scaling-stroke" markerEnd={`url(#${support?'support-arrow':'order-arrow'})`} />;
+        return <line key={order.unitId} opacity={presentation?.group&&!presentation.group.unitIds.includes(order.unitId)?.25:1} className={support?'order-line support-line':'order-line move-line'} x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]}
+          stroke={support?'#885022':'#234e7a'} strokeWidth={presentation?.group?.unitIds.includes(order.unitId)?3:2} strokeDasharray={support?'5 4':undefined} vectorEffect="non-scaling-stroke" markerEnd={`url(#${support?'support-arrow':'order-arrow'})`} />;
       })}
       {events&&[...events.temporaryBusEdges.map(e=>({...e,type:'bus',remaining:0})),...events.roadworkEdges.map(e=>({...e,type:'roadwork',remaining:0})),...events.activeBarricades.map(e=>({...e,type:'barricade',remaining:e.remainingMovementSeasons}))].map(e=>{
         const a=rendered.find(r=>r.regionId===e.a)?.center,b=rendered.find(r=>r.regionId===e.b)?.center;if(!a||!b)return null;
@@ -302,9 +308,9 @@ export function MapCanvas({ dataset, config, result, selected, onSelect:handleSe
       })}
       </g>
       {presentation?.active&&presentation.frame&&<g className={`presentation-layer ${presentation.reduced?'reduced-motion':''}`} pointerEvents="none">
-        {presentation.frame.snapshot.before.map(unit=>{const frame=presentation.frame!;const at=presentationPosition(frame.snapshot,unit.unitId,frame.elapsed,id=>rendered.find(r=>r.regionId===id)?.center??null,presentation.reduced);if(!at)return null;
+        {presentation.frame.snapshot.before.map(unit=>{const frame=presentation.frame!;const elapsed=presentation.sequence?unitPlaybackTime(presentation.sequence,unit.unitId,frame.elapsed):frame.elapsed;const at=presentationPosition(frame.snapshot,unit.unitId,presentation.reduced&&presentation.sequence&&elapsed<presentationSettings.slideEndMs?0:elapsed,id=>rendered.find(r=>r.regionId===id)?.center??null,presentation.reduced&&(!presentation.sequence||elapsed>=presentationSettings.slideEndMs));if(!at)return null;
           const dislodged=frame.snapshot.movement.dislodgedUnits.some(d=>d.unit.unitId===unit.unitId);
-          return <g key={unit.unitId} data-presentation-unit={unit.unitId} data-move-status={frame.snapshot.movement.orderResults.find(r=>r.order.unitId===unit.unitId)?.status} className={dislodged&&frame.elapsed>=presentationSettings.slideEndMs&&frame.elapsed<presentationSettings.impactEndMs?'dislodged-shake':''} transform={`translate(${at.join(' ')}) scale(${tokenScale})`} opacity={dislodged&&frame.elapsed>=presentationSettings.impactEndMs?.35:1}><ArmyMarker owner={unit.ownerWardId} isOwnUnit={unit.ownerWardId===currentPlayerWardId}/></g>;
+          return <g key={unit.unitId} data-presentation-unit={unit.unitId} data-move-status={frame.snapshot.movement.orderResults.find(r=>r.order.unitId===unit.unitId)?.status} className={dislodged&&elapsed>=presentationSettings.slideEndMs&&elapsed<presentationSettings.impactEndMs?'dislodged-shake':''} transform={`translate(${at.join(' ')}) scale(${tokenScale})`} opacity={dislodged&&elapsed>=presentationSettings.impactEndMs?.35:1}><ArmyMarker owner={unit.ownerWardId} isOwnUnit={unit.ownerWardId===currentPlayerWardId}/></g>;
         })}
       </g>}
       {!presentation?.active&&retreatUnits.map(unit=>{const at=rendered.find(r=>r.regionId===unit.regionId)?.center;if(!at)return null;return <g key={unit.unitId} className="retreat-required-marker" aria-label={`${rendered.find(r=>r.regionId===unit.regionId)?.name}の軍は撤退が必要`} transform={`translate(${at.join(' ')}) scale(${unitsPerPixel})`} pointerEvents="none"><g transform="translate(18 -24)"><rect x="-4" y="-14" width="34" height="20" rx="4" fill="#fff5df" stroke="#a66b1b"/><text fontSize="11" className="region-marker-label">撤退</text></g></g>;})}

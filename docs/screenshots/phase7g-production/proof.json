@@ -1,0 +1,10 @@
+{
+  "allCommandsRevealedTogether": true,
+  "boardUnchangedUntilStart": true,
+  "peacefulThenConflict": true,
+  "skipMatchesServer": true,
+  "historyReadOnly": true,
+  "draftPreserved": true,
+  "reloadRestoresHistory": true,
+  "geographyBehindRegions": true
+}

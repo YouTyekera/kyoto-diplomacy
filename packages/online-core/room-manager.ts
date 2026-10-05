@@ -1,4 +1,6 @@
 import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import { planPlayback } from '../shared/playback';
+import type { OnlinePlayback, TurnSnapshot } from '../shared/online';
 import { compileScenario,compileUploadedScenario,prepareScenarioForOnlinePlay,validateScenarioForOnlinePlay,type OnlineScenarioPreflight,type Scenario,type ScenarioDiagnostic } from './scenario';
 import { startMatchLog,logTransition,phaseElapsed,recordMatch,summarizeMatch,exportMatchLog } from '../game-core/match-log';
 import { conquestProgress } from '../game-core/end';
@@ -14,7 +16,8 @@ import { validateGameOrders,legalGameOrders,effectiveMap,publicEvents,inventoryC
 
 interface Submission { orders:GameOrder[];retreats:RetreatOrder[];winter:{buildRegionIds:string[];disbandUnitIds:string[]};finalized:boolean }
 export interface PlayerSession { playerId:string;nickname:string;preferredWardId:WardId|null;reconnectToken:string;socketId:string|null;submission:Submission }
-export interface OnlineGameSession extends Assignment { state:GameSessionState;seed:string;activePlayerCount:number;phaseSerial:number;locked:boolean;lastResult:PublicResult|null;movementResolutions:number;presentationSkips:Set<string>;matchLog:MatchLog }
+interface PendingPlayback { next:GameSessionState; orders:GameOrder[]; stage:'reveal'|'playing'; anchor:number; elapsed:number; speed:number; duration:number; timer?:ReturnType<typeof setTimeout> }
+export interface OnlineGameSession extends Assignment { state:GameSessionState;seed:string;activePlayerCount:number;phaseSerial:number;locked:boolean;lastResult:PublicResult|null;movementResolutions:number;presentationSkips:Set<string>;matchLog:MatchLog;playback:PendingPlayback|null;history:TurnSnapshot[] }
 export interface Room { code:string;hostId:string;map:MapDefinition;scenario:Scenario;datasetKind:RegionDataset['kind'];players:Map<string,PlayerSession>;game:OnlineGameSession|null;lobbyMaxYears?:number }
 export interface SessionDiagnostic { event:'socket-disconnect'|'reconnect-success'|'reconnect-failed'|'host-grace-start'|'host-grace-cancel'|'host-transferred';roomCode?:string;player?:string;connection?:string }
 export const hostReconnectGraceMs=60000;
@@ -34,13 +37,15 @@ export class RoomManager {
   private readonly sessionEnds=new Set<(socketId:string,event:SessionEnded)=>void>();
   private readonly sessionListeners=new Set<(event:SessionDiagnostic)=>void>();
   private disposed=false;
+  private readonly roomUpdates=new Set<(room:Room)=>void>();
+  onRoomUpdate(listener:(room:Room)=>void){this.roomUpdates.add(listener);return()=>{this.roomUpdates.delete(listener);};}
   onSessionEvent(listener:(event:SessionDiagnostic)=>void){this.sessionListeners.add(listener);return ()=>{this.sessionListeners.delete(listener);};}
   onSessionEnd(listener:(socketId:string,event:SessionEnded)=>void){this.sessionEnds.add(listener);return()=>{this.sessionEnds.delete(listener);};}
   hostGraceDeadline(room:Room){return this.hostGrace.get(room.code)?.deadline??null;}
   private endSession(socketId:string,room:Room,playerId:string,reason:SessionEnded['reason']){for(const listener of this.sessionEnds)listener(socketId,{roomCode:room.code,playerId,reason});}
   private sessionEvent(event:SessionDiagnostic['event'],room?:Room,playerId?:string,socketId?:string){for(const listener of this.sessionListeners)listener({event,roomCode:room?.code,player:playerId?.slice(0,8),connection:socketId?.slice(0,8)});}
   private cancelHostGrace(room:Room){const grace=this.hostGrace.get(room.code);if(!grace)return;clearTimeout(grace.timer);this.hostGrace.delete(room.code);this.sessionEvent('host-grace-cancel',room,grace.playerId);}
-  dispose(){this.disposed=true;for(const grace of this.hostGrace.values())clearTimeout(grace.timer);this.hostGrace.clear();this.sessionListeners.clear();this.sessionEnds.clear();}
+  dispose(){this.disposed=true;for(const room of this.rooms.values())if(room.game?.playback?.timer)clearTimeout(room.game.playback.timer);for(const grace of this.hostGrace.values())clearTimeout(grace.timer);this.hostGrace.clear();this.sessionListeners.clear();this.sessionEnds.clear();this.roomUpdates.clear();}
   constructor(private datasets:Record<RegionDataset['kind'],RegionDataset>,private settings=defaultGameSettings,private eventOptions:{settings?:EventSettings;seedFactory?:()=>string;now?:()=>string;standardScenarioJson?:string}={}) {}
   private standardScenario(diagnostic?:(value:ScenarioDiagnostic)=>void) {
     const json=this.eventOptions.standardScenarioJson;
@@ -164,6 +169,23 @@ export class RoomManager {
       if(!game.presentationSkips.has(key)){game.presentationSkips.add(key);game.matchLog=recordMatch(game.matchLog,room.map,game.state,this.now(),{type:'presentation-skipped'});}
       return {ok:true};
     }
+    if(request.action==='playback'){
+      const game=room.game,p=game?.playback;
+      if(room.hostId!==player.playerId)return fail('ホストだけが裁定演出を操作できます');
+      if(!game||!p||p.next.presentation?.id!==request.presentationId)return fail('裁定演出が変わりました');
+      if(request.control==='skip'){
+        if(p.stage!=='playing')return fail('先に裁定開始を押してください');
+        game.presentationSkips.add(`${request.presentationId}:${player.playerId}`);
+        game.matchLog=recordMatch(game.matchLog,room.map,game.state,this.now(),{type:'presentation-skipped'});
+        this.completePlayback(room);return {ok:true};
+      }
+      if(request.control==='start'&&p.stage!=='reveal')return fail('裁定演出は開始済みです');
+      if(request.control==='fast-forward'&&p.stage!=='playing')return fail('先に裁定開始を押してください');
+      const now=Date.now();p.elapsed=this.playbackElapsed(p,now);p.anchor=now;p.stage='playing';p.speed=request.control==='fast-forward'?4:1;
+      if(p.timer)clearTimeout(p.timer);
+      p.timer=setTimeout(()=>{if(!this.disposed&&room.game?.playback===p){try{this.completePlayback(room);for(const listener of this.roomUpdates)listener(room);}catch{console.error('[server-error] playback completion failed',JSON.stringify({roomCode:room.code}));}}},Math.max(1,(p.duration-p.elapsed)/p.speed));p.timer.unref();
+      return {ok:true};
+    }
     if(request.action==='export-log') {
       if(!room.game)return fail('開始後にログを保存できます');
       if(room.hostId!==player.playerId&&room.game.state.status!=='finished')return fail('進行中はホストだけが保存できます');
@@ -186,11 +208,11 @@ export class RoomManager {
       const state=createGameSession(room.map,createOnlineBoard(room.map,participants),participants,maxYears,victoryTarget(room.players.size,this.settings),{seed,settings:this.eventOptions.settings,requiredRivalInitialSupplyCentersForInstantWin:this.settings.requiredRivalInitialSupplyCentersForInstantWin});
       if(!state.ok) return fail(...state.errors);
       const matchLog=startMatchLog({gameId:randomUUID(),scenarioHash:room.scenario.hash,playerCount:room.players.size,wardAssignment:allocation.playerWards,players:[...room.players.values()].map(p=>({playerId:p.playerId,nickname:p.nickname,wardId:allocation.playerWards[p.playerId]})),inactiveWards:allocation.inactiveWards,rngSeed:seed,eventSettings:state.result.events.settings,victorySettings:{...this.settings,maxYears},victoryTargetSC:state.result.victoryTargetSC},room.map,state.result,this.now());
-      room.game={...allocation,state:state.result,seed,activePlayerCount:room.players.size,phaseSerial:1,locked:false,lastResult:null,movementResolutions:0,presentationSkips:new Set(),matchLog};
+      room.game={...allocation,state:state.result,seed,activePlayerCount:room.players.size,phaseSerial:1,locked:false,lastResult:null,movementResolutions:0,presentationSkips:new Set(),matchLog,playback:null,history:[]};
       this.resolveReady(room);return {ok:true};
     }
     const game=room.game;
-    if(!game||request.phaseKey!==this.phaseKey(room)||game.locked||game.state.phase==='finished') return fail('フェイズが変わりました。最新の盤面で入力してください');
+    if(!game||request.phaseKey!==this.phaseKey(room)||game.locked||game.playback||game.state.phase==='finished') return fail('フェイズが変わりました。最新の盤面で入力してください');
     if(!this.required(room,player)) return fail('このフェイズの提出は不要です');
     if(request.action==='unready') {player.submission.finalized=false;return {ok:true};}
     if(player.submission.finalized) return fail('確定解除してから編集してください');
@@ -252,8 +274,26 @@ export class RoomManager {
     }
   }
   /** Traverse only phases with no required input; each new Orders phase waits for players. */
+  private playbackElapsed(p:PendingPlayback,now=Date.now()){return Math.min(p.duration,p.elapsed+(p.stage==='playing'?(now-p.anchor)*p.speed:0));}
+  publicPlayback(room:Room):OnlinePlayback|null{
+    const p=room.game?.playback,s=p?.next.presentation;if(!p||!s)return null;
+    const now=Date.now();return {id:s.id,year:s.year,season:s.season,stage:p.stage,before:s.before,orders:s.orders,snapshot:p.stage==='playing'?s:null,elapsed:this.playbackElapsed(p,now),sentAt:now,speed:p.speed,duration:p.duration};
+  }
+  private completePlayback(room:Room){
+    const game=room.game!,p=game.playback;if(!p)return;
+    if(p.timer)clearTimeout(p.timer);
+    const before=game.state,next=p.next;
+    // The resolver has already run exactly once. Completion installs that frozen result, never re-adjudicates.
+    game.matchLog=logTransition(game.matchLog,room.map,before,next,this.now(),p.orders);
+    game.state=next;game.playback=null;
+    game.lastResult={year:before.year,season:before.season,movement:next.movement,retreat:null,winter:null,scChanges:[]};
+    game.history.push({id:next.presentation!.id,year:before.year,season:before.season as 'spring'|'autumn',board:structuredClone(next.board),events:structuredClone(publicEvents(next.events)),presentation:structuredClone(next.presentation!)});
+    game.phaseSerial++;for(const player of room.players.values())player.submission=blank();
+    this.resolveReady(room);
+  }
   private resolveReady(room:Room) {
     const game=room.game!;
+    if(game.playback)return;
     while(game.state.phase!=='finished') {
       const required=[...room.players.values()].filter(p=>this.required(room,p));
       if(required.some(p=>!p.submission.finalized)) return;
@@ -263,9 +303,10 @@ export class RoomManager {
         game.matchLog=recordMatch(game.matchLog,room.map,state,timestamp,{type:'all-finalized',elapsedSeconds:phaseElapsed(game.matchLog,state,timestamp),submittedOrderCount:required.reduce((n,p)=>n+(state.phase==='orders'?p.submission.orders.length:state.phase==='retreats'?p.submission.retreats.length:p.submission.winter.buildRegionIds.length+p.submission.winter.disbandUnitIds.length),0)});
         const transition=(before:GameSessionState,after:GameSessionState,orders:GameOrder[]=[])=>{game.matchLog=logTransition(game.matchLog,room.map,before,after,timestamp,orders);return after;};
         if(state.phase==='orders') {
-          const next=requireResult(adjudicateGameOrders(room.map,state,required.flatMap(p=>p.submission.orders)));
-          game.lastResult={year:state.year,season:state.season,movement:next.movement,retreat:null,winter:null,scChanges:[]};
-          game.state=transition(state,next,required.flatMap(p=>p.submission.orders));game.movementResolutions++;
+          const orders=required.flatMap(p=>p.submission.orders),next=requireResult(adjudicateGameOrders(room.map,state,orders));
+          const snapshot=structuredClone(next);
+          game.playback={next:snapshot,orders:structuredClone(orders),stage:'reveal',anchor:0,elapsed:0,speed:1,duration:planPlayback(snapshot.presentation!).duration};game.movementResolutions++;
+          return;
         } else if(state.phase==='retreats') {
           const next=requireResult(adjudicateGameRetreats(room.map,state,required.flatMap(p=>p.submission.retreats)));
           if(game.lastResult) game.lastResult.retreat=next.retreatResult;
@@ -298,14 +339,14 @@ export function serializePublicState(manager:RoomManager,room:Room,includeMap=tr
     }),
     game:game&&state?{year:state.year,season:state.season,phase:state.phase,phaseKey:manager.phaseKey(room),board:state.board,seed:game.seed,
       status:state.status,maxYears:state.maxYears,endResult:state.endResult,summary:summarizeMatch(game.matchLog),
-      playerWards:game.playerWards,inactiveWards:game.inactiveWards,activePlayerCount:game.activePlayerCount,victoryTargetSC:state.victoryTargetSC,presentation:state.presentation,requiredRivalInitialSupplyCentersForInstantWin:state.requiredRivalInitialSupplyCentersForInstantWin,rivalInitialSCByWard:Object.fromEntries(state.participants.map(w=>[w,conquestProgress(state,w).rivalInitialSC])),events:publicEvents(state.events),inventoryCounts:inventoryCounts(state.events,state.participants),end:state.end,lastResult:game.lastResult}:null});
+      playerWards:game.playerWards,inactiveWards:game.inactiveWards,activePlayerCount:game.activePlayerCount,victoryTargetSC:state.victoryTargetSC,presentation:state.presentation,playback:manager.publicPlayback(room),history:game.history,requiredRivalInitialSupplyCentersForInstantWin:state.requiredRivalInitialSupplyCentersForInstantWin,rivalInitialSCByWard:Object.fromEntries(state.participants.map(w=>[w,conquestProgress(state,w).rivalInitialSC])),events:publicEvents(state.events),inventoryCounts:inventoryCounts(state.events,state.participants),end:state.end,lastResult:game.lastResult}:null});
 }
 export function serializePrivateState(manager:RoomManager,room:Room,player:PlayerSession):PrivatePlayerView {
   const game=room.game,wardId=game?.playerWards[player.playerId]??null,state=game?.state;
   return privatePlayerSchema.parse({playerId:player.playerId,preferredWardId:player.preferredWardId,wardId,phaseKey:manager.phaseKey(room),finalized:player.submission.finalized,
     orders:player.submission.orders,retreatOrders:player.submission.retreats,winterDraft:player.submission.winter??emptyWinter(),
     inventory:state?.events.inventory.filter(e=>e.ownerWardId===wardId)??[],reservations:state?.events.reservations.filter(r=>state.events.inventory.some(e=>e.equipmentId===r.equipmentId&&e.ownerWardId===wardId))??[],
-    legalOrders:state?.phase==='orders'?Object.fromEntries(state.board.units.filter(u=>u.ownerWardId===wardId).map(u=>[u.unitId,legalGameOrders(room.map,state,u.unitId,player.submission.orders)])):{},
+    legalOrders:state?.phase==='orders'&&!game?.playback?Object.fromEntries(state.board.units.filter(u=>u.ownerWardId===wardId).map(u=>[u.unitId,legalGameOrders(room.map,state,u.unitId,player.submission.orders)])):{},
     retreatUnits:state?.phase==='retreats'?state.movement?.dislodgedUnits.filter(d=>d.unit.ownerWardId===wardId)??[]:[],
     winterBudget:state?.phase==='adjustments'&&wardId?winterBudget(room.map,state,wardId):null});
 }

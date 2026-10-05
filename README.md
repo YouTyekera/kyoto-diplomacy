@@ -1,8 +1,12 @@
-# 京都市版 Diplomacy — Phase 7B 公開トップ・標準シナリオ
+# 京都市版 Diplomacy — Phase 7G 裁定演出・移動ターン履歴
 
 Phase 5A.1でOnlineのDataset照合・読込件数診断と補給拠点/陸軍マーカーを修正しました。実ファイル190地域 / 補給拠点72 / 初期軍59の検証と、元の0件症状の再現範囲は [Phase 5A.1修正報告](docs/PHASE5A_1_REPORT.md) を参照してください。Phase 5Bの変更は [Phase 5B報告](docs/PHASE5B_REPORT.md) を参照してください。
 
-京都市の国勢統計区KMLを使った同時命令型ゲームと、ゲーム用地図設定を編集するWebアプリです。実装範囲は **Phase 7B「公開トップ・標準シナリオ」まで**。仕様の正本は [spec.md](spec.md)（第34節）、最新の検証は [Phase 7B報告](docs/PHASE7B_REPORT.md)（6C単体は [Phase 6C報告](docs/PHASE6C_REPORT.md)） です。実際の試遊は **[PLAYTESTING.md](docs/PLAYTESTING.md)** を参照してください。以前の記録は [Phase 1](docs/PHASE1_REPORT.md)・[Phase 1.5](docs/PHASE1_5_REPORT.md)・[Phase 2A](docs/PHASE2A_REPORT.md)・[Phase 2B](docs/PHASE2B_REPORT.md)・[Phase 3A](docs/PHASE3A_REPORT.md)・[Phase 3B](docs/PHASE3B_REPORT.md)・[Phase 4A](docs/PHASE4A_REPORT.md)・[Phase 4B](docs/PHASE4B_REPORT.md)・[Phase 5C](docs/PHASE5C_REPORT.md)・[Phase 6A](docs/PHASE6A_REPORT.md) にあります。
+京都市の国勢統計区KMLを使った同時命令型ゲームと、ゲーム用地図設定を編集するWebアプリです。実装範囲は **Phase 7G「裁定演出・移動ターン履歴」まで**。ゲーム仕様の正本は [spec.md](spec.md)、最新の検証は [Phase 7G報告](docs/PHASE7G_REPORT.md) です。実際の試遊は **[PLAYTESTING.md](docs/PLAYTESTING.md)** を参照してください。以前の記録は [Phase 7B](docs/PHASE7B_REPORT.md)・[Phase 7E](docs/PHASE7E_REPORT.md)・[Phase 7E.1](docs/PHASE7E1_REPORT.md)・[Phase 7F](docs/PHASE7F_REPORT.md) と、docs内の各フェーズ報告にあります。
+
+オンライン対局では、全員が命令書を確定すると全軍の命令を一斉に公開します。軍はまだ動きません。ホストの「▶ 裁定開始」で、同時裁定済みの結果を「干渉のない行軍 → 支援・衝突の局面」の順に再生します。「≫ 早送り」「演出をスキップ」もホスト操作です。次の提出フェイズへは演出終了後に進みます。
+
+「← 前ターン」で春・秋の移動裁定後の盤面を閲覧できます。「→ 次ターン」「現在に戻る」で戻ります。履歴中は命令入力・確定ができず、現在の盤面や命令draftは変更されません。履歴はルームと同じサーバーメモリで保持し、再読込・再接続で再取得できますが、Backend再起動で失われます。
 
 正式な標準シナリオは、ユーザー提供の [kyoto-standard.json](data/default-scenarios/kyoto-standard.json) です。全227レコードのうち190地域を採用し、補給拠点72か所・初期陸軍59体を設定しています。通常のオンラインルームは標準シナリオを選択済みで作成され、ファイル選択は不要です。カスタムJSONも読み込めます。地図エディタの未採用初期設定・保存済み編集内容は標準シナリオとは別に保持しています。地名は公式表記（例: 常磐野）を維持しています。
 

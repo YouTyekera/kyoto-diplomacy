@@ -1,0 +1,13 @@
+.turn-history { display:flex; align-items:center; gap:6px; flex-wrap:wrap; position:relative; z-index:2; padding:4px 8px; background:#f2efe4; border-bottom:1px solid #cdd4c5; font-size:12px; }
+.turn-history button { padding:3px 8px; font-size:12px; }
+.turn-history strong { color:#66562b; }
+.turn-history label { display:flex; align-items:center; gap:4px; }
+.operation-reveal { max-width:min(760px,90%); box-shadow:0 4px 24px #3e5d4424; border-color:#bdac79; background:#faf6e9f5; }
+.operation-reveal>div { display:flex; gap:8px; flex-wrap:wrap; }
+.operation-reveal>div:first-child { flex:1; flex-direction:column; gap:3px; min-width:180px; }
+.operation-reveal small { color:#687463; font-size:11px; }
+.kyoto-geography { opacity:.85; }
+.player-map .playable-region { fill-opacity:.8; }
+.playback-focus path { stroke-linejoin:round; }
+.board-first .left-hud, .board-first .right-hud { top:88px; }
+@media(max-width:720px){ .operation-reveal{max-height:190px;overflow:auto;} .turn-history small{display:none;} }

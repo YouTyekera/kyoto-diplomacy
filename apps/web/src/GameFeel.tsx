@@ -57,7 +57,7 @@ export function PhaseTransition({ phaseKey, year, season, phase }: { phaseKey: s
 export function useResultCues(presentation:Presentation,sfx:SfxManager){
   const seen=useRef(presentation.result?.id);
   useEffect(()=>{
-    if(!presentation.frame||presentation.active||!presentation.result||presentation.result.id===seen.current)return;
+    if(presentation.active||!presentation.result||presentation.result.id===seen.current)return;
     seen.current=presentation.result.id;
     if(presentation.result.movement.orderResults.some(r=>(r.order.type==='support-hold'||r.order.type==='support-move')&&r.status==='success'))sfx.playCue('support-success');
     if(presentation.result.movement.standoffRegions.length)sfx.playCue('standoff');

@@ -1,3 +1,4 @@
+import { finishPlayback } from '../playback-browser-helper';
 import { test, expect, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { configSchema, datasetSchema, createConfig, type MapConfig, type WardId } from '../../packages/shared/model';
@@ -14,7 +15,7 @@ async function entry(page: Page, nickname: string, ward: string, url = '/') {
 }
 // A presentation may finish naturally between isVisible() and clicking Skip. Keep real click errors fatal.
 async function closePresentation(pages:Page[]){for(const page of pages){if(!await page.locator('.left-hud').count())await page.getByRole('button',{name:'イベント・結果',exact:true}).click();await expect(page.getByLabel('裁定演出')).toBeVisible();const skip=page.getByRole('button',{name:'スキップ',exact:true});if(await skip.isVisible()){try{await skip.click({timeout:1500});}catch(error){if(await skip.isVisible())throw error;}}await page.getByRole('button',{name:'結果を閉じる',exact:true}).click();const submit=page.getByRole('button',{name:'命令書を確定',exact:true});if(await submit.count())await expect(submit).toBeEnabled();}}
-async function finalize(pages: Page[]) { for (const page of pages) await page.getByRole('button', { name: '命令書を確定', exact: true }).click();await closePresentation(pages); }
+async function finalize(pages: Page[]) { for (const page of pages) await page.getByRole('button', { name: '命令書を確定', exact: true }).click();await finishPlayback(pages);await closePresentation(pages); }
 async function audioManifest(page: Page) {
   // Test-only source override: production slots remain empty; no dummy music is added.
   // Support both Vite development modules and the production preview bundle.

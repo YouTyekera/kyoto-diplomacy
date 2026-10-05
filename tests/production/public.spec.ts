@@ -1,3 +1,4 @@
+import { startPlayback } from '../playback-browser-helper';
 import {test,expect,type Page} from '@playwright/test';
 import type {PrivatePlayerView,PublicRoomView} from '../../packages/shared/online';
 import {sfxManifest} from '../../apps/web/src/audio/sfx-manifest';
@@ -24,7 +25,7 @@ test('production HTTPS/WSS・3クライアント招待/割当/実右クリック
   await page.locator(`[data-marker-region="${supporter.regionId}"] .unit-pin`).click();await page.getByRole('button',{name:'支援',exact:true}).click();await page.locator(`[data-marker-region="${target.regionId}"] .unit-pin`).click();await page.getByRole('button',{name:/現在の移動命令:/}).click();await expect(page.locator('.support-line')).toHaveCount(1);expect(states[1].self!.orders).toEqual([]);
   await page.screenshot({path:'docs/screenshots/phase7a/public-move-support-1920.png'});await page.setViewportSize({width:1280,height:720});await page.screenshot({path:'docs/screenshots/phase7a/public-move-support-1280.png'});
   console.info('Public integration: Move / Support saved.');
-  for(const p of pages)await p.getByRole('button',{name:'命令書を確定',exact:true}).click();await expect(page.getByLabel('裁定演出')).toBeVisible();await expect.poll(()=>state.room?.game?.lastResult?.movement?.orderResults.some(o=>o.order.type==='support-move')).toBe(true);await page.getByRole('button',{name:'スキップ',exact:true}).click();await page.getByRole('button',{name:'前回の行軍結果',exact:true}).click();await page.getByRole('button',{name:'結果を閉じる',exact:true}).click();
+  for(const p of pages)await p.getByRole('button',{name:'命令書を確定',exact:true}).click();await startPlayback(pages);await expect(page.getByLabel('裁定演出')).toBeVisible();await expect.poll(()=>state.room?.game?.playback?.snapshot?.movement.orderResults.some(o=>o.order.type==='support-move')).toBe(true);await page.getByRole('button',{name:'演出をスキップ',exact:true}).click();await page.getByRole('button',{name:'前回の行軍結果',exact:true}).click();await page.getByRole('button',{name:'結果を閉じる',exact:true}).click();
   const year=state.room!.game!.year,phase=state.room!.game!.phaseKey,id=states[1].self!.playerId;await pages[1].reload();await expect(pages[1].getByTestId('online-phase')).toContainText(`第${year}年`);await expect.poll(()=>states[1].self?.playerId).toBe(id);await expect.poll(()=>states[1].self?.phaseKey).toBe(phase);await expect(pages[1].getByLabel('裁定演出')).toHaveCount(0);
   console.info('Public integration: adjudication / reload restored.');
   // Force transport loss without reload: the browser must re-authenticate with its saved credential.
