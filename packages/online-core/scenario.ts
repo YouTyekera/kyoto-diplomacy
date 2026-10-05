@@ -53,7 +53,8 @@ export function compileUploadedScenario(datasets:Record<RegionDataset['kind'],Re
     throw new Error(`${labels[stage]}: ${error instanceof Error?error.message:'シナリオを読み込めません'}`);
   }
 }
-export function validateScenarioForOnlinePlay(map:MapDefinition,config:MapConfig,playerCount:number,settings=defaultGameSettings,report?:ValidationReport) {
+/** Player count/settings do not change the compiled geometry or its validation. */
+export function prepareScenarioForOnlinePlay(map:MapDefinition,config:MapConfig,report?:ValidationReport) {
   const issues:Issue[]=validateMap(map,config,report?.issues??[]).issues.filter((v,i,all)=>all.findIndex(p=>p.code===v.code&&p.message===v.message)===i);
   const add=(severity:Issue['severity'],code:string,message:string,regionIds:string[]=[])=>issues.push({severity,code,message,regionIds});
   if(!configSchema.safeParse(config).success||!mapDefinitionSchema.safeParse(map).success)add('error','invalid-schema','MapConfig / MapDefinitionの形式が不正です');
@@ -72,8 +73,13 @@ export function validateScenarioForOnlinePlay(map:MapDefinition,config:MapConfig
   const counts=WARDS.map(w=>({wardId:w.id,name:w.name,regions:playable.filter(r=>r.wardId===w.id).length,supplyCenters:sc.filter(r=>r.wardId===w.id&&r.homeWardId===w.id).length,armies:playable.filter(r=>r.startingUnit?.ownerWardId===w.id).length}));
   for(const w of counts)for(const [key,label] of [['regions','採用地域'],['supplyCenters','初期所有SC'],['armies','初期軍']] as const)if(w[key]===0)add('error',`missing-ward-${key}`,`${w.name}: ${label}が0です（全11区の設定が必要）`);
   for(const [key,label] of [['regions','採用地域数'],['supplyCenters','初期SC数'],['armies','初期軍数']] as const)if(new Set(counts.map(w=>w[key])).size>1)add('warning',`unequal-${key}`,`区ごとの${label}に差があります: ${counts.map(w=>`${w.name} ${w[key]}`).join('、')}`);
-  if(playerCount>=3&&playerCount<=11&&victoryTarget(playerCount,settings)>sc.length)add('error','target-exceeds-sc',`勝利目標${victoryTarget(playerCount,settings)}SCがシナリオSC総数${sc.length}を超えています`);
   const borders=playable.filter(r=>(map.adjacency[r.regionId]??[]).some(id=>map.regions.find(p=>p.regionId===id)?.wardId!==r.wardId));
   add('warning','border-counts',`行政区境界に接する地域: SC ${borders.filter(r=>r.isSupplyCenter).length}/${sc.length}、初期軍 ${borders.filter(r=>r.startingUnit).length}/${armies.length}`);
   return {errors:issues.filter(i=>i.severity==='error').map(i=>i.message),warnings:issues.filter(i=>i.severity==='warning').map(i=>i.message),enabledRegions:playable.length,totalSC:sc.length,totalStartingUnits:armies.length,wardCounts:counts};
+}
+export type OnlineScenarioPreflight=ReturnType<typeof prepareScenarioForOnlinePlay>;
+export function validateScenarioForOnlinePlay(map:MapDefinition,config:MapConfig,playerCount:number,settings=defaultGameSettings,report?:ValidationReport,prepared=prepareScenarioForOnlinePlay(map,config,report)):OnlineScenarioPreflight {
+  const errors=[...prepared.errors];
+  if(playerCount>=3&&playerCount<=11&&victoryTarget(playerCount,settings)>prepared.totalSC)errors.push(`勝利目標${victoryTarget(playerCount,settings)}SCがシナリオSC総数${prepared.totalSC}を超えています`);
+  return {...prepared,errors};
 }

@@ -1,0 +1,20 @@
+{
+  "publishBlockingMs": 11000,
+  "timings": [
+    {
+      "action": "create",
+      "ackAndSaveMs": 1103,
+      "snapshotMs": 12648
+    },
+    {
+      "action": "join",
+      "ackAndSaveMs": 43,
+      "snapshotMs": 11841
+    },
+    {
+      "action": "reconnect",
+      "ackAndSaveMs": 316,
+      "snapshotMs": 11840
+    }
+  ]
+}

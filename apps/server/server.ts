@@ -3,6 +3,7 @@ import { Server } from 'socket.io';
 import { randomUUID } from 'node:crypto';
 import { RoomManager, serializePrivateState, serializePublicState, type Room } from '../../packages/online-core/room-manager';
 import type { ClientToServerEvents, ServerToClientEvents, PublicRoomView } from '../../packages/shared/online';
+import {mapDefinitionSchema,type MapDefinition} from '../../packages/shared/model';
 import { permittedOrigin, type ServerConfig } from './config';
 
 export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,'production'|'frontendOrigin'>={production:false}) {
@@ -28,8 +29,11 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
     allowRequest:(request,callback)=>callback(null,!draining&&permittedOrigin(request.headers.origin,config)),
   });
   const sentMap=new Map<string,string>();
+  const wireMaps=new WeakMap<MapDefinition,NonNullable<PublicRoomView['map']>>();
+  const queuedRooms=new Set<Room>();
+  let scheduled:ReturnType<typeof setImmediate>|undefined;
   function publish(room:Room|undefined) {
-    if(!room||!manager.rooms.has(room.code)) return;
+    if(!room||manager.rooms.get(room.code)!==room) return;
     const publicView=serializePublicState(manager,room,false);
     let snapshot:PublicRoomView|undefined;
     for(const player of room.players.values()) if(player.socketId) {
@@ -37,17 +41,33 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
       if(socket) {
         const mapKey=`${room.code}:${room.scenario.hash}`;
         if(sentMap.get(socket.id)!==mapKey) {
-          snapshot??=serializePublicState(manager,room);
+          // Parse the immutable compiled map once, not once per player/connection/presence update.
+          let map=wireMaps.get(room.map);if(!map){map=mapDefinitionSchema.parse(room.map);wireMaps.set(room.map,map);}
+          snapshot??={...publicView,map};
           socket.emit('publicState',snapshot);sentMap.set(socket.id,mapKey);
         } else socket.emit('publicState',publicView);
       }
       socket?.emit('privateState',serializePrivateState(manager,room,player));
     }
   }
+  function publishSafely(room:Room|undefined){
+    try{publish(room);return true;}catch{
+      // Do not log the exception, request, snapshots or credentials: any may contain a token.
+      console.error('[server-error] publish failed',JSON.stringify({roomCode:room?.code}));return false;
+    }
+  }
+  function queuePublish(room:Room|undefined){
+    if(!room||draining)return;
+    queuedRooms.add(room);
+    if(!scheduled)scheduled=setImmediate(()=>{
+      scheduled=undefined;const rooms=[...queuedRooms];queuedRooms.clear();
+      if(!draining)for(const current of rooms)publishSafely(current);
+    });
+  }
   const unsubscribe=manager.onSessionEvent(event=>{
     console.info('[online-session]',JSON.stringify(event));
     // A grace timeout runs outside the socket request transaction.
-    if(event.event==='host-transferred'&&event.roomCode)publish(manager.rooms.get(event.roomCode));
+    if(event.event==='host-transferred'&&event.roomCode)queuePublish(manager.rooms.get(event.roomCode));
   });
   const unsubscribeEnds=manager.onSessionEnd((socketId,event)=>{
     sentMap.delete(socketId);io.sockets.sockets.get(socketId)?.emit('sessionEnded',event);
@@ -57,22 +77,32 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
       if(typeof ack!=='function') return;
       if(draining){ack({ok:false,errors:['サーバーを再起動しています。接続が戻るまでお待ちください。']});return;}
       const previous=manager.roomForSocket(socket.id);
+      let acknowledged=false;
+      const respond:(result:Parameters<typeof ack>[0])=>void=result=>{if(!acknowledged){acknowledged=true;ack(result);}};
       try {
         const requestId=randomUUID();
         const scenarioRequest=request?.action==='scenario';
         const result=manager.request(socket.id,request,scenarioRequest?value=>console.info('[scenario-upload]',JSON.stringify({requestId,...value})):undefined);
         if(scenarioRequest&&!result.ok)console.info('[scenario-upload]',JSON.stringify({requestId,stage:'rejected'}));
         if(result.ok&&request.action==='leave') sentMap.delete(socket.id);
-        if(result.ok) {const current=manager.roomForSocket(socket.id);publish(current);if(previous!==current) publish(previous);}
-        // State packets precede the ack, so clients unlock inputs only after receiving the saved draft.
-        ack(result);
-      } catch(error) {ack({ok:false,errors:[!config.production&&error instanceof Error?error.message:'サーバーの処理に失敗しました。接続状態を確認して再試行してください。']});}
+        if(result.ok){
+          const current=manager.roomForSocket(socket.id);
+          if(request.action==='create'||request.action==='join'||request.action==='reconnect'){
+            // Persist identity before snapshots. Yield so synchronous serialization cannot block ack I/O.
+            respond(result);queuePublish(current);if(previous!==current)queuePublish(previous);return;
+          }
+          const published=publishSafely(current),previousPublished=previous===current||publishSafely(previous);
+          if(!published||!previousPublished){respond({ok:false,errors:['ルームの状態を配信できませんでした。再接続して最新の状態を確認してください。']});return;}
+        }
+        respond(result);
+      } catch(error) {respond({ok:false,errors:[!config.production&&error instanceof Error?error.message:'サーバーの処理に失敗しました。接続状態を確認して再試行してください。']});}
     });
-    socket.on('disconnect',()=>{sentMap.delete(socket.id);const room=manager.roomForSocket(socket.id);manager.disconnect(socket.id);publish(room);});
+    socket.on('disconnect',()=>{sentMap.delete(socket.id);const room=manager.roomForSocket(socket.id);manager.disconnect(socket.id);publishSafely(room);});
   });
   function close(){
     if(closing)return closing;
     draining=true;
+    if(scheduled)clearImmediate(scheduled);scheduled=undefined;queuedRooms.clear();
     unsubscribe();unsubscribeEnds();manager.dispose();
     closing=new Promise<void>(resolve=>{
       const limit=setTimeout(()=>{io.disconnectSockets(true);http.closeAllConnections();},8000);limit.unref();

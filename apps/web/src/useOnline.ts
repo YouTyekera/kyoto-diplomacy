@@ -20,7 +20,7 @@ export function useOnline(inviteRoom?:string) {
   const [connectionState,setConnectionState]=useState<ConnectionState>('connecting');
   const recovery=useRef<OnlineConnection|null>(null);
   const target=currentOnlineTarget();
-  function sync(){const gate=session.current;setState(previous=>previous.transportConnected===gate.transportConnected&&previous.roomSessionReady===gate.roomSessionReady?previous:{transportConnected:gate.transportConnected,roomSessionReady:gate.roomSessionReady});}
+  function sync(){const gate=session.current;setState(previous=>previous.transportConnected===gate.transportConnected&&previous.roomSessionReady===gate.roomSessionReady?previous:{transportConnected:gate.transportConnected,roomSessionReady:gate.roomSessionReady});if(gate.roomSessionReady)setConnectionState('online');}
   function remember(value:Credentials,nickname?:string){history.remember(value,nickname??latestPublic.current?.players.find(p=>p.playerId===value.playerId)?.nickname??history.list().find(i=>i.playerId===value.playerId&&i.roomCode===value.roomCode)?.nickname??'以前の参加者');setSavedIdentities(history.list());}
   function endIdentity(reason:'kicked'|'replaced'|'removed'){
     const active=credentials.current;if(!active)return;
@@ -58,6 +58,8 @@ export function useOnline(inviteRoom?:string) {
               setErrors(['参加していたルームに復帰できません。サーバーの再起動でルームが失われた可能性があります。保存した参加情報を消し、新しいルームを作成してください。']);
               cleanup();reject(new PermanentConnectionError('Room session unavailable'));return;
             }
+            // Ack authentication stays at 10s; the separate authoritative snapshot may take longer.
+            clearTimeout(timer);timer=setTimeout(failure,30000);
             gate.authenticated(epoch,credentials.current!);sync();setErrors([]);completeIfReady();
           }).catch(()=>{if(!disposed&&!signal.aborted&&gate.current(epoch))failure();});
         };
@@ -107,7 +109,7 @@ export function useOnline(inviteRoom?:string) {
           credentials.current=response.credentials;remember(response.credentials,entering?input.nickname:undefined);
           const ended=waitingEnd.current;waitingEnd.current=null;
           if(ended&&ended.roomCode===response.credentials.roomCode&&ended.playerId===response.credentials.playerId){endIdentity(ended.reason);return {ok:false,errors:['このルームへの参加は終了しました。']};}
-          gate.authenticated(epoch,response.credentials);sync();
+          gate.authenticated(epoch,response.credentials);sync();if(!gate.roomSessionReady)setConnectionState('restoring');
         }
         if(input.action==='leave'){if(credentials.current)history.remove(credentials.current);history.clearActive();credentials.current=null;setSavedIdentities(history.list());inflight.current=0;setPending(false);gate.open(null);sync();setPublicView(null);setPrivateView(null);latestPublic.current=null;}
       }

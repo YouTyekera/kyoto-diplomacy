@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
-import { compileScenario,compileUploadedScenario,validateScenarioForOnlinePlay,type Scenario,type ScenarioDiagnostic } from './scenario';
+import { compileScenario,compileUploadedScenario,prepareScenarioForOnlinePlay,validateScenarioForOnlinePlay,type OnlineScenarioPreflight,type Scenario,type ScenarioDiagnostic } from './scenario';
 import { startMatchLog,logTransition,phaseElapsed,recordMatch,summarizeMatch,exportMatchLog } from '../game-core/match-log';
 import { conquestProgress } from '../game-core/end';
 import type { MatchLog } from '../shared/match';
@@ -29,6 +29,7 @@ function requireResult(response:GameResponse):GameSessionState {if(!response.ok)
 export class RoomManager {
   readonly rooms=new Map<string,Room>();
   private readonly identities=new Map<string,{roomCode:string;playerId:string}>();
+  private readonly preflights=new WeakMap<Room,{scenario:Scenario;hash:string;map:MapDefinition;config:Scenario['config'];report:Scenario['report'];prepared:OnlineScenarioPreflight;key:string;value:OnlineScenarioPreflight}>();
   private readonly hostGrace=new Map<string,{playerId:string;deadline:number;timer:ReturnType<typeof setTimeout>}>();
   private readonly sessionEnds=new Set<(socketId:string,event:SessionEnded)=>void>();
   private readonly sessionListeners=new Set<(event:SessionDiagnostic)=>void>();
@@ -50,16 +51,27 @@ export class RoomManager {
   }
   private now(){return this.eventOptions.now?.()??new Date().toISOString();}
   configuredMaxYears(){return this.settings.maxYears;}
-  preflight(room:Room){return validateScenarioForOnlinePlay(room.map,room.scenario.config,room.players.size,this.settings,room.scenario.report);}
+  preflight(room:Room){
+    const scenario=room.scenario,key=JSON.stringify([scenario.hash,room.players.size,this.settings]);
+    let cached=this.preflights.get(room);
+    // Compiled scenario geometry/config are replaced together, never edited by room operations.
+    if(!cached||cached.scenario!==scenario||cached.hash!==scenario.hash||cached.map!==room.map||cached.config!==scenario.config||cached.report!==scenario.report){
+      const prepared=prepareScenarioForOnlinePlay(room.map,scenario.config,scenario.report);
+      for(const row of prepared.wardCounts)Object.freeze(row);Object.freeze(prepared.wardCounts);Object.freeze(prepared.errors);Object.freeze(prepared.warnings);Object.freeze(prepared);
+      cached={scenario,hash:scenario.hash,map:room.map,config:scenario.config,report:scenario.report,prepared,key:'',value:prepared};this.preflights.set(room,cached);
+    }
+    if(cached.key!==key){cached.value=validateScenarioForOnlinePlay(room.map,scenario.config,room.players.size,this.settings,scenario.report,cached.prepared);Object.freeze(cached.value.errors);Object.freeze(cached.value);cached.key=key;}
+    return cached.value;
+  }
   roomForSocket(socketId:string) {const identity=this.identities.get(socketId);return identity?this.rooms.get(identity.roomCode):undefined;}
   playerForSocket(socketId:string) {const room=this.roomForSocket(socketId), identity=this.identities.get(socketId);return identity&&room?.players.get(identity.playerId);}
   phaseKey(room:Room) {return room.game?`${room.code}:${room.game.phaseSerial}:${room.game.state.year}:${room.game.state.season}:${room.game.state.phase}`:null;}
-  startErrors(room:Room) {
+  startErrors(room:Room,preflight=this.preflight(room)) {
     const errors:string[]=[];
     if(room.players.size<3) errors.push('3人以上必要です');
     if(room.players.size>11) errors.push('参加上限は11人です');
     if([...room.players.values()].some(p=>!p.socketId)) errors.push('全参加者の接続を待っています');
-    errors.push(...this.preflight(room).errors);
+    errors.push(...preflight.errors);
     return errors;
   }
   required(room:Room,player:PlayerSession) {
@@ -276,7 +288,7 @@ export class RoomManager {
 /** Explicit allowlist. Never serialize internal Room/Game/PlayerSession objects. */
 export function serializePublicState(manager:RoomManager,room:Room,includeMap=true):PublicRoomView {
   const game=room.game,state=game?.state,preflight=manager.preflight(room);
-  return publicRoomSchema.parse({roomCode:room.code,hostId:room.hostId,hostReconnectDeadline:manager.hostGraceDeadline(room),...(includeMap?{map:room.map}:{}),startErrors:game?[]:manager.startErrors(room),
+  return publicRoomSchema.parse({roomCode:room.code,hostId:room.hostId,hostReconnectDeadline:manager.hostGraceDeadline(room),...(includeMap?{map:room.map}:{}),startErrors:game?[]:manager.startErrors(room,preflight),
     scenario:{scenarioId:room.scenario.id,scenarioName:room.scenario.name,scenarioHash:room.scenario.hash,fileName:room.scenario.fileName,source:room.scenario.source??(room.scenario.loaded?'custom':'editor'),loaded:room.scenario.loaded,enabledRegions:preflight.enabledRegions,totalSC:preflight.totalSC,totalStartingUnits:preflight.totalStartingUnits,errors:preflight.errors,warnings:preflight.warnings,maxYears:state?.maxYears??room.lobbyMaxYears??manager.configuredMaxYears()},
     players:[...room.players.values()].map(p=>{
       const wardId=game?.playerWards[p.playerId]??null,required=manager.required(room,p),finalized=p.submission.finalized;
