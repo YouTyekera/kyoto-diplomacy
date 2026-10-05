@@ -74,4 +74,4 @@ it('productionの復帰診断は秘密を含まず、Host猶予の期限移譲�
   for(const credential of credentials)expect(output).not.toContain(credential.reconnectToken);
   expect(output).not.toContain('reconnectToken');
  }finally{clients.forEach(c=>c.disconnect());await server.close();log.mockRestore();}
-},25000);
+},hostReconnectGraceMs+10000);

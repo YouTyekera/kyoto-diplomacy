@@ -1,13 +1,13 @@
 import {expect,type Page,type Browser} from '@playwright/test';
 import type {PublicRoomView} from '../packages/shared/online';
-export interface RecoveryControl {holdReconnect:boolean;holdPrivate:boolean;failReconnect:boolean;held:{socket?:WebSocket;data:string}[];privateFrames:{socket?:WebSocket;data:string}[];sockets:WebSocket[];upgraded?:WebSocket;acknowledgements:number;sent:string[]}
+export interface RecoveryControl {holdReconnect:boolean;holdPrivate:boolean;holdAcks:boolean;failReconnect:boolean;held:{socket?:WebSocket;data:string}[];privateFrames:{socket?:WebSocket;data:string}[];ackFrames:{socket?:WebSocket;data:string}[];sockets:WebSocket[];upgraded?:WebSocket;acknowledgements:number;sent:string[]}
 declare global {interface Window {recoveryTest:RecoveryControl}}
 /** Only browser test transport instrumentation. The application has no debug endpoint. */
 export async function instrument(page:Page){await page.addInitScript(()=>{
- const Native=window.WebSocket,control:RecoveryControl={holdReconnect:false,holdPrivate:false,failReconnect:false,held:[],privateFrames:[],sockets:[],acknowledgements:0,sent:[]};window.recoveryTest=control;
+ const Native=window.WebSocket,control:RecoveryControl={holdReconnect:false,holdPrivate:false,holdAcks:false,failReconnect:false,held:[],privateFrames:[],ackFrames:[],sockets:[],acknowledgements:0,sent:[]};window.recoveryTest=control;
  window.WebSocket=class extends Native{
   constructor(url:string|URL,protocols?:string|string[]){super(url,protocols);if(String(url).includes('/socket.io/'))control.sockets.push(this);this.addEventListener('message',event=>{
-   if(typeof event.data==='string'&&event.data.startsWith('43'))control.acknowledgements++;
+   if(typeof event.data==='string'&&event.data.startsWith('43')){control.acknowledgements++;if(control.holdAcks){event.stopImmediatePropagation();control.ackFrames.push({socket:this,data:event.data});}}
    if(control.holdPrivate&&typeof event.data==='string'&&event.data.startsWith('42["privateState",')){event.stopImmediatePropagation();control.privateFrames.push({socket:this,data:event.data});}
   });}
   send(data:string|ArrayBufferLike|Blob|ArrayBufferView){
@@ -48,7 +48,7 @@ export async function instrument(page:Page){await page.addInitScript(()=>{
    // APIRequestContext does not inherit Chromium's test-domain resolver rules.
    const response=await route.fetch({url:request.url().replace('https://kyoto-server.test:5444/','https://127.0.0.1:5444/')}),body=await response.text();
    const packets=body.split('\x1e'),kept:string[]=[];
-   for(const packet of packets){if(packet.startsWith('43'))await page.evaluate(()=>window.recoveryTest.acknowledgements++);if(packet.startsWith('42["privateState",')&&await page.evaluate(()=>window.recoveryTest.holdPrivate))await page.evaluate(data=>window.recoveryTest.privateFrames.push({data}),packet);else kept.push(packet);}
+   for(const packet of packets){if(packet.startsWith('43')){await page.evaluate(()=>window.recoveryTest.acknowledgements++);if(await page.evaluate(()=>window.recoveryTest.holdAcks)){await page.evaluate(data=>window.recoveryTest.ackFrames.push({data}),packet);continue;}}if(packet.startsWith('42["privateState",')&&await page.evaluate(()=>window.recoveryTest.holdPrivate))await page.evaluate(data=>window.recoveryTest.privateFrames.push({data}),packet);else kept.push(packet);}
    await route.fulfill({response,body:kept.join('\x1e')||'6'});return;
   }
   await route.continue();

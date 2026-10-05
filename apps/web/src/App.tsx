@@ -20,6 +20,7 @@ import type { Order, Unit } from '../../../packages/rules-core/model';
 import gyoenProposal from '../../../data/maps/kyoto-urban/kyoto-gyoen-obstacle.geojson?raw';
 import { useAudio,AudioSettings, useBgm } from './audio/AudioProvider';
 import { invitedRoom } from './RoomCard';
+import {browserIdentities} from './online-identities';
 import { BottomActionBar, useMapCommands } from './BottomActionBar';
 import { recordMatch } from '../../../packages/game-core/match-log';
 import { legalGameOrders } from '../../../packages/game-core/equipment-orders';
@@ -91,7 +92,7 @@ export function App() {
     setDataset(next); setConfig(settings); setSelected(null); setWard('all'); setSearch(''); setMode('select');
     setPreview(null);
     const initialScreen = invitedRoom(window.location.search) ? 'online' : developer ? 'edit' : 'home';
-    try {setScreenMode(sessionStorage.getItem('kyoto-online-session-v1')?'online':initialScreen);} catch {setScreenMode(initialScreen);}
+    setScreenMode(browserIdentities().active(invitedRoom(window.location.search)||undefined)?'online':initialScreen);
     localMemory.current=null;setSessionState(null);setSessionInitial(null);setSessionContext(null);setGameOrders([]);setGameOrderUnits([]);
     setObstacleDraft([]); setEditingObstacleId(null);
   }

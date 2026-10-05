@@ -1,0 +1,25 @@
+import {it,expect,vi,afterEach} from 'vitest';
+import {RoomManager,serializePublicState,hostReconnectGraceMs,duplicateNicknameMessage} from './room-manager';
+import {sampleDataset,sampleConfig} from '../map-core/sample';
+import {completeSyntheticScenario} from '../../tests/scenario-fixture';
+import type {Credentials,SessionEnded} from '../shared/online';
+function lobby(count=4){const {dataset,config}=completeSyntheticScenario(sampleDataset,sampleConfig),manager=new RoomManager({sample:dataset,'kyoto-kml':dataset}),credentials:Credentials[]=[],ended:{socketId:string;event:SessionEnded}[]=[];manager.onSessionEnd((socketId,event)=>ended.push({socketId,event}));for(let i=0;i<count;i++){const response=manager.request(`s${i}`,i===0?{action:'create',nickname:'Host',preferredWardId:null,datasetKind:'sample',config}:{action:'join',nickname:`guest${i}`,preferredWardId:null,roomCode:credentials[0].roomCode});if(!response.ok)throw Error('fixture');credentials.push(response.credentials!);}return{manager,credentials,room:manager.rooms.get(credentials[0].roomCode)!,ended};}
+afterEach(()=>vi.useRealTimers());
+it('正規化nicknameの重複joinを接続/切断にかかわらず拒否し、ID復帰は許可',()=>{
+ const {manager,room,credentials}=lobby();try{for(const nickname of ['Host',' host ','ＨＯＳＴ'])expect(manager.request('new',{action:'join',roomCode:room.code,nickname,preferredWardId:null})).toEqual({ok:false,errors:[duplicateNicknameMessage]});manager.disconnect('s0');expect(manager.request('new',{action:'join',roomCode:room.code,nickname:'HOST',preferredWardId:null}).ok).toBe(false);expect(manager.request('return',{action:'reconnect',...credentials[0]}).ok).toBe(true);expect(room.players.size).toBe(4);expect(room.hostId).toBe(credentials[0].playerId);}finally{manager.dispose();}
+});
+it('20秒切断から同じidentityでHost復帰、60秒猶予と公開deadline、秘密非公開',()=>{
+ vi.useFakeTimers();const {manager,room,credentials}=lobby();try{const time=Date.now();manager.disconnect('s0');expect(hostReconnectGraceMs).toBe(60000);expect(serializePublicState(manager,room).hostReconnectDeadline).toBe(time+60000);vi.advanceTimersByTime(20000);expect(room.hostId).toBe(credentials[0].playerId);expect(manager.request('return',{action:'reconnect',...credentials[0]}).ok).toBe(true);expect(serializePublicState(manager,room).hostReconnectDeadline).toBeNull();vi.advanceTimersByTime(70000);expect(room.hostId).toBe(credentials[0].playerId);for(const identity of credentials)expect(JSON.stringify(serializePublicState(manager,room))).not.toContain(identity.reconnectToken);}finally{manager.dispose();}
+});
+it('kickはHostだけ/自分不可/開始前だけ、拒否では状態を変更しない',()=>{
+ const {manager,room,credentials}=lobby();try{expect(manager.request('s1',{action:'kick',playerId:credentials[2].playerId}).ok).toBe(false);expect(manager.request('s0',{action:'kick',playerId:room.hostId}).ok).toBe(false);expect(manager.request('s0',{action:'kick',playerId:'missing'}).ok).toBe(false);expect(room.players.size).toBe(4);expect(manager.request('s0',{action:'start',yearLimit:null}).ok).toBe(true);const board=structuredClone(room.game!.state.board);expect(manager.request('s0',{action:'kick',playerId:credentials[1].playerId}).ok).toBe(false);expect(room.game!.state.board).toEqual(board);expect(room.players.size).toBe(4);}finally{manager.dispose();}
+});
+it('接続中kickは専用eventを送り、record/identity/古いtokenを削除・拒否する',()=>{
+ const {manager,room,credentials,ended}=lobby();try{expect(manager.request('s0',{action:'kick',playerId:credentials[1].playerId}).ok).toBe(true);expect(ended).toEqual([{socketId:'s1',event:{roomCode:room.code,playerId:credentials[1].playerId,reason:'kicked'}}]);expect(room.players.size).toBe(3);expect(manager.playerForSocket('s1')).toBeUndefined();expect(manager.request('late',{action:'reconnect',...credentials[1]}).ok).toBe(false);expect(room.players.size).toBe(3);expect(manager.request('s1',{action:'preference',preferredWardId:null}).ok).toBe(false);expect(manager.request('s0',{action:'start',yearLimit:null}).ok).toBe(true);}finally{manager.dispose();}
+});
+it('切断中の旧重複playerもkickでき、新規生成せず古い復帰を拒否',()=>{
+ const {manager,room,credentials,ended}=lobby();try{room.players.get(credentials[1].playerId)!.nickname='guest2';manager.disconnect('s1');expect(manager.startErrors(room)).toContain('全参加者の接続を待っています');expect(manager.request('s0',{action:'kick',playerId:credentials[1].playerId}).ok).toBe(true);expect(ended).toEqual([]);expect(manager.request('late',{action:'reconnect',...credentials[1]}).ok).toBe(false);expect(room.players.size).toBe(3);expect(manager.startErrors(room)).toEqual([]);}finally{manager.dispose();}
+});
+it('別tab復帰は同じIDを維持し元socketだけへ終了通知、古いdisconnectでpresenceは落ちない',()=>{
+ const {manager,room,credentials,ended}=lobby();try{expect(manager.request('tab2',{action:'reconnect',...credentials[1]}).ok).toBe(true);expect(ended).toEqual([{socketId:'s1',event:{roomCode:room.code,playerId:credentials[1].playerId,reason:'replaced'}}]);manager.disconnect('s1');expect(manager.playerForSocket('tab2')?.playerId).toBe(credentials[1].playerId);expect(serializePublicState(manager,room).players.every(p=>p.connected)).toBe(true);expect(manager.request('s1',{action:'leave'}).ok).toBe(false);}finally{manager.dispose();}
+});

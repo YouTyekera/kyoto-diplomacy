@@ -69,7 +69,7 @@ describe('Phase 5B public presentation and telemetry',()=>{
     const config=structuredClone(sampleConfig);config.regions[a]={enabled:true,isSupplyCenter:true,homeWardId:R,startingUnit:{type:'army',ownerWardId:R}};
     const f=completeSyntheticScenario(sampleDataset,config),manager=new RoomManager({sample:f.dataset,'kyoto-kml':f.dataset},defaultGameSettings,{settings:noEvents});
     const created=manager.request('s0',{action:'create',nickname:'host',preferredWardId:R,datasetKind:'sample',config:f.config});if(!created.ok)throw Error('create');const code=created.credentials!.roomCode;
-    for(const [i,ward] of [B,'26103'].entries())expect(manager.request(`s${i+1}`,{action:'join',nickname:'guest',preferredWardId:ward,roomCode:code}).ok).toBe(true);
+    for(const [i,ward] of [B,'26103'].entries())expect(manager.request(`s${i+1}`,{action:'join',nickname:`guest${i+1}`,preferredWardId:ward,roomCode:code}).ok).toBe(true);
     expect(manager.request('s0',{action:'start',yearLimit:null}).ok).toBe(true);const room=manager.rooms.get(code)!;
     expect(serializePublicState(manager,room).game?.presentation).toBeNull();
     for(let i=0;i<3;i++)expect(manager.request(`s${i}`,{action:'orders',phaseKey:manager.phaseKey(room)!,orders:[],finalize:true}).ok).toBe(true);

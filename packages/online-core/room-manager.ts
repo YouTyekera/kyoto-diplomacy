@@ -4,7 +4,7 @@ import { startMatchLog,logTransition,phaseElapsed,recordMatch,summarizeMatch,exp
 import { conquestProgress } from '../game-core/end';
 import type { MatchLog } from '../shared/match';
 import { assignWards, createOnlineBoard, victoryTarget, defaultGameSettings, type Assignment } from './initial';
-import { requestSchema, publicRoomSchema, privatePlayerSchema, type OnlineResponse, type Credentials, type PublicResult, type PublicRoomView, type PrivatePlayerView, type OnlineRequest } from '../shared/online';
+import { requestSchema, publicRoomSchema, privatePlayerSchema, type SessionEnded,type OnlineResponse, type Credentials, type PublicResult, type PublicRoomView, type PrivatePlayerView, type OnlineRequest } from '../shared/online';
 import type { MapDefinition, RegionDataset, WardId } from '../shared/model';
 import { type RetreatOrder } from '../rules-core';
 import type { GameOrder, EventSettings } from '../shared/events';
@@ -17,7 +17,9 @@ export interface PlayerSession { playerId:string;nickname:string;preferredWardId
 export interface OnlineGameSession extends Assignment { state:GameSessionState;seed:string;activePlayerCount:number;phaseSerial:number;locked:boolean;lastResult:PublicResult|null;movementResolutions:number;presentationSkips:Set<string>;matchLog:MatchLog }
 export interface Room { code:string;hostId:string;map:MapDefinition;scenario:Scenario;datasetKind:RegionDataset['kind'];players:Map<string,PlayerSession>;game:OnlineGameSession|null;lobbyMaxYears?:number }
 export interface SessionDiagnostic { event:'socket-disconnect'|'reconnect-success'|'reconnect-failed'|'host-grace-start'|'host-grace-cancel'|'host-transferred';roomCode?:string;player?:string;connection?:string }
-export const hostReconnectGraceMs=15000;
+export const hostReconnectGraceMs=60000;
+export const duplicateNicknameMessage='同じニックネームの参加者がいます。以前参加していた場合は「復帰」を使用してください。';
+export const normalizeNickname=(name:string)=>name.normalize('NFKC').trim().replace(/\s+/gu,' ').toLowerCase();
 const blank=():Submission=>({orders:[],retreats:[],winter:{buildRegionIds:[],disbandUnitIds:[]},finalized:false});
 const fail=(...errors:string[]):OnlineResponse=>({ok:false,errors});
 const emptyWinter=()=>({buildRegionIds:[],disbandUnitIds:[]});
@@ -27,13 +29,17 @@ function requireResult(response:GameResponse):GameSessionState {if(!response.ok)
 export class RoomManager {
   readonly rooms=new Map<string,Room>();
   private readonly identities=new Map<string,{roomCode:string;playerId:string}>();
-  private readonly hostGrace=new Map<string,{playerId:string;timer:ReturnType<typeof setTimeout>}>();
+  private readonly hostGrace=new Map<string,{playerId:string;deadline:number;timer:ReturnType<typeof setTimeout>}>();
+  private readonly sessionEnds=new Set<(socketId:string,event:SessionEnded)=>void>();
   private readonly sessionListeners=new Set<(event:SessionDiagnostic)=>void>();
   private disposed=false;
   onSessionEvent(listener:(event:SessionDiagnostic)=>void){this.sessionListeners.add(listener);return ()=>{this.sessionListeners.delete(listener);};}
+  onSessionEnd(listener:(socketId:string,event:SessionEnded)=>void){this.sessionEnds.add(listener);return()=>{this.sessionEnds.delete(listener);};}
+  hostGraceDeadline(room:Room){return this.hostGrace.get(room.code)?.deadline??null;}
+  private endSession(socketId:string,room:Room,playerId:string,reason:SessionEnded['reason']){for(const listener of this.sessionEnds)listener(socketId,{roomCode:room.code,playerId,reason});}
   private sessionEvent(event:SessionDiagnostic['event'],room?:Room,playerId?:string,socketId?:string){for(const listener of this.sessionListeners)listener({event,roomCode:room?.code,player:playerId?.slice(0,8),connection:socketId?.slice(0,8)});}
   private cancelHostGrace(room:Room){const grace=this.hostGrace.get(room.code);if(!grace)return;clearTimeout(grace.timer);this.hostGrace.delete(room.code);this.sessionEvent('host-grace-cancel',room,grace.playerId);}
-  dispose(){this.disposed=true;for(const grace of this.hostGrace.values())clearTimeout(grace.timer);this.hostGrace.clear();this.sessionListeners.clear();}
+  dispose(){this.disposed=true;for(const grace of this.hostGrace.values())clearTimeout(grace.timer);this.hostGrace.clear();this.sessionListeners.clear();this.sessionEnds.clear();}
   constructor(private datasets:Record<RegionDataset['kind'],RegionDataset>,private settings=defaultGameSettings,private eventOptions:{settings?:EventSettings;seedFactory?:()=>string;now?:()=>string;standardScenarioJson?:string}={}) {}
   private standardScenario(diagnostic?:(value:ScenarioDiagnostic)=>void) {
     const json=this.eventOptions.standardScenarioJson;
@@ -79,11 +85,13 @@ export class RoomManager {
       const room=this.rooms.get(request.roomCode),player=room?.players.get(request.playerId);
       if(!room||!player||!timingSafeEqual(Buffer.from(player.reconnectToken),Buffer.from(request.reconnectToken))) {this.sessionEvent('reconnect-failed',room,player?.playerId,socketId);return fail('復帰情報が一致しません。サーバー再起動時はルームを作り直してください');}
       const current=this.playerForSocket(socketId);if(current&&current!==player) {this.sessionEvent('reconnect-failed',room,current.playerId);return fail('別の参加者として接続中です');}
-      if(player.socketId) this.identities.delete(player.socketId);
+      const previousSocket=player.socketId;
+      if(previousSocket) this.identities.delete(previousSocket);
       player.socketId=socketId;this.identities.set(socketId,{roomCode:room.code,playerId:player.playerId});
       if(room.hostId===player.playerId)this.cancelHostGrace(room);
       if(!room.game) this.transferHost(room);
       this.sessionEvent('reconnect-success',room,player.playerId);
+      if(previousSocket&&previousSocket!==socketId)this.endSession(previousSocket,room,player.playerId,'replaced');
       return {ok:true};
     }
     if(request.action==='create'||request.action==='join') {
@@ -91,6 +99,7 @@ export class RoomManager {
       if(request.action==='join') {
         const room=this.rooms.get(request.roomCode);
         if(!room) return fail('ルームがありません');if(room.game) return fail('開始後は新規参加できません');if(room.players.size>=11) return fail('参加上限は11人です');
+        if([...room.players.values()].some(p=>normalizeNickname(p.nickname)===normalizeNickname(request.nickname)))return fail(duplicateNicknameMessage);
         const credentials=this.addPlayer(room,socketId,request.nickname,request.preferredWardId);this.transferHost(room);
         return {ok:true,credentials};
       }
@@ -106,6 +115,15 @@ export class RoomManager {
     }
     const room=this.roomForSocket(socketId),player=this.playerForSocket(socketId);
     if(!room||!player) return fail('先にルームへ参加してください');
+    if(request.action==='kick'){
+      if(room.game)return fail('開始後は参加者を退出させられません');
+      if(room.hostId!==player.playerId)return fail('ホストだけが参加者を退出させられます');
+      if(request.playerId===room.hostId)return fail('ホスト自身は退出させられません');
+      const target=room.players.get(request.playerId);if(!target)return fail('参加者が見つかりません');
+      room.players.delete(target.playerId);
+      if(target.socketId){this.identities.delete(target.socketId);this.endSession(target.socketId,room,target.playerId,'kicked');}
+      return {ok:true};
+    }
     if(request.action==='scenario'||request.action==='standard-scenario') {
       if(room.game)return fail('開始後はシナリオを変更できません');if(room.hostId!==player.playerId)return fail('ホストだけが読み込めます');
       try {
@@ -213,7 +231,7 @@ export class RoomManager {
     if(!room||!player||player.socketId!==socketId) return;
     player.socketId=null;this.sessionEvent('socket-disconnect',room,player.playerId);
     if(!room.game&&room.hostId===player.playerId&&!this.disposed&&!this.hostGrace.has(room.code)){
-      const grace={playerId:player.playerId,timer:setTimeout(()=>{
+      const grace={playerId:player.playerId,deadline:Date.now()+hostReconnectGraceMs,timer:setTimeout(()=>{
         if(this.hostGrace.get(room.code)!==grace)return;
         this.hostGrace.delete(room.code);
         if(this.rooms.get(room.code)===room&&!room.game&&!room.players.get(grace.playerId)?.socketId)this.transferHost(room);
@@ -258,7 +276,7 @@ export class RoomManager {
 /** Explicit allowlist. Never serialize internal Room/Game/PlayerSession objects. */
 export function serializePublicState(manager:RoomManager,room:Room,includeMap=true):PublicRoomView {
   const game=room.game,state=game?.state,preflight=manager.preflight(room);
-  return publicRoomSchema.parse({roomCode:room.code,hostId:room.hostId,...(includeMap?{map:room.map}:{}),startErrors:game?[]:manager.startErrors(room),
+  return publicRoomSchema.parse({roomCode:room.code,hostId:room.hostId,hostReconnectDeadline:manager.hostGraceDeadline(room),...(includeMap?{map:room.map}:{}),startErrors:game?[]:manager.startErrors(room),
     scenario:{scenarioId:room.scenario.id,scenarioName:room.scenario.name,scenarioHash:room.scenario.hash,fileName:room.scenario.fileName,source:room.scenario.source??(room.scenario.loaded?'custom':'editor'),loaded:room.scenario.loaded,enabledRegions:preflight.enabledRegions,totalSC:preflight.totalSC,totalStartingUnits:preflight.totalStartingUnits,errors:preflight.errors,warnings:preflight.warnings,maxYears:state?.maxYears??room.lobbyMaxYears??manager.configuredMaxYears()},
     players:[...room.players.values()].map(p=>{
       const wardId=game?.playerWards[p.playerId]??null,required=manager.required(room,p),finalized=p.submission.finalized;

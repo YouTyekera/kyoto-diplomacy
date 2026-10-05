@@ -27,13 +27,16 @@ const phaseName = { orders: '移動命令', retreats: '撤退', adjustments: '�
 const statusName = { editing: '入力中', finalized: '確定済み', 'not-required': '不要', disconnected: '切断', eliminated: '脱落' };
 const orderName = gameOrderNames;
 export function OnlineGame({ dataset, config, onBack, developer = false }: { dataset: RegionDataset; config: MapConfig; onBack: () => void; developer?: boolean }) {
-  const online = useOnline();
+  const online = useOnline(invitedRoom(window.location.search)||undefined);
   const [nickname, setNickname] = useState(''), [preferred, setPreferred] = useState<WardId | ''>('');
   const [code, setCode] = useState(() => invitedRoom(window.location.search));
   const [yearLimit, setYearLimit] = useState(String(defaultGameSettings.maxYears));
   const [fileError, setFileError] = useState('');
+  const [newParticipant,setNewParticipant]=useState(false);
   const room = online.publicView, self = online.privateView, game = room?.game;
   const roomLocked=online.pending||!online.roomSessionReady;
+  const saved=online.savedIdentities.filter(i=>!code||i.roomCode===code.trim().toUpperCase());
+  const chooseIdentity=!online.hasCredentials&&saved.length>0&&!newParticipant;
   useEffect(() => { if (room && room.hostId === self?.playerId) setYearLimit(String(room.scenario.maxYears)); }, [room?.roomCode, room?.hostId, room?.scenario.maxYears, self?.playerId]); // eslint-disable-line react-hooks/exhaustive-deps
   useBgm('lobby');
   async function loadScenario(file: File) {
@@ -59,18 +62,21 @@ export function OnlineGame({ dataset, config, onBack, developer = false }: { dat
     {(!game||!online.connected)&&<ConnectionStatus state={online.connectionState} error={online.configurationError} retry={online.retry} />}
         {room&&!online.roomSessionReady&&<p className="notice" role="status" data-room-session="restoring">最後に確認したルームの状態です。ルームへ再接続しています…</p>}
     {room&&!online.roomSessionReady&&online.connectionState==='unavailable'&&<button onClick={online.forget}>保存した参加情報を消す</button>}
-    {!game&&room&&!room.players.find(p=>p.playerId===room.hostId)?.connected&&<p role="status">ホストの再接続を待っています…</p>}
+    {!game&&room&&online.roomSessionReady&&!room.players.find(p=>p.playerId===room.hostId)?.connected&&<HostReconnectNotice deadline={room.hostReconnectDeadline}/>}
+    {online.sessionNotice&&<p className="notice" role="status">{online.sessionNotice}</p>}
     {online.errors.length > 0 && !fileError && <div className="notice error" role="alert">{online.errors.map(playerMessage).join('\n')}</div>}
     {!room ? <div className="online-entry"><h1>オンライン対戦</h1><p>3～11人で同時に命令を出します。標準シナリオですぐに始められます。カスタムJSONはロビーで読み込めます。</p>
-      {code && <p>ルーム {code} への招待です。ニックネームを入力して参加してください。</p>}
+      {code && <p>ルーム {code} への招待です。</p>}
+      <label>ルームコード<input aria-label="参加ルームコード" maxLength={6} value={code} onChange={e => setCode(e.target.value.toUpperCase())} /></label>
+      {chooseIdentity?<section aria-label="保存した参加者から復帰"><h2>{saved.length>1?'どの参加者として復帰しますか？':'この端末の参加履歴'}</h2>{saved.map(identity=><div key={`${identity.roomCode}:${identity.playerId}`}><button disabled={!online.transportConnected||online.pending} onClick={()=>online.restore(identity)}>{identity.nickname}として復帰</button><small> · {!code&&`ルーム ${identity.roomCode} · `}最後の参加: {new Date(identity.updatedAt).toLocaleString('ja-JP')}</small></div>)}<button onClick={()=>setNewParticipant(true)}>別の参加者として入る</button></section>:<>
+      {!online.hasCredentials&&saved.length>0&&<button onClick={()=>setNewParticipant(false)}>保存した参加者から復帰する</button>}
       <label>ニックネーム<input autoFocus aria-label="オンラインニックネーム" maxLength={32} value={nickname} onChange={e => setNickname(e.target.value)} /></label>
       <label>希望区（保証なし）<select aria-label="オンライン希望区" value={preferred} onChange={e => setPreferred(e.target.value as WardId | '')}><option value="">希望なし</option>{WARDS.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
-      <label>ルームコード<input aria-label="参加ルームコード" maxLength={6} value={code} onChange={e => setCode(e.target.value.toUpperCase())} /></label>
       <div className="action-buttons"><button className="primary" disabled={!online.connected || online.pending || !nickname.trim() || code.length !== 6 || online.hasCredentials} onClick={() => void online.request({ action: 'join', roomCode: code, nickname, preferredWardId: preferred || null })}>ルームへ参加</button>
-      <button disabled={!online.connected || online.pending || !nickname.trim() || online.hasCredentials} onClick={() => void online.request({ action: 'create', nickname, preferredWardId: preferred || null, datasetKind: dataset.kind, config, ...(!developer?{scenario:'standard' as const}:{}) })}>ルームを作成</button></div>
+      <button disabled={!online.connected || online.pending || !nickname.trim() || online.hasCredentials} onClick={() => void online.request({ action: 'create', nickname, preferredWardId: preferred || null, datasetKind: dataset.kind, config, ...(!developer?{scenario:'standard' as const}:{}) })}>ルームを作成</button></div></>}
       {online.hasCredentials && <><p>保存した参加情報で復帰を試みています。サーバー再起動でルームがなくなった場合は参加情報を消して作り直してください。</p><button onClick={online.forget}>保存した参加情報を消す</button></>}
       <p className="hint">同じPCで試す場合は新規タブを開いてください。同じタブの再読み込みで本人として復帰できます。</p>
-    </div> : game && map ? <OnlineMatch key={online.presentationEpoch} room={room} game={game} self={self} dataset={displayDataset} config={displayConfig} developer={developer} pending={roomLocked} request={online.request} onDownload={() => void downloadLog()} onBack={onBack} /> : <>
+    </div> : game && map ? <OnlineMatch key={online.presentationEpoch} room={room} game={game} self={self} dataset={displayDataset} config={displayConfig} developer={developer} pending={roomLocked} sessionReady={online.roomSessionReady} request={online.request} onDownload={() => void downloadLog()} onBack={onBack} /> : <>
       <RoomCard room={room} years={room.hostId === self?.playerId ? yearLimit || room.scenario.maxYears : room.scenario.maxYears} target={room.players.length >= 3 ? victoryTarget(room.players.length) : '3人参加後に計算'} />
       <div className="lobby-layout"><main className="lobby-setup"><h2>開始の準備</h2>
         <section aria-label="シナリオ検証"><h3>{room.scenario.source==='standard'?'標準シナリオ':room.scenario.source==='custom'?'カスタムシナリオ':room.scenario.scenarioName}</h3><p>{room.scenario.source==='standard'?'標準シナリオを選択済みです。ファイルの読み込みは不要です。':room.scenario.loaded ? 'カスタムJSON読込済み' : '保存JSON未読込・作成時のエディタ設定'}</p>
@@ -82,15 +88,19 @@ export function OnlineGame({ dataset, config, onBack, developer = false }: { dat
         {room.startErrors.map(e => <p key={e}>{playerMessage(e)}</p>)}
         <label>自分の希望区<select aria-label="ロビー希望区" value={self?.preferredWardId ?? ''} disabled={roomLocked} onChange={e => void online.request({ action: 'preference', preferredWardId: (e.target.value || null) as WardId | null })}><option value="">希望なし</option>{WARDS.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
         <button disabled={roomLocked} onClick={() => void online.request({ action: 'leave' })}>開始前に退出</button>
-      </main><aside><PlayerList room={room} self={self} /></aside></div>
+      </main><aside><PlayerList room={room} self={self} sessionReady={online.roomSessionReady} pending={online.pending} request={online.request}/></aside></div>
     </>}
   </section>;
 }
-function PlayerList({ room, self }: { room: PublicRoomView; self: PrivatePlayerView | null }) {
-  return <section className="ready-panel" aria-label="提出状況"><h3>{room.game ? '提出状況' : 'ロビー参加者'}</h3><ul>{room.players.map(p => <li key={p.playerId} data-player-id={p.playerId} data-status={p.status}><span>{p.nickname}{p.playerId === self?.playerId ? '（自分）' : ''} {p.host ? 'ホスト' : ''}<small> · {p.wardId ? wardName(p.wardId) : '未割当'}{room.game && p.wardId ? ` · ${Object.values(room.game.board.regionControl).filter(r => r.supplyCenterOwnerWardId === p.wardId).length}か所` : ''}</small></span><span className="ready-status">{p.status==='finalized'?'✓ ':''}{room.game ? statusName[p.status] : p.connected ? '接続中' : '切断'}</span></li>)}</ul></section>;
+function HostReconnectNotice({deadline}:{deadline?:number|null}){
+  const [now,setNow]=useState(Date.now);useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer);},[deadline]);
+  return <p role="status"><span>ホストの再接続を待っています…</span>{deadline&&<small> · 残り{Math.max(0,Math.ceil((deadline-now)/1000))}秒</small>}</p>;
 }
-function OnlineMatch({ room, game, self, dataset, config, developer, pending, request, onDownload, onBack }: {
-  room: PublicRoomView; game: PublicGameView; self: PrivatePlayerView | null; dataset: RegionDataset; config: MapConfig; developer: boolean; pending: boolean;
+function PlayerList({room,self,sessionReady,pending=false,request}:{room:PublicRoomView;self:PrivatePlayerView|null;sessionReady:boolean;pending?:boolean;request?:(input:OnlineRequest)=>Promise<OnlineResponse>}){
+ return <section className="ready-panel" aria-label="提出状況"><h3>{room.game?'提出状況':'ロビー参加者'}</h3><ul>{room.players.map(p=><li key={p.playerId} data-player-id={p.playerId} data-status={sessionReady?p.status:'checking'} data-presence={sessionReady?(p.connected?'connected':'disconnected'):'checking'}><span>{p.nickname}{p.playerId===self?.playerId?'（自分）':''} {p.host?'ホスト':''}<small> · {p.wardId?wardName(p.wardId):'未割当'}{room.game&&p.wardId?` · ${Object.values(room.game.board.regionControl).filter(r=>r.supplyCenterOwnerWardId===p.wardId).length}か所`:''}</small></span><span className="ready-status">{!sessionReady?'確認中':room.game?statusName[p.status]:p.connected?'接続中':'切断'}</span>{!room.game&&room.hostId===self?.playerId&&!p.host&&<button disabled={!sessionReady||pending} onClick={()=>{if(window.confirm(`「${p.nickname}」をルームから退出させますか？`))void request?.({action:'kick',playerId:p.playerId});}}>退出させる</button>}</li>)}</ul></section>;
+}
+function OnlineMatch({ room, game, self, dataset, config, developer, pending, sessionReady,request, onDownload, onBack }: {
+  room: PublicRoomView; game: PublicGameView; self: PrivatePlayerView | null; dataset: RegionDataset; config: MapConfig; developer: boolean; pending: boolean;sessionReady:boolean;
   request: (r: OnlineRequest) => Promise<OnlineResponse>; onDownload: () => void; onBack: () => void;
 }) {
   const [selected, setSelected] = useState<string | null>(null), [ward, setWard] = useState('all');
@@ -121,7 +131,7 @@ function OnlineMatch({ room, game, self, dataset, config, developer, pending, re
       <strong data-testid="own-ward"><i className="ward-swatch" style={{background:wardColor(self?.wardId)}}/>あなた: {wardName(self?.wardId ?? null)}</strong><span data-testid="victory-target">補給拠点 {countSC} / {game.victoryTargetSC}か所{feedback.ownSC>0&&<small key={feedback.key} className="sc-gain" role="status">補給拠点 +{feedback.ownSC}</small>}</span><span data-testid="rival-sc-progress" className={feedback.rival?"progress-pulse":""}>敵の初期補給拠点 {game.rivalInitialSCByWard[self?.wardId??""]??0} / {game.requiredRivalInitialSupplyCentersForInstantWin}</span><span>軍 {own.length}</span><span>{self?.finalized ? '確定済み' : required ? '入力中' : '不要'}</span>
       <RoomCode code={room.roomCode} chip />{developer&&<ConnectionScope />}<VictoryConditions game={game} /><AudioSettings compact /><button onClick={onBack}>{developer ? '地図エディタへ戻る' : 'トップへ戻る'}</button>
     </header>
-    <div className="hud-toggles"><button aria-expanded={left} aria-controls="event-tray" onClick={() => setLeft(v => !v)}>イベント・結果</button>{!developer&&<ul className="ready-strip" aria-label="参加者の確定状況">{room.players.map(p=><li key={p.playerId} title={`${p.nickname} · ${statusName[p.status]}`}><i className="ward-swatch" style={{background:wardColor(p.wardId)}}/><span>{wardName(p.wardId)}</span><span className="ready-status">{p.status==='finalized'?'✓ ':p.status==='editing'?'○ ':''}{statusName[p.status]}</span></li>)}</ul>}<button aria-expanded={right} aria-controls="info-tray" onClick={() => setRight(v => !v)}>参加者・装備</button></div>
+    <div className="hud-toggles"><button aria-expanded={left} aria-controls="event-tray" onClick={() => setLeft(v => !v)}>イベント・結果</button>{!developer&&<ul className="ready-strip" aria-label="参加者の確定状況">{room.players.map(p=><li key={p.playerId} title={`${p.nickname} · ${sessionReady?statusName[p.status]:'確認中'}`}><i className="ward-swatch" style={{background:wardColor(p.wardId)}}/><span>{wardName(p.wardId)}</span><span className="ready-status">{sessionReady?(p.status==='finalized'?'✓ ':p.status==='editing'?'○ ':''):''}{sessionReady?statusName[p.status]:'確認中'}</span></li>)}</ul>}<button aria-expanded={right} aria-controls="info-tray" onClick={() => setRight(v => !v)}>参加者・装備</button></div>
     <div className={`game-workspace ${left ? '' : 'hide-left'} ${right ? '' : 'hide-right'}`}>
       {left && <aside id="event-tray" className="left-hud"><div className="tray-heading"><strong>イベント・結果</strong><button aria-label="イベントトレイを閉じる" onClick={()=>setLeft(false)}>閉じる</button></div>{!presentation.active&&previousResults}<EventsPanel compact={!developer} map={map} onHighlight={locator.onHighlight} onLocate={locator.onLocate} events={game.events} counts={game.inventoryCounts} regionName={regionName} />
         {developer&&<details className="recent-result" open><summary>最近の裁定結果</summary><PublicResults game={game} regionName={regionName} developer /></details>}
@@ -132,7 +142,7 @@ function OnlineMatch({ room, game, self, dataset, config, developer, pending, re
         {presentation.active?previousResults:!left&&presentation.result?<button className="previous-result-chip" onClick={()=>{setLeft(true);presentation.open();}}>前回の行軍結果</button>:null}<p className="source-note">© 京都市 · <a href="https://data.city.kyoto.lg.jp/dataset/00670/">Dataset 00670</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> · KMLから変換（架空サンプルを除く）</p>
         {game.phase === 'orders' && compatible && <BottomActionBar commands={commands} units={game.board.units} regionName={regionName} draft={orders.find(o => o.unitId === commands.unit?.unitId)} />}
       </main>
-      {right && <aside id="info-tray" className="right-hud"><div className="tray-heading"><strong>参加者・地域情報</strong><button aria-label="情報トレイを閉じる" onClick={()=>setRight(false)}>閉じる</button></div><PlayerList room={room} self={self} />
+      {right && <aside id="info-tray" className="right-hud"><div className="tray-heading"><strong>参加者・地域情報</strong><button aria-label="情報トレイを閉じる" onClick={()=>setRight(false)}>閉じる</button></div><PlayerList room={room} self={self} sessionReady={sessionReady}/>
         {compatible && self && <InventoryPanel pulseKey={feedback.inventory?feedback.key:0} developer={developer} inventory={self.inventory} reservations={self.reservations} unitName={id => { const u = game.board.units.find(u => u.unitId === id) ?? self.retreatUnits.find(d => d.unit.unitId === id)?.unit; return u ? `${regionName(u.regionId)} · ${wardName(u.ownerWardId)}` : '軍'; }} />}
         {!developer&&<details><summary>シナリオ詳細</summary><p>{room.scenario.scenarioName} · 規定年数: {game.maxYears}年</p><p>{room.scenario.fileName??'作成時の地図設定'} · #{room.scenario.scenarioHash.slice(0,8)}</p><p>採用 {room.scenario.enabledRegions}地域 / 補給拠点 {room.scenario.totalSC} / 初期軍 {room.scenario.totalStartingUnits}</p><ConnectionScope /></details>}
         <details><summary>無所属区 · {game.inactiveWards.length}区</summary>{game.inactiveWards.map(wardName).join('、')}</details>

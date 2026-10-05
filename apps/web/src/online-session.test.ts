@@ -5,7 +5,7 @@ import type {PublicRoomView,PrivatePlayerView,OnlineRequest} from '../../../pack
 const identity={roomCode:'ABC234',playerId:'me'};
 const pub=(id='me',code='ABC234')=>({roomCode:code,players:[{playerId:id,connected:true}],game:null}) as PublicRoomView;
 const own=(id='me')=>({playerId:id,phaseKey:null}) as PrivatePlayerView;
-const actions:OnlineRequest['action'][]=['start','scenario','standard-scenario','lobby-years','preference','leave','orders','retreats','winter','unready','export-log','presentation-skipped'];
+const actions:OnlineRequest['action'][]=['start','scenario','standard-scenario','lobby-years','preference','leave','kick','orders','retreats','winter','unready','export-log','presentation-skipped'];
 it('transportだけではRoom操作を解放せず、ackと本人/公開状態が全て揃ってから解放',()=>{
  const gate=new OnlineSession(),epoch=gate.open(identity);expect(gate.transportConnected).toBe(true);for(const action of actions)expect(gate.canRequest(action)).toBe(false);
  gate.public(pub());gate.private(own());expect(gate.roomSessionReady).toBe(false);gate.authenticated(epoch,identity);expect(gate.roomSessionReady).toBe(true);for(const action of actions)expect(gate.canRequest(action)).toBe(true);

@@ -10,11 +10,11 @@ function setup(count=3){
  return{manager,room:manager.rooms.get(credentials[0].roomCode)!,credentials,events};
 }
 afterEach(()=>vi.useRealTimers());
-it('開始直前のHost瞬断→15秒以内復帰→権限維持→3人で開始',()=>{
+it('開始直前のHost瞬断→猶予内復帰→権限維持→3人で開始',()=>{
  vi.useFakeTimers();const {manager,room,credentials,events}=setup(),host=room.hostId;
  try{manager.disconnect('s0');expect(room.hostId).toBe(host);expect(manager.startErrors(room)).toContain('全参加者の接続を待っています');
- vi.advanceTimersByTime(14999);expect(manager.request('new-host',{action:'reconnect',...credentials[0]}).ok).toBe(true);expect(room.hostId).toBe(host);expect(manager.startErrors(room)).toEqual([]);
- vi.advanceTimersByTime(30000);expect(room.hostId).toBe(host);expect(manager.request('new-host',{action:'start',yearLimit:null}).ok).toBe(true);expect(room.game?.activePlayerCount).toBe(3);expect(events.map(e=>e.event)).toContain('host-grace-cancel');expect(events.some(e=>e.event==='host-transferred')).toBe(false);
+ vi.advanceTimersByTime(hostReconnectGraceMs-1);expect(manager.request('new-host',{action:'reconnect',...credentials[0]}).ok).toBe(true);expect(room.hostId).toBe(host);expect(manager.startErrors(room)).toEqual([]);
+ vi.advanceTimersByTime(hostReconnectGraceMs+10000);expect(room.hostId).toBe(host);expect(manager.request('new-host',{action:'start',yearLimit:null}).ok).toBe(true);expect(room.game?.activePlayerCount).toBe(3);expect(events.map(e=>e.event)).toContain('host-grace-cancel');expect(events.some(e=>e.event==='host-transferred')).toBe(false);
  }finally{manager.dispose();}
 });
 it('guest瞬断中は開始不可、復帰後に開始できる',()=>{
@@ -33,7 +33,7 @@ it('join/guest復帰はHost猶予を迂回せず、連続復帰・old socket切�
  vi.useFakeTimers();const {manager,room,credentials,events}=setup(),host=room.hostId;
  try{manager.disconnect('s0');manager.disconnect('s0');expect(manager.request('fourth',{action:'join',nickname:'fourth',preferredWardId:null,roomCode:room.code}).ok).toBe(true);manager.disconnect('s1');expect(manager.request('guest-return',{action:'reconnect',...credentials[1]}).ok).toBe(true);expect(room.hostId).toBe(host);
  vi.advanceTimersByTime(10000);expect(manager.request('h1',{action:'reconnect',...credentials[0]}).ok).toBe(true);manager.disconnect('s0');expect(manager.playerForSocket('h1')?.playerId).toBe(host);
- manager.disconnect('h1');vi.advanceTimersByTime(10000);expect(manager.request('h2',{action:'reconnect',...credentials[0]}).ok).toBe(true);vi.advanceTimersByTime(30000);expect(room.hostId).toBe(host);expect(events.filter(e=>e.event==='host-grace-start')).toHaveLength(2);expect(events.filter(e=>e.event==='host-grace-cancel')).toHaveLength(2);expect(events.some(e=>e.event==='host-transferred')).toBe(false);
+ manager.disconnect('h1');vi.advanceTimersByTime(10000);expect(manager.request('h2',{action:'reconnect',...credentials[0]}).ok).toBe(true);vi.advanceTimersByTime(hostReconnectGraceMs+10000);expect(room.hostId).toBe(host);expect(events.filter(e=>e.event==='host-grace-start')).toHaveLength(2);expect(events.filter(e=>e.event==='host-grace-cancel')).toHaveLength(2);expect(events.some(e=>e.event==='host-transferred')).toBe(false);
  }finally{manager.dispose();}
 });
 it('復帰成功後のold socket要求を拒否し、不正tokenでもidentityを作らない',()=>{
@@ -43,5 +43,5 @@ it('復帰成功後のold socket要求を拒否し、不正tokenでもidentity�
  }finally{manager.dispose();}
 });
 it('全員切断で猶予終了後、最初のguest復帰に移譲でき、disposeはtimerを止める',()=>{
- vi.useFakeTimers();const {manager,room,credentials,events}=setup();for(let i=0;i<3;i++)manager.disconnect(`s${i}`);vi.advanceTimersByTime(15000);expect(manager.request('g',{action:'reconnect',...credentials[1]}).ok).toBe(true);expect(room.hostId).toBe(credentials[1].playerId);manager.disconnect('g');const n=events.length;manager.dispose();vi.advanceTimersByTime(30000);expect(events).toHaveLength(n);
+ vi.useFakeTimers();const {manager,room,credentials,events}=setup();for(let i=0;i<3;i++)manager.disconnect(`s${i}`);vi.advanceTimersByTime(hostReconnectGraceMs);expect(manager.request('g',{action:'reconnect',...credentials[1]}).ok).toBe(true);expect(room.hostId).toBe(credentials[1].playerId);manager.disconnect('g');const n=events.length;manager.dispose();vi.advanceTimersByTime(hostReconnectGraceMs+10000);expect(events).toHaveLength(n);
 });
