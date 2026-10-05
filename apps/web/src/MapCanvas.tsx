@@ -35,11 +35,11 @@ interface Props {
   previewNext?:boolean;secondaryTargetIds?:string[];
   eventFocus?:EventFocus|null;eventHighlight?:string[];presentation?:Presentation;
   feedback?:BoardFeedback;acceptedOrder?:{key:number;order:GameOrder}|null;
-  retreatUnits?:Unit[];
+  retreatUnits?:Unit[];historyUnits?:Unit[];
   readOnly?:boolean;
 }
 const defaultView = { x: 0, y: 0, width: 1000, height: 800 };
-export function MapCanvas({ dataset, config, result, selected, onSelect:handleSelect, ward, busy, preview, anchorMode, onAnchor, obstacleDraft = [], orders = [], orderUnits = [],events, legalTargetIds = [], playerFacing = false,currentPlayerWardId,onRightClick,previewNext=false,secondaryTargetIds,eventFocus,eventHighlight=[],presentation,feedback,acceptedOrder,retreatUnits=[],readOnly=false }: Props) {
+export function MapCanvas({ dataset, config, result, selected, onSelect:handleSelect, ward, busy, preview, anchorMode, onAnchor, obstacleDraft = [], orders = [], orderUnits = [],events, legalTargetIds = [], playerFacing = false,currentPlayerWardId,onRightClick,previewNext=false,secondaryTargetIds,eventFocus,eventHighlight=[],presentation,feedback,acceptedOrder,retreatUnits=[],historyUnits,readOnly=false }: Props) {
   const onSelect=useCallback((id:string)=>{if(!presentation?.active&&!readOnly)handleSelect(id);},[handleSelect,presentation?.active,readOnly]);
   const [acceptedRegion,setAcceptedRegion]=useState<string|null>(null);
   useEffect(()=>{const order=acceptedOrder?.order;if(!order){setAcceptedRegion(null);return;}const id='destination'in order?order.destination:order.type==='deploy-barricade'?order.targetRegionId:orderUnits.find(u=>u.unitId===order.unitId)?.regionId;setAcceptedRegion(id??null);const timer=setTimeout(()=>setAcceptedRegion(null),uiMotion.feedback);return()=>clearTimeout(timer);},[acceptedOrder?.key]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -289,8 +289,12 @@ export function MapCanvas({ dataset, config, result, selected, onSelect:handleSe
         <title>{title}</title><g transform={`translate(${marker.x} ${marker.y}) scale(${tokenScale})`}><circle className="supply-hit-target" r={Math.max(8.5,10*unitsPerPixel/tokenScale)} fill="transparent" stroke="none" pointerEvents="all" /><circle className="supply-selection-ring" cx="0" cy="0" r="8.5" fill="none" stroke="#287f96" strokeWidth="1.3" vectorEffect="non-scaling-stroke" pointerEvents="none" /><SupplyCenterMarker owner={owner} preview={!!preview} neutralScale={playerFacing?neutralSupplyScale(view.width,playableView.width):1} /></g>
       </g>)}
       </g>
-      <g className="army-layer" visibility={presentation?.active?'hidden':undefined}>
-      {markerItems.map(({ marker, r, unitOwner, unitName, active, title }) => {
+      <g className="army-layer" visibility={!historyUnits&&presentation?.active?'hidden':undefined}>
+      {historyUnits ? historyUnits.map(unit=>{
+        const region=rendered.find(r=>r.regionId===unit.regionId),marker=markers.find(m=>m.regionId===unit.regionId);
+        const at=marker?[marker.x,marker.y]:region?.center;if(!at)return null;
+        return <g key={unit.unitId} data-history-unit={unit.unitId} data-marker-region={unit.regionId} transform={`translate(${at.join(' ')}) scale(${tokenScale})`} pointerEvents="none"><ArmyMarker owner={unit.ownerWardId} isOwnUnit={unit.ownerWardId===currentPlayerWardId}/></g>;
+      }) : markerItems.map(({ marker, r, unitOwner, unitName, active, title }) => {
         return <g key={r.regionId} className={`region-marker ${active ? 'marker-active' : ''} ${legalSet.has(r.regionId)?'legal-unit':''} ${selected===r.regionId&&unitOwner?'selected-army':''} ${feedback?.built.includes(preview?.units.find(u=>u.regionId===r.regionId)?.unitId??'')?'army-built':''}`} data-marker-region={r.regionId}
           data-anchor={r.displayAnchor?.join(',')} role="button" tabIndex={0} aria-label={title}
           onMouseEnter={() => { setHoveredId(r.regionId); setHover(title); }} onMouseLeave={() => { setHoveredId(null); setHover(''); }}
