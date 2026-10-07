@@ -10,6 +10,12 @@ export function rightClickOrder(choices:GameOrder[],destination:string,action:Ac
 export function supportChoices(choices:GameOrder[],target:string) {
   return choices.filter(o=>(o.type==='support-hold'||o.type==='support-move')&&o.targetUnitId===target);
 }
+export function supportAtRegion(choices:GameOrder[],units:Unit[],regionId:string){
+  return choices.filter(o=>o.type==='support-move'?o.destination===regionId:o.type==='support-hold'&&units.some(u=>u.unitId===o.targetUnitId&&u.regionId===regionId));
+}
+export function supportRegions(choices:GameOrder[],units:Unit[]){
+  return [...new Set(choices.flatMap(o=>o.type==='support-move'?[o.destination]:o.type==='support-hold'?units.filter(u=>u.unitId===o.targetUnitId).map(u=>u.regionId):[]))];
+}
 /** All committed objects come verbatim from the shared/server legal list. */
 export function useMapCommands({units,ownUnits,legalOrders,inventory,choose,locked,contextKey,ownOrders=[],remove,onCue}:{
  units:Unit[];ownUnits:Unit[];legalOrders:Record<string,GameOrder[]>;inventory:Equipment[];
@@ -17,8 +23,9 @@ export function useMapCommands({units,ownUnits,legalOrders,inventory,choose,lock
 }) {
  const [unitId,setUnitId]=useState<string|null>(null),[action,setAction]=useState<Action>(null);
  const [target,setTarget]=useState(''),[via,setVia]=useState(''),[item,setItem]=useState(''),[feedback,setFeedback]=useState('');
+ const [supportRegion,setSupportRegion]=useState('');
  const serial=useRef(0),[accepted,setAccepted]=useState<{key:number;order:GameOrder}|null>(null);
- function cancel(){setAction(null);setTarget('');setVia('');setItem('');setFeedback('');}
+ function cancel(){setAction(null);setTarget('');setVia('');setItem('');setFeedback('');setSupportRegion('');}
  useEffect(()=>{serial.current++;setUnitId(null);cancel();setFeedback('');setAccepted(null);},[contextKey]);
  useEffect(()=>{const escape=(e:KeyboardEvent)=>{if(e.key==='Escape')cancel();};window.addEventListener('keydown',escape);return()=>window.removeEventListener('keydown',escape);},[]);
  useEffect(()=>{if(!feedback)return;const timer=setTimeout(()=>setFeedback(''),2200);return()=>clearTimeout(timer);},[feedback]);
@@ -28,8 +35,7 @@ export function useMapCommands({units,ownUnits,legalOrders,inventory,choose,lock
  const typed=choices.filter(o=>(o.type===action||(action==='support'&&(o.type==='support-hold'||o.type==='support-move')))&&(!('equipmentId'in o)||o.equipmentId===effectiveItem));
  const candidates=typed.filter(o=>(!target||!('targetUnitId'in o)||o.targetUnitId===target)&&(!via||o.type!=='bicycle-move'||o.viaRegionId===via));
  const primary=choices.flatMap(o=>o.type==='move'?[o.destination]:[]);
- const targets=[...new Set(!action?primary:candidates.flatMap(o=>{
-   if(o.type==='support-hold'||o.type==='support-move')return !target?units.filter(u=>u.unitId===o.targetUnitId).map(u=>u.regionId):action==='support-move'&&o.type==='support-move'?[o.destination]:[];
+ const targets=[...new Set(!action?primary:action.startsWith('support')?(supportRegion?[supportRegion]:supportRegions(typed,units)):candidates.flatMap(o=>{
    if(o.type==='move')return [o.destination];
    if(o.type==='bicycle-move')return [via?o.destination:o.viaRegionId];
    if(o.type==='deploy-barricade')return [o.targetRegionId];return [];
@@ -50,7 +56,7 @@ export function useMapCommands({units,ownUnits,legalOrders,inventory,choose,lock
    if(locked)return;
    if(!unit||!action){const next=ownUnits.find(u=>u.regionId===regionId)?.unitId??null;if(next&&next!==unitId)onCue?.('select');setUnitId(next);cancel();return;}
    if(!targets.includes(regionId))return;
-   if(action==='support'&&!target){setTarget(units.find(u=>u.regionId===regionId)?.unitId??'');return;}
+   if(action==='support'||action==='support-hold'||action==='support-move'){setSupportRegion(regionId);return;}
    if(action==='bicycle-move'&&!via){setVia(regionId);return;}
    commit(candidates.find(o=>('destination'in o&&o.destination===regionId)||(o.type==='deploy-barricade'&&o.targetRegionId===regionId)));
  }
@@ -59,7 +65,7 @@ export function useMapCommands({units,ownUnits,legalOrders,inventory,choose,lock
    if(!order){setFeedback(action&&action!=='move'?'操作中です。左クリックで対象を選んでください。':'移動できる地域を右クリックしてください。');return;}
    const result=commit(order);setFeedback('move:'+unit?.regionId+':'+regionId);await result;
  }
- return {unit,choices,action,target,via,item:effectiveItem,targets:locked?[]:targets,primary:locked?[]:primary,inventory,locked,begin,cancel,change,select,commit,rightClick,feedback,recommendedOrder,accepted,
+ return {unit,choices,action,target,supportRegion,supportOrders:supportAtRegion(typed,units,supportRegion),via,item:effectiveItem,targets:locked?[]:targets,primary:locked?[]:primary,inventory,locked,begin,cancel,change,select,commit,rightClick,feedback,recommendedOrder,accepted,
    supportKind:(next:'support-hold'|'support-move')=>{if(next==='support-hold')commit(supportChoices(choices,target).find(o=>o.type===next));else setAction(next);},
    setItem:(id:string)=>{setItem(id);setVia('');}};
 }
@@ -72,7 +78,7 @@ export function describeOrder(order:GameOrder|import('../../../packages/game-cor
 }
 export function BottomActionBar({commands:c,draft,units,regionName}:{commands:MapCommands;draft?:GameOrder;units:Unit[];regionName:(id:string)=>string}){
  if(!c.unit)return c.feedback?<p className="command-toast" role="status">{c.feedback}</p>:null;
- const instruction=c.action==='support'?!c.target?'どの軍を支援しますか？':'支援する軍の行動を選んでください。':c.action==='support-move'?'支援する移動先を地図で選んでください。':c.action==='bicycle-move'?c.via?'次の移動先を地図で選んでください。':'経由する地域を地図で選んでください。':c.action==='deploy-barricade'?'封鎖する辺の相手地域を選んでください。':'移動先を地図で選んでください。';
+ const instruction=c.action?.startsWith('support')?!c.supportRegion?'支援する地域を地図で選んでください。':'この地域に関係する軍の行動を選んでください。':c.action==='bicycle-move'?c.via?'次の移動先を地図で選んでください。':'経由する地域を地図で選んでください。':c.action==='deploy-barricade'?'封鎖する辺の相手地域を選んでください。':'移動先を地図で選んでください。';
  const equipmentType=c.action==='bicycle-move'?'bicycle':c.action==='deploy-barricade'?'barricade':null;
  const equipment=c.inventory.filter(e=>e.type===equipmentType&&c.choices.some(o=>'equipmentId'in o&&o.equipmentId===e.equipmentId&&o.type===c.action));
  const parts=c.feedback.split(':');
@@ -85,8 +91,7 @@ export function BottomActionBar({commands:c,draft,units,regionName}:{commands:Ma
  {c.inventory.some(e=>e.type==='barricade')&&<button disabled={!c.choices.some(o=>o.type==='deploy-barricade')} onClick={()=>c.begin('deploy-barricade')}>バリケード</button>}
  {draft&&<button onClick={c.change}>命令を変更</button>}{c.action&&<button onClick={c.cancel}>キャンセル</button>}
  </div>
- {c.action==='support'&&c.target&&<div className="action-buttons"><strong>{regionName(units.find(u=>u.unitId===c.target)!.regionId)}の軍</strong><button disabled={!supportChoices(c.choices,c.target).some(o=>o.type==='support-hold')} onClick={()=>c.supportKind('support-hold')}>この軍の現在地を守る</button><button disabled={!supportChoices(c.choices,c.target).some(o=>o.type==='support-move')} onClick={()=>c.supportKind('support-move')}>この軍の移動を支援する</button></div>}
- {c.target&&c.recommendedOrder&&'destination'in c.recommendedOrder&&<button onClick={()=>c.commit(c.recommendedOrder)}>現在の移動命令: {regionName(c.recommendedOrder.destination)} を支援</button>}
+ {c.action?.startsWith('support')&&c.supportRegion&&<div className="action-buttons" aria-label="選択地域の合法な支援"><strong>{regionName(c.supportRegion)}への支援</strong>{c.supportOrders.map(order=><button key={JSON.stringify(order)} onClick={()=>c.commit(order)}>{describeOrder(order,units,regionName)}</button>)}</div>}
  {equipment.length>1&&<label>使用する装備<select aria-label="使用する装備" value={c.item} onChange={e=>c.setItem(e.target.value)}>{equipment.map((e,i)=><option key={e.equipmentId} value={e.equipmentId}>{equipmentType==='bicycle'?'自転車':'バリケード'} {i+1}</option>)}</select></label>}
  {c.action&&<p role="status">{instruction}</p>}</fieldset>
  {c.feedback&&<p className="command-toast" role="status">{parts[0]==='move'?regionName(parts[1])+' → '+regionName(parts[2])+'へ移動':c.feedback}</p>}

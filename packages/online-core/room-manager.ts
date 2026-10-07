@@ -8,7 +8,7 @@ import type { MatchLog } from '../shared/match';
 import { assignWards, createOnlineBoard, victoryTarget, defaultGameSettings, type Assignment } from './initial';
 import { requestSchema, publicRoomSchema, privatePlayerSchema, type SessionEnded,type OnlineResponse, type Credentials, type PublicResult, type PublicRoomView, type PrivatePlayerView, type OnlineRequest } from '../shared/online';
 import type { MapDefinition, RegionDataset, WardId } from '../shared/model';
-import { type RetreatOrder } from '../rules-core';
+import { legalOrders,type Order,type RetreatOrder } from '../rules-core';
 import type { GameOrder, EventSettings } from '../shared/events';
 import { resolveRetreats } from '../rules-core/retreat';
 import { advanceGame, createGameSession, adjudicateGameOrders, adjudicateGameRetreats, adjudicateGameWinter, winterBudget, type GameResponse, type GameSessionState } from '../game-core';
@@ -26,11 +26,32 @@ export const normalizeNickname=(name:string)=>name.normalize('NFKC').trim().repl
 const blank=():Submission=>({orders:[],retreats:[],winter:{buildRegionIds:[],disbandUnitIds:[]},finalized:false});
 const fail=(...errors:string[]):OnlineResponse=>({ok:false,errors});
 const emptyWinter=()=>({buildRegionIds:[],disbandUnitIds:[]});
+const orderKey=(order:GameOrder)=>JSON.stringify(Object.entries(order).sort(([a],[b])=>a.localeCompare(b)));
 function requireResult(response:GameResponse):GameSessionState {if(!response.ok) throw new Error(response.errors.join('\n'));return response.result;}
 
 /** Synchronous transactions: no await between phase check, finalization, lock and resolution. */
 export class RoomManager {
   readonly rooms=new Map<string,Room>();
+  private readonly orderCaches=new WeakMap<Room,{key:string;map:MapDefinition;board:GameSessionState['board'];edges:unknown[];effective:MapDefinition;units:Map<string,Order[]>}>();
+  private readonly draftSequences=new WeakMap<PlayerSession,{key:string;sequence:number;version:number}>();
+  basicOrders(room:Room,unitId:string):Order[]{
+    const state=room.game!.state,key=this.phaseKey(room)!,edges=[state.events.activeBarricades,state.events.roadworkEdges,state.events.temporaryBusEdges];
+    let cached=this.orderCaches.get(room);
+    if(!cached||cached.key!==key||cached.map!==room.map||cached.board!==state.board||edges.some((edge,i)=>edge!==cached!.edges[i])){
+      cached={key,map:room.map,board:state.board,edges,effective:effectiveMap(room.map,state.events),units:new Map()};this.orderCaches.set(room,cached);
+    }
+    let orders=cached.units.get(unitId);if(!orders){orders=legalOrders(cached.effective,state.board.units,unitId);cached.units.set(unitId,orders);}return orders;
+  }
+  selectedLegalOrders(room:Room,player:PlayerSession,unitId:string,drafts=player.submission.orders){
+    const state=room.game!.state,ward=room.game!.playerWards[player.playerId],own=new Set(state.board.units.filter(u=>u.ownerWardId===ward).map(u=>u.unitId));
+    const reservations=[...state.events.reservations.filter(r=>!own.has(r.unitId)),...drafts.flatMap(o=>o.type==='bicycle-move'||o.type==='deploy-barricade'?[{equipmentId:o.equipmentId,unitId:o.unitId,type:o.type==='bicycle-move'?'bicycle' as const:'barricade' as const}]:[])];
+    return legalGameOrders(room.map,{...state,events:{...state.events,reservations}},unitId,drafts,this.basicOrders(room,unitId));
+  }
+  private saveOrders(room:Room,player:PlayerSession,orders:GameOrder[]){
+    const state=room.game!.state,ward=room.game!.playerWards[player.playerId],ownIds=new Set(state.board.units.filter(u=>u.ownerWardId===ward).map(u=>u.unitId));
+    player.submission.orders=structuredClone(orders);
+    state.events={...state.events,reservations:[...state.events.reservations.filter(r=>!ownIds.has(r.unitId)),...orders.flatMap(o=>o.type==='bicycle-move'||o.type==='deploy-barricade'?[{equipmentId:o.equipmentId,unitId:o.unitId,type:o.type==='bicycle-move'?'bicycle' as const:'barricade' as const}]:[])]};
+  }
   private readonly identities=new Map<string,{roomCode:string;playerId:string}>();
   private readonly preflights=new WeakMap<Room,{scenario:Scenario;hash:string;map:MapDefinition;config:Scenario['config'];report:Scenario['report'];prepared:OnlineScenarioPreflight;key:string;value:OnlineScenarioPreflight}>();
   private readonly hostGrace=new Map<string,{playerId:string;deadline:number;timer:ReturnType<typeof setTimeout>}>();
@@ -132,6 +153,7 @@ export class RoomManager {
     }
     const room=this.roomForSocket(socketId),player=this.playerForSocket(socketId);
     if(!room||!player) return fail('先にルームへ参加してください');
+    if(request.action==='history')return {ok:true};
     if(request.action==='kick'){
       if(room.game)return fail('開始後は参加者を退出させられません');
       if(room.hostId!==player.playerId)return fail('ホストだけが参加者を退出させられます');
@@ -213,9 +235,25 @@ export class RoomManager {
     }
     const game=room.game;
     if(!game||request.phaseKey!==this.phaseKey(room)||game.locked||game.playback||game.state.phase==='finished') return fail('フェイズが変わりました。最新の盤面で入力してください');
+    if(request.action==='legal-orders'){
+      if(game.state.phase!=='orders'||!game.state.board.units.some(u=>u.unitId===request.unitId&&u.ownerWardId===game.playerWards[player.playerId]))return fail('自軍を選択してください');
+      return {ok:true,legalOrders:{phaseKey:request.phaseKey,unitId:request.unitId,orders:this.selectedLegalOrders(room,player,request.unitId)}};
+    }
     if(!this.required(room,player)) return fail('このフェイズの提出は不要です');
     if(request.action==='unready') {player.submission.finalized=false;return {ok:true};}
     if(player.submission.finalized) return fail('確定解除してから編集してください');
+    if(request.action==='order-patch'){
+      if(game.state.phase!=='orders'||!game.state.board.units.some(u=>u.unitId===request.unitId&&u.ownerWardId===game.playerWards[player.playerId]))return fail('自軍の命令だけ編集できます');
+      const key=`${request.phaseKey}:${socketId}`,previous=this.draftSequences.get(player);
+      if(previous?.key===key&&request.sequence<=previous.sequence)return fail('古い命令の更新は受け付けません');
+      if(request.order&&request.order.unitId!==request.unitId)return fail('命令対象が一致しません');
+      const order=request.order,choices=order&&(order.type==='bicycle-move'||order.type==='deploy-barricade'?this.selectedLegalOrders(room,player,request.unitId):this.basicOrders(room,request.unitId));
+      if(order&&!choices!.some(candidate=>orderKey(candidate)===orderKey(order)))return fail('この軍には指定された命令を出せません');
+      const next=[...player.submission.orders.filter(o=>o.unitId!==request.unitId),...(order?[order]:[])];
+      this.saveOrders(room,player,next);
+      const version=(previous?.key===key?previous.version:0)+1;this.draftSequences.set(player,{key,sequence:request.sequence,version});
+      return {ok:true,draftVersion:version};
+    }
     const error=this.validateSubmission(room,player,request);
     if(error) return fail(...error);
     player.submission.finalized=request.finalize;
@@ -230,11 +268,12 @@ export class RoomManager {
       if(request.orders.some(o=>!own.some(u=>u.unitId===o.unitId))) return ['自軍の命令だけ編集できます'];
       const filled=state.board.units.map(u=>request.orders.find(o=>o.unitId===u.unitId)??{type:'hold' as const,unitId:u.unitId});
       if(new Set(request.orders.map(o=>o.unitId)).size!==request.orders.length) return ['命令が重複しています'];
-      const checked=validateGameOrders(room.map,state,filled);
-      if(!checked.ok) return checked.errors;
-      player.submission.orders=structuredClone(request.finalize?filled.filter(o=>own.some(u=>u.unitId===o.unitId)):request.orders);
-      const ownIds=new Set(own.map(u=>u.unitId));
-      state.events={...state.events,reservations:[...state.events.reservations.filter(r=>!ownIds.has(r.unitId)),...player.submission.orders.flatMap(o=>o.type==='bicycle-move'||o.type==='deploy-barricade'?[{equipmentId:o.equipmentId,unitId:o.unitId,type:o.type==='bicycle-move'?'bicycle' as const:'barricade' as const}]:[])]};
+      if(request.finalize){const checked=validateGameOrders(room.map,state,filled);if(!checked.ok)return checked.errors;}
+      else for(const order of request.orders){
+        const choices=order.type==='bicycle-move'||order.type==='deploy-barricade'?this.selectedLegalOrders(room,player,order.unitId,request.orders):this.basicOrders(room,order.unitId);
+        if(!choices.some(candidate=>orderKey(candidate)===orderKey(order)))return ['この軍には指定された命令を出せません'];
+      }
+      this.saveOrders(room,player,request.finalize?filled.filter(o=>own.some(u=>u.unitId===o.unitId)):request.orders);
       return null;
     }
     if(request.action==='retreats') {
@@ -327,7 +366,7 @@ export class RoomManager {
 }
 
 /** Explicit allowlist. Never serialize internal Room/Game/PlayerSession objects. */
-export function serializePublicState(manager:RoomManager,room:Room,includeMap=true):PublicRoomView {
+export function serializePublicState(manager:RoomManager,room:Room,includeMap=true,includeHistory=true):PublicRoomView {
   const game=room.game,state=game?.state,preflight=manager.preflight(room);
   return publicRoomSchema.parse({roomCode:room.code,hostId:room.hostId,hostReconnectDeadline:manager.hostGraceDeadline(room),...(includeMap?{map:room.map}:{}),startErrors:game?[]:manager.startErrors(room,preflight),
     scenario:{scenarioId:room.scenario.id,scenarioName:room.scenario.name,scenarioHash:room.scenario.hash,fileName:room.scenario.fileName,source:room.scenario.source??(room.scenario.loaded?'custom':'editor'),loaded:room.scenario.loaded,enabledRegions:preflight.enabledRegions,totalSC:preflight.totalSC,totalStartingUnits:preflight.totalStartingUnits,errors:preflight.errors,warnings:preflight.warnings,maxYears:state?.maxYears??room.lobbyMaxYears??manager.configuredMaxYears()},
@@ -339,14 +378,14 @@ export function serializePublicState(manager:RoomManager,room:Room,includeMap=tr
     }),
     game:game&&state?{year:state.year,season:state.season,phase:state.phase,phaseKey:manager.phaseKey(room),board:state.board,seed:game.seed,
       status:state.status,maxYears:state.maxYears,endResult:state.endResult,summary:summarizeMatch(game.matchLog),
-      playerWards:game.playerWards,inactiveWards:game.inactiveWards,activePlayerCount:game.activePlayerCount,victoryTargetSC:state.victoryTargetSC,presentation:state.presentation,playback:manager.publicPlayback(room),history:game.history,requiredRivalInitialSupplyCentersForInstantWin:state.requiredRivalInitialSupplyCentersForInstantWin,rivalInitialSCByWard:Object.fromEntries(state.participants.map(w=>[w,conquestProgress(state,w).rivalInitialSC])),events:publicEvents(state.events),inventoryCounts:inventoryCounts(state.events,state.participants),end:state.end,lastResult:game.lastResult}:null});
+      playerWards:game.playerWards,inactiveWards:game.inactiveWards,activePlayerCount:game.activePlayerCount,victoryTargetSC:state.victoryTargetSC,presentation:state.presentation,playback:manager.publicPlayback(room),...(includeHistory?{history:game.history}:{}),requiredRivalInitialSupplyCentersForInstantWin:state.requiredRivalInitialSupplyCentersForInstantWin,rivalInitialSCByWard:Object.fromEntries(state.participants.map(w=>[w,conquestProgress(state,w).rivalInitialSC])),events:publicEvents(state.events),inventoryCounts:inventoryCounts(state.events,state.participants),end:state.end,lastResult:game.lastResult}:null});
 }
 export function serializePrivateState(manager:RoomManager,room:Room,player:PlayerSession):PrivatePlayerView {
   const game=room.game,wardId=game?.playerWards[player.playerId]??null,state=game?.state;
   return privatePlayerSchema.parse({playerId:player.playerId,preferredWardId:player.preferredWardId,wardId,phaseKey:manager.phaseKey(room),finalized:player.submission.finalized,
     orders:player.submission.orders,retreatOrders:player.submission.retreats,winterDraft:player.submission.winter??emptyWinter(),
     inventory:state?.events.inventory.filter(e=>e.ownerWardId===wardId)??[],reservations:state?.events.reservations.filter(r=>state.events.inventory.some(e=>e.equipmentId===r.equipmentId&&e.ownerWardId===wardId))??[],
-    legalOrders:state?.phase==='orders'&&!game?.playback?Object.fromEntries(state.board.units.filter(u=>u.ownerWardId===wardId).map(u=>[u.unitId,legalGameOrders(room.map,state,u.unitId,player.submission.orders)])):{},
+    legalOrders:{},
     retreatUnits:state?.phase==='retreats'?state.movement?.dislodgedUnits.filter(d=>d.unit.ownerWardId===wardId)??[]:[],
     winterBudget:state?.phase==='adjustments'&&wardId?winterBudget(room.map,state,wardId):null});
 }

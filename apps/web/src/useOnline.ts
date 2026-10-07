@@ -4,11 +4,12 @@ import { OnlineConnection,PermanentConnectionError,probeHealth,type ConnectionSt
 import { OnlineSession,sessionWaitingMessage } from './online-session';
 import { currentOnlineTarget } from './online-target';
 import {browserIdentities,identityCredentials,type SavedIdentity,historyKey,identityPrefix} from './online-identities';
-import { sessionEndedSchema,privatePlayerSchema, publicRoomSchema, responseSchema,
+import { turnHistorySchema,type TurnSnapshot,sessionEndedSchema,privatePlayerSchema, publicRoomSchema, responseSchema,
   type SessionEnded,type Credentials, type PrivatePlayerView, type PublicRoomView, type OnlineRequest, type OnlineResponse, type ClientToServerEvents, type ServerToClientEvents } from '../../../packages/shared/online';
 
 export function useOnline(inviteRoom?:string) {
   const [history]=useState(browserIdentities);
+  const turnCache=useRef(new Map<string,TurnSnapshot[]>());
   const socket=useRef<Socket<ServerToClientEvents,ClientToServerEvents>|null>(null);
   const credentials=useRef<Credentials|null>(history.active(inviteRoom)),session=useRef(new OnlineSession()),inflight=useRef(0),blockingInflight=useRef(0),latestPublic=useRef<PublicRoomView|null>(null);
   const [savedIdentities,setSavedIdentities]=useState(()=>history.list()),[sessionNotice,setSessionNotice]=useState('');
@@ -73,13 +74,21 @@ export function useOnline(inviteRoom?:string) {
         latestPublic.current=parsed.data;
         gate.public(parsed.data);sync();snapshotComplete?.();
         if(reconnectPublic){reconnectPublic=false;setPresentationEpoch(v=>v+1);}
-        setPublicView(previous=>({...parsed.data,map:parsed.data.map??(previous?.roomCode===parsed.data.roomCode?previous.map:undefined)}));
+        setPublicView(previous=>({...parsed.data,map:parsed.data.map??(previous?.roomCode===parsed.data.roomCode?previous.map:undefined),game:parsed.data.game?{...parsed.data.game,history:turnCache.current.get(parsed.data.roomCode)??[]}:null}));
       }else setErrors(['公開盤面の通信形式が不正です']);
     });
     client.on('privateState',view=>{
       if(disposed||!gate.transportConnected)return;
       const parsed=privatePlayerSchema.safeParse(view);
       if(parsed.success){gate.private(parsed.data);sync();snapshotComplete?.();setPrivateView(parsed.data);}else setErrors(['本人用入力の通信形式が不正です']);
+    });
+    client.on('turnHistory',raw=>{
+      if(disposed||!gate.transportConnected)return;
+      const parsed=turnHistorySchema.safeParse(raw);if(!parsed.success||parsed.data.roomCode!==credentials.current?.roomCode)return;
+      const {roomCode,snapshots}=parsed.data,merged=new Map((turnCache.current.get(roomCode)??[]).map(s=>[s.id,s]));
+      for(const snapshot of snapshots)merged.set(snapshot.id,snapshot);
+      const history=[...merged.values()].sort((a,b)=>a.year-b.year||(a.season===b.season?0:a.season==='spring'?-1:1));turnCache.current.set(roomCode,history);
+      setPublicView(previous=>previous?.roomCode===roomCode&&previous.game?{...previous,game:{...previous.game,history}}:previous);
     });
     client.on('sessionEnded',raw=>{
       const parsed=sessionEndedSchema.safeParse(raw),active=credentials.current;
@@ -98,7 +107,7 @@ export function useOnline(inviteRoom?:string) {
     }
     const entering=input.action==='create'||input.action==='join';
     if(entering){gate.begin();sync();}
-    const epoch=gate.epoch,blocking=input.action!=='orders'||input.finalize;
+    const epoch=gate.epoch,blocking=!(input.action==='order-patch'||input.action==='legal-orders'||input.action==='history'||input.action==='orders'&&!input.finalize);
     inflight.current++;setPending(true);if(blocking){blockingInflight.current++;setBlockingPending(true);}
     try {
       const response=responseSchema.parse(await client.timeout(10000).emitWithAck('request',input));

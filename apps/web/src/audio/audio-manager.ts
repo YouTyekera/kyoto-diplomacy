@@ -2,7 +2,7 @@ import type { BgmContext, BgmTrack } from './bgm-manifest';
 
 export interface MusicSettings { enabled: boolean; volume: number }
 export const musicStorageKey = 'kyoto-music-v1';
-export const defaultMusicSettings: MusicSettings = { enabled: true, volume: 70 };
+export const defaultMusicSettings: MusicSettings = { enabled: true, volume: 5 };
 export function readMusicSettings(storage: Pick<Storage, 'getItem'>): MusicSettings {
   try {
     const value = JSON.parse(storage.getItem(musicStorageKey) ?? 'null');

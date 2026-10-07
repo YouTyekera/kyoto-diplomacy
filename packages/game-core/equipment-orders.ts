@@ -44,9 +44,9 @@ export function reserveGameOrders(map:MapDefinition,state:GameSessionState,order
   const checked=validateGameOrders(map,state,orders);if(!checked.ok)return checked;
   return {ok:true,result:{...state,events:{...state.events,reservations:checked.result.flatMap(o=>o.type==='bicycle-move'||o.type==='deploy-barricade'?[{equipmentId:o.equipmentId,unitId:o.unitId,type:o.type==='bicycle-move'?'bicycle' as const:'barricade' as const}]:[])}}};
 }
-export function legalGameOrders(map:MapDefinition,state:GameSessionState,unitId:string,drafts:GameOrder[]=[]):GameOrder[] {
+export function legalGameOrders(map:MapDefinition,state:GameSessionState,unitId:string,drafts:GameOrder[]=[],basicOrders?:Order[]):GameOrder[] {
   const unit=state.board.units.find(u=>u.unitId===unitId);if(!unit)return [];
-  const seasonMap=effectiveMap(map,state.events),candidates:GameOrder[]=legalOrders(seasonMap,state.board.units,unitId);
+  const seasonMap=effectiveMap(map,state.events),candidates:GameOrder[]=basicOrders?[...basicOrders]:legalOrders(seasonMap,state.board.units,unitId);
   // Maps are already validated at room/session creation. Re-parsing all 227 polygon
   // geometries for every GUI candidate would block Socket.IO publication for seconds.
   // The complete submitted sheet still passes validateGameOrders before mutation.

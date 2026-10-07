@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { RoomManager, serializePrivateState, serializePublicState, type Room } from '../../packages/online-core/room-manager';
 import type { ClientToServerEvents, ServerToClientEvents, PublicRoomView } from '../../packages/shared/online';
 import {mapDefinitionSchema,type MapDefinition} from '../../packages/shared/model';
+import {turnHistorySchema} from '../../packages/shared/online';
 import { permittedOrigin, type ServerConfig } from './config';
 
 export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,'production'|'frontendOrigin'>={production:false}) {
@@ -29,12 +30,20 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
     allowRequest:(request,callback)=>callback(null,!draining&&permittedOrigin(request.headers.origin,config)),
   });
   const sentMap=new Map<string,string>();
+  const sentHistory=new Map<string,{roomCode:string;count:number}>();
+  function history(socketId:string,room:Room,force=false){
+    if(!room.game)return;
+    const previous=sentHistory.get(socketId),from=!force&&previous?.roomCode===room.code?previous.count:0;
+    if(!force&&previous?.roomCode===room.code&&from===room.game.history.length)return;
+    io.sockets.sockets.get(socketId)?.emit('turnHistory',turnHistorySchema.parse({roomCode:room.code,snapshots:room.game.history.slice(from)}));
+    sentHistory.set(socketId,{roomCode:room.code,count:room.game.history.length});
+  }
   const wireMaps=new WeakMap<MapDefinition,NonNullable<PublicRoomView['map']>>();
   const queuedRooms=new Set<Room>();
   let scheduled:ReturnType<typeof setImmediate>|undefined;
   function publish(room:Room|undefined) {
     if(!room||manager.rooms.get(room.code)!==room) return;
-    const publicView=serializePublicState(manager,room,false);
+    const publicView=serializePublicState(manager,room,false,false);
     let snapshot:PublicRoomView|undefined;
     for(const player of room.players.values()) if(player.socketId) {
       const socket=io.sockets.sockets.get(player.socketId);
@@ -48,6 +57,7 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
         } else socket.emit('publicState',publicView);
       }
       socket?.emit('privateState',serializePrivateState(manager,room,player));
+      if(socket)history(socket.id,room);
     }
   }
   function publishSafely(room:Room|undefined){
@@ -88,6 +98,11 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
         if(result.ok&&request.action==='leave') sentMap.delete(socket.id);
         if(result.ok){
           const current=manager.roomForSocket(socket.id);
+          if(request.action==='order-patch'||request.action==='legal-orders'||request.action==='history'||request.action==='orders'&&!request.finalize){
+            respond(result);
+            if(request.action==='history'&&current)setImmediate(()=>{try{if(manager.roomForSocket(socket.id)===current)history(socket.id,current,true);}catch{console.error('[server-error] history publish failed',JSON.stringify({roomCode:current.code}));}});
+            return;
+          }
           if(request.action==='create'||request.action==='join'||request.action==='reconnect'){
             // Persist identity before snapshots. Yield so synchronous serialization cannot block ack I/O.
             respond(result);queuePublish(current);if(previous!==current)queuePublish(previous);return;
@@ -98,7 +113,7 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
         respond(result);
       } catch(error) {respond({ok:false,errors:[!config.production&&error instanceof Error?error.message:'サーバーの処理に失敗しました。接続状態を確認して再試行してください。']});}
     });
-    socket.on('disconnect',()=>{sentMap.delete(socket.id);const room=manager.roomForSocket(socket.id);manager.disconnect(socket.id);publishSafely(room);});
+    socket.on('disconnect',()=>{sentMap.delete(socket.id);sentHistory.delete(socket.id);const room=manager.roomForSocket(socket.id);manager.disconnect(socket.id);publishSafely(room);});
   });
   function close(){
     if(closing)return closing;

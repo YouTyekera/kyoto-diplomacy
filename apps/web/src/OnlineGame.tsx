@@ -13,6 +13,7 @@ import { reasonText } from '../../../packages/shared/rules-explanations';
 import { MapCanvas } from './MapCanvas';
 import { useOnline } from './useOnline';
 import { useOptimisticOrders } from './useOptimisticOrders';
+import { useSelectedLegalOrders } from './useSelectedLegalOrders';
 import { victoryTarget, defaultGameSettings } from '../../../packages/online-core/initial';
 import { ConnectionScope } from './ConnectionScope';
 import { ConnectionStatus } from './ConnectionStatus';
@@ -124,9 +125,13 @@ function OnlineMatch({ room, game, self, dataset, config, developer, pending, se
   const orders = draft.orders;
   const orderLocked = !!historical || !!game.playback || presentation.active || pending || draft.finalizing || !compatible || !!self?.finalized || game.phase !== 'orders';
   const own = game.board.units.filter(u => u.ownerWardId === self?.wardId);
+  const [selectedLegalUnit,setSelectedLegalUnit]=useState<string>();
+  const legalOrders=useSelectedLegalOrders(game.phaseKey,selectedLegalUnit,sessionReady&&compatible&&!historical&&!game.playback&&game.phase==='orders',draft.saving,orders,JSON.stringify(self?.inventory??[]),request);
   const required = room.players.find(p => p.playerId === self?.playerId)?.required ?? false;
-  const commands = useMapCommands({ units: game.board.units, ownUnits: own,ownOrders:orders, legalOrders: compatible && game.phase === 'orders' && self ? self.legalOrders : {}, inventory: compatible && self ? self.inventory : [],
+  const commands = useMapCommands({ units: game.board.units, ownUnits: own,ownOrders:orders, legalOrders, inventory: compatible && self ? self.inventory : [],
     choose: draft.choose, remove: unitId => { void draft.remove(unitId); }, onCue: cue=>sfx.playCue(cue), locked: orderLocked, contextKey: `${game.phaseKey}:${draft.rollback}` });
+  const legalUnit=developer?(own.find(u=>u.regionId===selected)??own[0])?.unitId:commands.unit?.unitId;
+  useEffect(()=>setSelectedLegalUnit(legalUnit),[legalUnit]);
   const countSC = Object.values(game.board.regionControl).filter(r => r.supplyCenterOwnerWardId === self?.wardId && self?.wardId).length;
   const feedback=useBoardFeedback(game.board,self?.inventory.length??0,game.rivalInitialSCByWard[self?.wardId??'']??0,self?.wardId,presentation.active,game.events.groundEquipment,game.lastResult?.winter);
   useEffect(()=>{if(feedback.ownSC)sfx.playCue('sc-capture');},[sfx,feedback.key]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -167,7 +172,7 @@ function OnlineMatch({ room, game, self, dataset, config, developer, pending, se
         {game.phase === 'orders' && !developer && !historical && <details><summary>自分の命令一覧 · {orders.length} / {own.length}軍</summary><ul aria-label="自分の命令一覧">{own.map(u => <li key={u.unitId}>{regionName(u.regionId)}の軍: {orders.find(o => o.unitId === u.unitId) ? describeOrder(orders.find(o => o.unitId === u.unitId)!, game.board.units, regionName) : '未入力'}</li>)}</ul></details>}
       </aside>}
     </div>
-    {compatible && self && (developer || game.phase !== 'orders') && <div className="phase-input"><fieldset disabled={presentation.active||!!historical||!!playback}><OnlineCommands key={game.phaseKey} game={game} self={self} selected={selected} onSelect={setSelected} request={request} pending={pending||draft.finalizing} regionName={regionName} required={required} orderDraft={draft} /></fieldset></div>}
+    {compatible && self && (developer || game.phase !== 'orders') && <div className="phase-input"><fieldset disabled={presentation.active||!!historical||!!playback}><OnlineCommands key={game.phaseKey} game={game} self={{...self,legalOrders}} selected={selected} onSelect={setSelected} request={request} pending={pending||draft.finalizing} regionName={regionName} required={required} orderDraft={draft} /></fieldset></div>}
     {game.phase === 'orders' && !developer && compatible && self && <footer className="submission-bar"><span>{draft.finalizing ? '命令書を保存して確定しています…' : <>入力済み {orders.length} / {own.length}軍 · 未入力{missing}軍はHoldになります。</>}</span>{required && (!self.finalized ? <button className="primary" disabled={orderLocked} onClick={() => void draft.finalize()}>命令書を確定</button> : <><strong>{playback?playback.stage==='reveal'?'全員確定 · 作戦公開中':'裁定結果を再生中':'確定済み · 他の参加者を待っています'}</strong><button disabled={pending||!!historical||!!playback} onClick={() => void request({ action: 'unready', phaseKey: game.phaseKey })}>確定解除</button></>)}</footer>}
     {game.endResult && <GameOver result={game.endResult} summary={game.summary} target={game.victoryTargetSC} players={room.players} currentPlayerWardId={self?.wardId} onDownload={onDownload} pending={pending} />}
   </div>;

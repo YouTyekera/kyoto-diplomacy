@@ -27,6 +27,9 @@ export const requestSchema=z.discriminatedUnion('action',[
   z.object({action:z.literal('lobby-years'),yearLimit:z.number().int().positive().nullable()}).strict(),
   z.object({action:z.literal('start'),yearLimit:z.number().int().positive().nullable()}).strict(),
   z.object({action:z.literal('orders'),phaseKey,orders:z.array(gameOrderSchema).max(227),finalize:z.boolean()}).strict(),
+  z.object({action:z.literal('order-patch'),phaseKey,unitId:id,order:gameOrderSchema.nullable(),sequence:z.number().int().positive()}).strict(),
+  z.object({action:z.literal('legal-orders'),phaseKey,unitId:id}).strict(),
+  z.object({action:z.literal('history')}).strict(),
   z.object({action:z.literal('retreats'),phaseKey,orders:z.array(retreatOrderSchema).max(227),finalize:z.boolean()}).strict(),
   z.object({action:z.literal('winter'),phaseKey,draft:winterDraftSchema,finalize:z.boolean()}).strict(),
   z.object({action:z.literal('unready'),phaseKey}).strict(),
@@ -34,7 +37,7 @@ export const requestSchema=z.discriminatedUnion('action',[
 type ParsedRequest=z.infer<typeof requestSchema>;
 export type OnlineRequest=Exclude<ParsedRequest,{action:'create'}>|(Omit<Extract<ParsedRequest,{action:'create'}>,'config'>&{config:MapConfig});
 export const responseSchema=z.discriminatedUnion('ok',[
-  z.object({ok:z.literal(true),credentials:credentialsSchema.optional(),matchLog:matchLogSchema.optional()}).strict(),
+  z.object({ok:z.literal(true),credentials:credentialsSchema.optional(),matchLog:matchLogSchema.optional(),draftVersion:z.number().int().nonnegative().optional(),legalOrders:z.object({phaseKey,unitId:id,orders:z.array(gameOrderSchema)}).strict().optional()}).strict(),
   z.object({ok:z.literal(false),errors:z.array(z.string())}).strict(),
 ]);
 export type OnlineResponse=z.infer<typeof responseSchema>;
@@ -57,6 +60,8 @@ const publicPlayerSchema=z.object({playerId:id,nickname:z.string(),connected:z.b
 export const presentationSchema=z.object({id,year:z.number().int().positive(),season:z.enum(['spring','autumn']),before:z.array(previewUnitSchema),after:z.array(previewUnitSchema),orders:z.array(z.union([orderSchema,bicycleOrderSchema.omit({equipmentId:true}),deployOrderSchema.omit({equipmentId:true})])),movement:movementSchema}).strict();
 export const turnSnapshotSchema=z.object({id,year:z.number().int().positive(),season:z.enum(['spring','autumn']),board:gameStatePreviewSchema,events:publicEventsSchema,presentation:presentationSchema}).strict();
 export type TurnSnapshot=z.infer<typeof turnSnapshotSchema>;
+export const turnHistorySchema=z.object({roomCode:z.string(),snapshots:z.array(turnSnapshotSchema)}).strict();
+export type TurnHistoryUpdate=z.infer<typeof turnHistorySchema>;
 export const playbackSchema=z.object({id,stage:z.enum(['reveal','playing']),year:z.number().int().positive(),season:z.enum(['spring','autumn']),orders:presentationSchema.shape.orders,before:presentationSchema.shape.before,
   snapshot:presentationSchema.nullable(),elapsed:z.number().nonnegative(),sentAt:z.number(),speed:z.number().positive(),duration:z.number().positive()}).strict();
 export type OnlinePlayback=z.infer<typeof playbackSchema>;
@@ -76,4 +81,4 @@ export type PrivatePlayerView=z.infer<typeof privatePlayerSchema>;
 export interface ClientToServerEvents { request:(request:OnlineRequest,ack:(response:OnlineResponse)=>void)=>void }
 export const sessionEndedSchema=z.object({roomCode:z.string(),playerId:id,reason:z.enum(['kicked','replaced'])}).strict();
 export type SessionEnded=z.infer<typeof sessionEndedSchema>;
-export interface ServerToClientEvents { publicState:(view:PublicRoomView)=>void;privateState:(view:PrivatePlayerView)=>void;sessionEnded:(event:SessionEnded)=>void }
+export interface ServerToClientEvents { publicState:(view:PublicRoomView)=>void;privateState:(view:PrivatePlayerView)=>void;sessionEnded:(event:SessionEnded)=>void;turnHistory:(update:TurnHistoryUpdate)=>void }

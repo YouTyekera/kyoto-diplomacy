@@ -1,11 +1,12 @@
 import type { GameOrder } from '../../../packages/shared/events';
 
 type Send = (orders: GameOrder[], finalize: boolean) => Promise<boolean>;
-interface Save { orders: GameOrder[]; finalize: boolean; confirmed?: GameOrder[]; resolve: (accepted: boolean) => void }
+export interface OrderPatch {unitId:string;order:GameOrder|null}
+interface Save { orders: GameOrder[]; finalize: boolean; patch?:OrderPatch;confirmed?: GameOrder[]; resolve: (accepted: boolean) => void }
 const same = (a: GameOrder[], b: GameOrder[]) => JSON.stringify(a) === JSON.stringify(b);
 const orderKey = (order: GameOrder) => JSON.stringify(Object.entries(order).sort(([a], [b]) => a.localeCompare(b)));
 
-/** Client presentation only. Full sheets are sent serially; the server still validates every sheet. */
+/** Immediate client drafts; FIFO patches precede the fully validated final sheet. */
 export class OptimisticOrders {
   private authoritative: GameOrder[];
   private queue: Save[] = [];
@@ -13,7 +14,7 @@ export class OptimisticOrders {
   private epoch = 0;
   private listeners = new Set<() => void>();
   private state: { orders: GameOrder[]; saving: boolean; finalizing: boolean; rollback: number };
-  constructor(orders: GameOrder[], private send: Send) {
+  constructor(orders: GameOrder[], private send: Send,private sendPatch?:(patch:OrderPatch)=>Promise<boolean>) {
     this.authoritative = orders;
     this.state = { orders, saving: false, finalizing: false, rollback: 0 };
   }
@@ -28,12 +29,12 @@ export class OptimisticOrders {
     // Older snapshots must not erase later local edits that are still in the queue.
     if (!this.active && !this.queue.length && !same(this.state.orders, orders)) this.update({ orders });
   }
-  choose = (order: GameOrder) => this.save([...this.state.orders.filter(o => o.unitId !== order.unitId), order]);
-  remove = (unitId: string) => this.save(this.state.orders.filter(o => o.unitId !== unitId));
-  private save(orders: GameOrder[]) {
+  choose = (order: GameOrder) => this.save([...this.state.orders.filter(o => o.unitId !== order.unitId), order],{unitId:order.unitId,order});
+  remove = (unitId: string) => this.save(this.state.orders.filter(o => o.unitId !== unitId),{unitId,order:null});
+  private save(orders: GameOrder[],patch:OrderPatch) {
     if (this.state.finalizing) return Promise.resolve(false);
     this.update({ orders, saving: true }); // Synchronous; rendering never waits for the network.
-    return this.enqueue(orders, false);
+    return this.enqueue(orders, false,patch);
   }
   finalize = () => {
     if (this.state.finalizing) return Promise.resolve(false);
@@ -41,8 +42,8 @@ export class OptimisticOrders {
     // Capture the visible sheet now, behind every already queued save.
     return this.enqueue(this.state.orders, true);
   };
-  private enqueue(orders: GameOrder[], finalize: boolean) {
-    const result = new Promise<boolean>(resolve => this.queue.push({ orders, finalize, resolve }));
+  private enqueue(orders: GameOrder[], finalize: boolean,patch?:OrderPatch) {
+    const result = new Promise<boolean>(resolve => this.queue.push({ orders, finalize, patch, resolve }));
     void this.pump(); return result;
   }
   private async pump() {
@@ -50,7 +51,7 @@ export class OptimisticOrders {
     const job = this.queue.shift(); if (!job) return;
     this.active = job; const epoch = this.epoch;
     let accepted = false;
-    try { accepted = await this.send(job.orders, job.finalize); } catch { /* The request layer displays the transport error. */ }
+    try { accepted = await (job.patch&&this.sendPatch?this.sendPatch(job.patch):this.send(job.orders, job.finalize)); } catch { /* The request layer displays the transport error. */ }
     if (epoch !== this.epoch) return;
     this.active = null;
     if (!accepted) {

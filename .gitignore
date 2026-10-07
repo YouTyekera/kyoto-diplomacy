@@ -14,3 +14,5 @@ dist-public/
 .phase*-*.log
 .phase*-*.mjs
 .phase*-baseline.json
+
+*.mp4
