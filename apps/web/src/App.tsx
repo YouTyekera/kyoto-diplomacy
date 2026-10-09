@@ -29,6 +29,9 @@ import { useEventLocator } from './EventsPanel';
 import { LandingPage } from './LandingPage';
 import { usePresentation,PresentationControls } from './AdjudicationPresentation';
 import { PhaseTransition,useBoardFeedback,useResultCues } from './GameFeel';
+// Online invitees do not need the full editor dataset to enter the lobby.
+// The authoritative match map arrives from the server when the game begins.
+const onlineLobbyDataset:RegionDataset={version:1,kind:'kyoto-kml',regions:[]};
 function storageKey(dataset: RegionDataset) { return `kyoto-map-v1-${dataset.kind}-${dataset.regions.map(r => r.regionId).join('|')}`; }
 function download(name: string, value: unknown) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' }));
@@ -46,8 +49,12 @@ function WardSelect({ value, onChange, nullable = false, label }: { value: strin
   </select>;
 }
 export function App() {
-  const [dataset, setDataset] = useState<RegionDataset | null>(null);
-  const [config, setConfig] = useState<MapConfig | null>(null);
+  const [fastOnlineEntry] = useState(() => {
+    const search=window.location.search,room=invitedRoom(search);
+    return new URLSearchParams(search).get('tool')!=='editor' && (!!room || !!browserIdentities().active(room||undefined));
+  });
+  const [dataset, setDataset] = useState<RegionDataset | null>(() => fastOnlineEntry ? onlineLobbyDataset : null);
+  const [config, setConfig] = useState<MapConfig | null>(() => fastOnlineEntry ? createConfig(onlineLobbyDataset) : null);
   const [computed, setComputed] = useState<{ config: MapConfig; dataset: RegionDataset; result: CompileResult } | null>(null);
   const [calculationError, setCalculationError] = useState('');
   const [message, setMessage] = useState('');
@@ -58,7 +65,7 @@ export function App() {
   const [search, setSearch] = useState('');
   const [saveStatus, setSaveStatus] = useState('');
   const [tab, setTab] = useState('edit');
-  const [screenMode, setScreenMode] = useState<'home' | 'settings' | 'edit' | 'preview' | 'rules' | 'game' | 'online'>('home');
+  const [screenMode, setScreenMode] = useState<'home' | 'settings' | 'edit' | 'preview' | 'rules' | 'game' | 'online'>(fastOnlineEntry?'online':'home');
   const [developer, setDeveloper] = useState(() => new URLSearchParams(window.location.search).get('tool') === 'editor');
   const [localPlayer, setLocalPlayer] = useState(false);
   const localMemory = useRef<LocalUiMemory|null>(null);
@@ -91,8 +98,7 @@ export function App() {
     } catch { setMessage('ブラウザ内の設定を復元できなかったため、初期設定を開きました。'); }
     setDataset(next); setConfig(settings); setSelected(null); setWard('all'); setSearch(''); setMode('select');
     setPreview(null);
-    const initialScreen = invitedRoom(window.location.search) ? 'online' : developer ? 'edit' : 'home';
-    setScreenMode(browserIdentities().active(invitedRoom(window.location.search)||undefined)?'online':initialScreen);
+    // Do not redirect when full dataset finishes loading after leaving a lobby.
     localMemory.current=null;setSessionState(null);setSessionInitial(null);setSessionContext(null);setGameOrders([]);setGameOrderUnits([]);
     setObstacleDraft([]); setEditingObstacleId(null);
   }
@@ -107,7 +113,13 @@ export function App() {
       activate(datasetSchema.parse(await response.json()));
     } catch (error) { setLoadError(`地図を読み込めません: ${errorMessage(error)}。npm.cmd run map:import を確認してください。`); }
   }
-  useEffect(() => { void loadOfficial(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    // Invited players join with a tiny placeholder. Load the editor dataset
+    // only if a local screen needs full geography.
+    if (screenMode === 'online' && fastOnlineEntry) return;
+    if (dataset && dataset !== onlineLobbyDataset) return;
+    void loadOfficial();
+  }, [screenMode, dataset, fastOnlineEntry]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!dataset || !config || (screenMode === 'online' && !developer)) return;
     // An online lobby does not need a client-side compiled preview map.
