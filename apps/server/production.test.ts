@@ -34,7 +34,7 @@ it('health/CORS・pollingとWebSocketのorigin拒否・debug非公開・秘密�
  const address=server.http.address();if(!address||typeof address==='string')throw Error('address');const url=`http://127.0.0.1:${address.port}`;
  const clients:ReturnType<typeof io>[]=[];const log=vi.spyOn(console,'info').mockImplementation(()=>{});
  try{
-  expect(await (await fetch(url+'/health')).json()).toEqual({ok:true});
+  expect(await (await fetch(url+'/health')).json()).toEqual({ok:true,revision:process.env.RENDER_GIT_COMMIT?.slice(0,12)??null});
   const healthy=await fetch(url+'/health',{headers:{Origin:origin}});expect(healthy.status).toBe(200);expect(healthy.headers.get('access-control-allow-origin')).toBe(origin);expect(healthy.headers.get('vary')).toBe('Origin');
   expect((await fetch(url+'/health',{headers:{Origin:origin+'.evil'}})).status).toBe(403);
   expect((await fetch(url+'/health',{method:'OPTIONS',headers:{Origin:origin}})).status).toBe(204);
