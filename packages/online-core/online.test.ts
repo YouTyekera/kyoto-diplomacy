@@ -203,7 +203,7 @@ describe('ロビーのルール確認',()=>{
     const {manager,room}=setup();
     const snapshot=serializePublicState(manager,room);
     const legacy=structuredClone(snapshot) as typeof snapshot & {players: Array<Record<string,unknown>>};
-    for(const player of legacy.players)delete player.rulesRead;
+    for(const player of legacy.players)Reflect.deleteProperty(player,'rulesRead');
     const parsed=publicRoomSchema.parse(legacy);
     expect(parsed.players.map(p=>p.rulesRead)).toEqual([false,false,false]);
   });
