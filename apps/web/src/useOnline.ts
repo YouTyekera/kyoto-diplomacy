@@ -75,7 +75,11 @@ export function useOnline(inviteRoom?:string) {
         gate.public(parsed.data);sync();snapshotComplete?.();
         if(reconnectPublic){reconnectPublic=false;setPresentationEpoch(v=>v+1);}
         setPublicView(previous=>({...parsed.data,map:parsed.data.map??(previous?.roomCode===parsed.data.roomCode?previous.map:undefined),game:parsed.data.game?{...parsed.data.game,history:turnCache.current.get(parsed.data.roomCode)??[]}:null}));
-      }else setErrors(['公開盤面の通信形式が不正です']);
+      } else {
+        // Report schema field paths only; never log room contents or private credentials.
+        const fields = parsed.error.issues.slice(0, 3).map(issue => issue.path.join('.') || 'root').join(', ');
+        setErrors([`公開盤面の通信形式が不正です（${fields}）。FrontendとBackendの両方を最新コミットでデプロイしてください。`]);
+      }
     });
     client.on('privateState',view=>{
       if(disposed||!gate.transportConnected)return;
