@@ -94,6 +94,7 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
     if(event.event==='host-transferred'&&event.roomCode)queuePublish(manager.rooms.get(event.roomCode));
   });
   const unsubscribeEnds=manager.onSessionEnd((socketId,event)=>{
+    console.info('[online-session-ended]',JSON.stringify({reason:event.reason}));
     sentMap.delete(socketId);sentLobbyPrivate.delete(socketId);io.sockets.sockets.get(socketId)?.emit('sessionEnded',event);
   });
   const unsubscribeRooms=manager.onRoomUpdate(queuePublish);
