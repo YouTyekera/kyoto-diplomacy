@@ -51,7 +51,7 @@ export function useOnline(inviteRoom?:string) {
         let timer:ReturnType<typeof setTimeout>|undefined;
         let restoreStage='接続';
         const completeIfReady=()=>{if(gate.roomSessionReady){if(credentials.current)remember(credentials.current);cleanup();resolve();}};
-        const cleanup=()=>{clearTimeout(timer);client.off('connect',success);client.off('connect_error',connectionError);signal.removeEventListener('abort',aborted);signal.removeEventListener('abort',cleanupConnectionError);if(snapshotComplete===completeIfReady)snapshotComplete=undefined;};
+        const cleanup=()=>{clearTimeout(timer);client.off('connect',success);client.off('connect_error',connectionError);signal.removeEventListener('abort',aborted);if(snapshotComplete===completeIfReady)snapshotComplete=undefined;};
         const failure=()=>{trace('接続失敗・タイムアウト',restoreStage,client.io.engine?.transport?.name??'-');cleanup();client.disconnect();reject(Error('Connection unavailable'));};
         const aborted=()=>{cleanup();client.disconnect();reject(signal.reason);};
         const success=()=>{
@@ -76,11 +76,7 @@ export function useOnline(inviteRoom?:string) {
           }).catch(()=>{if(!disposed&&!signal.aborted&&gate.current(epoch))failure();});
         };
         const connectionError=()=>{trace('Socket接続エラー','接続方式またはネットワークが利用できません');failure();};
-        const cleanupConnectionError=()=>client.off('connect_error',connectionError);
-        client.once('connect',success);client.once('connect_error',connectionError);signal.addEventListener('abort',aborted,{once:true});
-        // Cleanup both listeners if connection attempt is cancelled or succeeds.
-        signal.addEventListener('abort',cleanupConnectionError,{once:true});
-        client.connect();
+        client.once('connect',success);client.once('connect_error',connectionError);signal.addEventListener('abort',aborted,{once:true});client.connect();
       }),
     });recovery.current=connection;
     client.on('publicState',view=>{
@@ -116,6 +112,7 @@ export function useOnline(inviteRoom?:string) {
       if(disposed||!parsed.success)return;
       if(!active){waitingEnd.current=parsed.data;return;}
       if(active.roomCode!==parsed.data.roomCode||active.playerId!==parsed.data.playerId)return;
+      trace('参加セッション終了',parsed.data.reason==='replaced'?'別タブが同じ参加者として復帰':parsed.data.reason==='kicked'?'ホストから退出指定':'参加情報が無効');
       endIdentity(parsed.data.reason);
     });
     client.on('disconnect',reason=>{if(disposed)return;
