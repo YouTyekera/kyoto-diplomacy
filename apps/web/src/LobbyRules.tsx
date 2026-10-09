@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { OnlineRequest, OnlineResponse, PublicRoomView, PrivatePlayerView } from '../../../packages/shared/online';
 
-export const guideUrl = `${import.meta.env.BASE_URL}rules/kyoto-mashy-guide.pdf`;
+// Keep this URL in sync with the checked-in static file in apps/web/public/rules/.
+export const guideUrl = `${import.meta.env.BASE_URL}rules/${encodeURIComponent('ディプロマシールール説明.pdf')}`;
 
 export function LobbyRules({ room, self, locked, request }: {
   room: PublicRoomView;
