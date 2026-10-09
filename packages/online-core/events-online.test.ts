@@ -48,6 +48,8 @@ describe('オンライン公開イベント・秘密の装備予約',()=>{
     for(let i=0;i<3;i++)ok(submit(i,i===0?[order]:[],true));
     const view=serializePublicState(manager,room);expect(view.game?.events.activeBarricades[0]).toMatchObject({a:'sample-a',b:'sample-b',remainingMovementSeasons:4});expect(view.game?.inventoryCounts['26101'].barricade).toBe(0);
     expect(effectiveMap(room.map,room.game!.state.events).adjacency['sample-a']).not.toContain('sample-b');
-    expect(serializePrivateState(manager,room,room.players.get(credentials[0].playerId)!).legalOrders['initial-sample-a'].some(o=>o.type==='move'&&o.destination==='sample-b')).toBe(false);
+    // The selected unit's legal orders are fetched on demand (7G.2), not in privateState.
+    const selected=manager.selectedLegalOrders(room,room.players.get(credentials[0].playerId)!,'initial-sample-a');
+    expect(selected.some(o=>o.type==='move'&&o.destination==='sample-b')).toBe(false);
   });
 });

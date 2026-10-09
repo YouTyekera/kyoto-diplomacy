@@ -40,7 +40,7 @@ export class OnlineConnection {
           if(signal.aborted)break;
           if(healthy){
             try{await this.ports.connect(signal);if(signal.aborted)break;clearTimeout(deadline);this.ports.state('online');return;}
-            catch(error){if(signal.aborted)break;if(error instanceof PermanentConnectionError){clearTimeout(deadline);this.ports.state('unavailable');return;}this.ports.state('retrying');}
+            catch(error){if(signal.aborted)break;if(error instanceof PermanentConnectionError){clearTimeout(deadline);if(this.controller===controller){this.ports.disconnect();this.ports.state('unavailable');}return;}this.ports.state('retrying');}
           }else this.ports.state('waking');
           await pause(backoffMs(attempt++),signal);
         }

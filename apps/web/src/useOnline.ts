@@ -19,6 +19,13 @@ export function useOnline(inviteRoom?:string) {
   const [pending,setPending]=useState(false),[blockingPending,setBlockingPending]=useState(false),[errors,setErrors]=useState<string[]>([]);
   const [presentationEpoch,setPresentationEpoch]=useState(0);
   const [connectionState,setConnectionState]=useState<ConnectionState>('connecting');
+  // Browser-only diagnostic breadcrumbs. Do not include room codes, player identifiers, or tokens.
+  const [networkEvents,setNetworkEvents]=useState<string[]>([]);
+  const connectionAttempts=useRef(0);
+  function trace(event:string,detail:string,transport='-'){
+    const safeDetail=detail.slice(0,110);
+    setNetworkEvents(previous=>[...previous.slice(-7),`${new Date().toLocaleTimeString('ja-JP')} | ${event} | ${safeDetail} | ${transport} | 再接続回数:${connectionAttempts.current}`]);
+  }
   const recovery=useRef<OnlineConnection|null>(null);
   const target=currentOnlineTarget();
   function sync(){const gate=session.current;setState(previous=>previous.transportConnected===gate.transportConnected&&previous.roomSessionReady===gate.roomSessionReady?previous:{transportConnected:gate.transportConnected,roomSessionReady:gate.roomSessionReady});if(gate.roomSessionReady)setConnectionState('online');}
@@ -34,7 +41,7 @@ export function useOnline(inviteRoom?:string) {
   useEffect(()=>{
     const config=currentOnlineTarget();
     if(!config.url){setConnectionState('unavailable');return;}
-    const client:Socket<ServerToClientEvents,ClientToServerEvents>=io(config.url,{autoConnect:false,reconnection:false,timeout:10000});socket.current=client;
+    const client:Socket<ServerToClientEvents,ClientToServerEvents>=io(config.url,{autoConnect:false,reconnection:false,timeout:10000,transports:['websocket','polling'],tryAllTransports:true});socket.current=client;
     const gate=session.current;
     let disposed=false,reconnectPublic=false,snapshotComplete:(()=>void)|undefined;
     const connection=new OnlineConnection({
@@ -42,29 +49,34 @@ export function useOnline(inviteRoom?:string) {
       connect:signal=>new Promise<void>((resolve,reject)=>{
         if(signal.aborted){reject(signal.reason);return;}
         let timer:ReturnType<typeof setTimeout>|undefined;
+        let restoreStage='接続';
         const completeIfReady=()=>{if(gate.roomSessionReady){if(credentials.current)remember(credentials.current);cleanup();resolve();}};
-        const cleanup=()=>{clearTimeout(timer);client.off('connect',success);client.off('connect_error',failure);signal.removeEventListener('abort',aborted);if(snapshotComplete===completeIfReady)snapshotComplete=undefined;};
-        const failure=()=>{cleanup();client.disconnect();reject(Error('Connection unavailable'));};
+        const cleanup=()=>{clearTimeout(timer);client.off('connect',success);client.off('connect_error',connectionError);signal.removeEventListener('abort',aborted);if(snapshotComplete===completeIfReady)snapshotComplete=undefined;};
+        const failure=()=>{trace('接続失敗・タイムアウト',restoreStage,client.io.engine?.transport?.name??'-');cleanup();client.disconnect();reject(Error('Connection unavailable'));};
         const aborted=()=>{cleanup();client.disconnect();reject(signal.reason);};
         const success=()=>{
+          trace('Socket接続成功',credentials.current?'本人復帰を開始':'新規参加待機',client.io.engine?.transport?.name??'-');
           const epoch=gate.open(credentials.current);sync();
           reconnectPublic=!!credentials.current;
           if(!credentials.current){cleanup();resolve();return;}
           setConnectionState('restoring');snapshotComplete=completeIfReady;
+          restoreStage='本人認証応答待ち';
           timer=setTimeout(failure,10000);
           void client.timeout(10000).emitWithAck('request',{action:'reconnect',...credentials.current}).then(raw=>{
             if(disposed||signal.aborted||!gate.current(epoch))return;
             const response=responseSchema.parse(raw);
             if(!response.ok){
+              trace('本人復帰拒否','保存されたルームが見つからないか、認証が無効');
               setErrors(['参加していたルームに復帰できません。サーバーの再起動でルームが失われた可能性があります。保存した参加情報を消し、新しいルームを作成してください。']);
               cleanup();reject(new PermanentConnectionError('Room session unavailable'));return;
             }
             // Ack authentication stays at 10s; the separate authoritative snapshot may take longer.
-            clearTimeout(timer);timer=setTimeout(failure,30000);
+            clearTimeout(timer);restoreStage='公開・本人状態の受信待ち';timer=setTimeout(failure,30000);
             gate.authenticated(epoch,credentials.current!);sync();setErrors([]);completeIfReady();
           }).catch(()=>{if(!disposed&&!signal.aborted&&gate.current(epoch))failure();});
         };
-        client.once('connect',success);client.once('connect_error',failure);signal.addEventListener('abort',aborted,{once:true});client.connect();
+        const connectionError=()=>{trace('Socket接続エラー','接続方式またはネットワークが利用できません');failure();};
+        client.once('connect',success);client.once('connect_error',connectionError);signal.addEventListener('abort',aborted,{once:true});client.connect();
       }),
     });recovery.current=connection;
     client.on('publicState',view=>{
@@ -78,13 +90,14 @@ export function useOnline(inviteRoom?:string) {
       } else {
         // Report schema field paths only; never log room contents or private credentials.
         const fields = parsed.error.issues.slice(0, 3).map(issue => issue.path.join('.') || 'root').join(', ');
+        trace('公開状態の形式エラー',fields);
         setErrors([`公開盤面の通信形式が不正です（${fields}）。FrontendとBackendの両方を最新コミットでデプロイしてください。`]);
       }
     });
     client.on('privateState',view=>{
       if(disposed||!gate.transportConnected)return;
       const parsed=privatePlayerSchema.safeParse(view);
-      if(parsed.success){gate.private(parsed.data);sync();snapshotComplete?.();setPrivateView(parsed.data);}else setErrors(['本人用入力の通信形式が不正です']);
+      if(parsed.success){gate.private(parsed.data);sync();snapshotComplete?.();setPrivateView(parsed.data);}else {trace('本人状態の形式エラー',parsed.error.issues.slice(0,3).map(issue=>issue.path.join('.')||'root').join(', '));setErrors(['本人用入力の通信形式が不正です']);}
     });
     client.on('turnHistory',raw=>{
       if(disposed||!gate.transportConnected)return;
@@ -99,9 +112,13 @@ export function useOnline(inviteRoom?:string) {
       if(disposed||!parsed.success)return;
       if(!active){waitingEnd.current=parsed.data;return;}
       if(active.roomCode!==parsed.data.roomCode||active.playerId!==parsed.data.playerId)return;
+      trace('参加セッション終了',parsed.data.reason==='replaced'?'別タブが同じ参加者として復帰':parsed.data.reason==='kicked'?'ホストから退出指定':'参加情報が無効');
       endIdentity(parsed.data.reason);
     });
-    client.on('disconnect',reason=>{if(disposed)return;gate.invalidate();sync();inflight.current=0;blockingInflight.current=0;setPending(false);setBlockingPending(false);if(reason!=='io client disconnect')connection.start(true);});
+    client.on('disconnect',reason=>{if(disposed)return;
+      if(reason!=='io client disconnect')connectionAttempts.current++;
+      trace('Socket切断',reason,client.io.engine?.transport?.name??'-');
+      gate.invalidate();sync();inflight.current=0;blockingInflight.current=0;setPending(false);setBlockingPending(false);if(reason!=='io client disconnect')connection.start(true);});
     connection.start();return ()=>{disposed=true;gate.invalidate();connection.dispose();recovery.current=null;socket.current=null;};
   },[]);
   async function request(input:OnlineRequest):Promise<OnlineResponse> {
@@ -135,5 +152,5 @@ export function useOnline(inviteRoom?:string) {
   function forget(){if(credentials.current)history.remove(credentials.current);history.clearActive();credentials.current=null;setSavedIdentities(history.list());setPublicView(null);setPrivateView(null);latestPublic.current=null;retry();}
   function restore(identity:SavedIdentity){if(publicView||credentials.current)return;credentials.current=identityCredentials(identity);remember(credentials.current,identity.nickname);setSessionNotice('');retry();}
   const connected=state.transportConnected&&(!credentials.current||state.roomSessionReady);
-  return {publicView,privateView,...state,connected,pending,blockingPending,errors,request,forget,retry,restore,savedIdentities,sessionNotice,connectionState,configurationError:target.error,presentationEpoch,hasCredentials:!!credentials.current};
+  return {publicView,privateView,...state,connected,pending,blockingPending,errors,request,forget,retry,restore,savedIdentities,sessionNotice,connectionState,networkEvents,configurationError:target.error,presentationEpoch,hasCredentials:!!credentials.current};
 }
