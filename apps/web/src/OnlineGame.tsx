@@ -68,6 +68,7 @@ export function OnlineGame({ dataset, config, onBack, developer = false }: { dat
     {!game&&room&&online.roomSessionReady&&!room.players.find(p=>p.playerId===room.hostId)?.connected&&<HostReconnectNotice deadline={room.hostReconnectDeadline}/>}
     {online.sessionNotice&&<p className="notice" role="status">{online.sessionNotice}</p>}
     {online.errors.length > 0 && !fileError && <div className="notice error" role="alert">{online.errors.map(playerMessage).join('\n')}</div>}
+    {online.networkEvents.length>0&&<details className="connection-diagnostics"><summary>通信診断（切断理由と時刻を確認）</summary><p>ルームコード・認証情報は記録していません。問題が起きた際はこの情報とRenderのログを照合してください。</p><pre style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{online.networkEvents.join('\n')}</pre><button type="button" disabled={!navigator.clipboard?.writeText} onClick={()=>void navigator.clipboard.writeText(online.networkEvents.join('\n'))}>診断情報をコピー</button></details>}
     {!room ? <div className="online-entry"><h1>オンライン対戦</h1><p>3～11人で同時に命令を出します。標準シナリオですぐに始められます。カスタムJSONはロビーで読み込めます。</p>
       {code && <p>ルーム {code} への招待です。</p>}
       <label>ルームコード<input aria-label="参加ルームコード" maxLength={6} value={code} onChange={e => setCode(e.target.value.toUpperCase())} /></label>
