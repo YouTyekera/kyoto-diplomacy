@@ -1,4 +1,5 @@
 import { VictoryConditions } from './VictoryConditions';
+import { LobbyRules } from './LobbyRules';
 import { playerMessage } from './player-language';
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { TurnHistory } from './TurnHistory';
@@ -89,6 +90,7 @@ export function OnlineGame({ dataset, config, onBack, developer = false }: { dat
           <label>規定年数（試遊用・変更可能）<input aria-label="オンライン規定年数" disabled={roomLocked} type="number" min={1} step={1} value={yearLimit} onChange={e => { const value=e.target.value;setYearLimit(value);if(value===''||(Number.isInteger(Number(value))&&Number(value)>0))void online.request({action:'lobby-years',yearLimit:value===''?null:Number(value)}); }} /></label>
           <button className="primary" disabled={roomLocked || room.startErrors.length > 0} onClick={() => void online.request({ action: 'start', yearLimit: yearLimit ? Number(yearLimit) : null })}>オンラインゲーム開始</button></>}
         {room.startErrors.map(e => <p key={e}>{playerMessage(e)}</p>)}
+        <LobbyRules room={room} self={self} locked={roomLocked} request={online.request} />
         <label>自分の希望区<select aria-label="ロビー希望区" value={self?.preferredWardId ?? ''} disabled={roomLocked} onChange={e => void online.request({ action: 'preference', preferredWardId: (e.target.value || null) as WardId | null })}><option value="">希望なし</option>{WARDS.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
         <button disabled={roomLocked} onClick={() => void online.request({ action: 'leave' })}>開始前に退出</button>
       </main><aside><PlayerList room={room} self={self} sessionReady={online.roomSessionReady} pending={online.pending} request={online.request}/></aside></div>
@@ -100,7 +102,7 @@ function HostReconnectNotice({deadline}:{deadline?:number|null}){
   return <p role="status"><span>ホストの再接続を待っています…</span>{deadline&&<small> · 残り{Math.max(0,Math.ceil((deadline-now)/1000))}秒</small>}</p>;
 }
 function PlayerList({room,self,sessionReady,pending=false,request}:{room:PublicRoomView;self:PrivatePlayerView|null;sessionReady:boolean;pending?:boolean;request?:(input:OnlineRequest)=>Promise<OnlineResponse>}){
- return <section className="ready-panel" aria-label="提出状況"><h3>{room.game?'提出状況':'ロビー参加者'}</h3><ul>{room.players.map(p=><li key={p.playerId} data-player-id={p.playerId} data-status={sessionReady?p.status:'checking'} data-presence={sessionReady?(p.connected?'connected':'disconnected'):'checking'}><span>{p.nickname}{p.playerId===self?.playerId?'（自分）':''} {p.host?'ホスト':''}<small> · {p.wardId?wardName(p.wardId):'未割当'}{room.game&&p.wardId?` · ${Object.values(room.game.board.regionControl).filter(r=>r.supplyCenterOwnerWardId===p.wardId).length}か所`:''}</small></span><span className="ready-status">{!sessionReady?'確認中':room.game?statusName[p.status]:p.connected?'接続中':'切断'}</span>{!room.game&&room.hostId===self?.playerId&&!p.host&&<button disabled={!sessionReady||pending} onClick={()=>{if(window.confirm(`「${p.nickname}」をルームから退出させますか？`))void request?.({action:'kick',playerId:p.playerId});}}>退出させる</button>}</li>)}</ul></section>;
+ return <section className="ready-panel" aria-label="提出状況"><h3>{room.game?'提出状況':'ロビー参加者'}</h3><ul>{room.players.map(p=><li key={p.playerId} data-player-id={p.playerId} data-status={sessionReady?p.status:'checking'} data-presence={sessionReady?(p.connected?'connected':'disconnected'):'checking'}><span>{p.nickname}{p.playerId===self?.playerId?'（自分）':''} {p.host?'ホスト':''}<small> · {p.wardId?wardName(p.wardId):'未割当'}{room.game&&p.wardId?` · ${Object.values(room.game.board.regionControl).filter(r=>r.supplyCenterOwnerWardId===p.wardId).length}か所`:''}</small></span><span className="ready-status">{!sessionReady?'確認中':room.game?statusName[p.status]:p.connected?(p.rulesRead?'✓ 読了':'未読'):'切断'}</span>{!room.game&&room.hostId===self?.playerId&&!p.host&&<button disabled={!sessionReady||pending} onClick={()=>{if(window.confirm(`「${p.nickname}」をルームから退出させますか？`))void request?.({action:'kick',playerId:p.playerId});}}>退出させる</button>}</li>)}</ul></section>;
 }
 function OnlineMatch({ room, game, self, dataset, config, developer, pending, sessionReady,request, onDownload, onBack }: {
   room: PublicRoomView; game: PublicGameView; self: PrivatePlayerView | null; dataset: RegionDataset; config: MapConfig; developer: boolean; pending: boolean;sessionReady:boolean;
