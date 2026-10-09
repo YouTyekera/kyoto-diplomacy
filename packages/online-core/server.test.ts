@@ -51,7 +51,12 @@ it('実Socket.IOで3人を認証、秘密draft/ready、同時最終確定の1回
     await vi.waitFor(()=>expect(privateViews[3]?.playerId).toBe(credentials[0].playerId));expect(privateViews[3]?.orders).toEqual([]);expect(publicViews[3]?.game?.victoryTargetSC).toBe(23);
     // Newly drafted next-phase orders stay private even while old public result is available.
     await replacement.timeout(5000).emitWithAck('request',{action:'orders',phaseKey:publicViews[3]!.game!.phaseKey,orders:[{type:'move',unitId:'initial-sample-a',destination:'sample-a'}],finalize:false});
-    await vi.waitFor(()=>expect(privateViews[3]?.orders).toHaveLength(1));expect(privateViews[1]?.orders).toEqual([]);
+    // Non-final draft edits intentionally do not publish private snapshots (7G.2).
+    // Verify the server stored this player's draft and the other player's draft remains private.
+    const restoredRoom=manager.rooms.get(credentials[0].roomCode)!;
+    expect(restoredRoom.players.get(credentials[0].playerId)!.submission.orders).toHaveLength(1);
+    expect(restoredRoom.players.get(credentials[1].playerId)!.submission.orders).toEqual([]);
+    expect(privateViews[1]?.orders).toEqual([]);
     expect(mapPackets).toEqual([1,1,1,1]);
   }finally {for(const client of clients)client.disconnect();await server.close();}
 },15000);
