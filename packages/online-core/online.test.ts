@@ -197,3 +197,27 @@ describe('オンラインRetreat/Winter',()=>{
   });
   it('Build枠があっても合法な空き地点がなければ不要',()=>{const {manager,room,sockets,start}=setup();start();room.game!.state.season='winter';room.game!.state.phase='adjustments';room.game!.state.board.regionControl['fixture-26104-0'].supplyCenterOwnerWardId='26101';expect(manager.required(room,manager.playerForSocket(sockets[0])!)).toBe(false);});
 });
+
+describe('ロビーのルール確認',()=>{
+  it('本人だけが自分の確認を送信でき、全参加者へ確認状態を公開する',()=>{
+    const {manager,room,sockets}=setup();
+    expect(serializePublicState(manager,room).players.every(p=>!p.rulesRead)).toBe(true);
+    success(manager.request(sockets[1],{action:'rules-read',read:true}));
+    const players=serializePublicState(manager,room).players;
+    expect(players[1].rulesRead).toBe(true);
+    expect(players[0].rulesRead).toBe(false);
+    expect(players[2].rulesRead).toBe(false);
+    expect(manager.request('unjoined',{action:'rules-read',read:true}).ok).toBe(false);
+    success(manager.request(sockets[1],{action:'rules-read',read:false}));
+    expect(serializePublicState(manager,room).players[1].rulesRead).toBe(false);
+  });
+  it('再接続でも維持し、開始条件には影響せず開始後の変更は拒否する',()=>{
+    const {manager,room,sockets,credentials,start}=setup();
+    success(manager.request(sockets[1],{action:'rules-read',read:true}));
+    manager.disconnect(sockets[1]);
+    success(manager.request('reconnected',{action:'reconnect',...credentials[1]}));
+    expect(serializePublicState(manager,room).players[1].rulesRead).toBe(true);
+    start();
+    expect(manager.request('reconnected',{action:'rules-read',read:false}).ok).toBe(false);
+  });
+});
