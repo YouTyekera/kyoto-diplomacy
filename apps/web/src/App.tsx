@@ -121,7 +121,7 @@ export function App() {
     void loadOfficial();
   }, [screenMode, dataset, fastOnlineEntry]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!dataset || !config || (screenMode === 'online' && !developer)) return;
+    if (!dataset || !config || dataset === onlineLobbyDataset || (screenMode === 'online' && !developer)) return;
     // An online lobby does not need a client-side compiled preview map.
     setCalculationError('');
     const worker = new Worker(new URL('./map.worker.ts', import.meta.url), { type: 'module' });
