@@ -258,3 +258,12 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 @keyframes support-pulse { 50% { opacity:.4; } }
 @keyframes dislodged-shake { 50% { translate:2px 0; } }
 @media(prefers-reduced-motion:reduce) { .event-pulse,.support-line,.standoff-flash,.dislodged-shake .unit-pin { animation:none!important; } }
+
+/* Lobby: optional rules guide and self-declared reading confirmation */
+.lobby-rules { margin: var(--space-4) 0; padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-soft); }
+.lobby-rules h3 { margin-top: 0; }
+.lobby-rules-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.lobby-guide-pdf { display: block; width: 100%; min-height: 360px; height: min(64vh, 650px); border: 1px solid var(--border); background: white; }
+.lobby-read-count { display: inline-block; margin: 0 var(--space-2); font-weight: 700; }
+.lobby-rules small { display: block; }
+@media (max-width: 600px) { .lobby-guide-pdf { min-height: 300px; height: 54vh; } }

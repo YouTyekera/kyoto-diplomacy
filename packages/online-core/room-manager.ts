@@ -15,7 +15,7 @@ import { advanceGame, createGameSession, adjudicateGameOrders, adjudicateGameRet
 import { validateGameOrders,legalGameOrders,effectiveMap,publicEvents,inventoryCounts } from '../game-core';
 
 interface Submission { orders:GameOrder[];retreats:RetreatOrder[];winter:{buildRegionIds:string[];disbandUnitIds:string[]};finalized:boolean }
-export interface PlayerSession { playerId:string;nickname:string;preferredWardId:WardId|null;reconnectToken:string;socketId:string|null;submission:Submission }
+export interface PlayerSession { playerId:string;nickname:string;preferredWardId:WardId|null;reconnectToken:string;socketId:string|null;rulesRead:boolean;submission:Submission }
 interface PendingPlayback { next:GameSessionState; orders:GameOrder[]; stage:'reveal'|'playing'; anchor:number; elapsed:number; speed:number; duration:number; timer?:ReturnType<typeof setTimeout> }
 export interface OnlineGameSession extends Assignment { state:GameSessionState;seed:string;activePlayerCount:number;phaseSerial:number;locked:boolean;lastResult:PublicResult|null;movementResolutions:number;presentationSkips:Set<string>;matchLog:MatchLog;playback:PendingPlayback|null;history:TurnSnapshot[] }
 export interface Room { code:string;hostId:string;map:MapDefinition;scenario:Scenario;datasetKind:RegionDataset['kind'];players:Map<string,PlayerSession>;game:OnlineGameSession|null;lobbyMaxYears?:number }
@@ -111,7 +111,7 @@ export class RoomManager {
   }
   private addPlayer(room:Room,socketId:string,nickname:string,preferredWardId:WardId|null):Credentials {
     const playerId=randomUUID(),reconnectToken=randomBytes(32).toString('hex');
-    room.players.set(playerId,{playerId,nickname,preferredWardId,reconnectToken,socketId,submission:blank()});
+    room.players.set(playerId,{playerId,nickname,preferredWardId,reconnectToken,socketId,rulesRead:false,submission:blank()});
     this.identities.set(socketId,{roomCode:room.code,playerId});
     return {roomCode:room.code,playerId,reconnectToken};
   }
@@ -154,6 +154,11 @@ export class RoomManager {
     const room=this.roomForSocket(socketId),player=this.playerForSocket(socketId);
     if(!room||!player) return fail('先にルームへ参加してください');
     if(request.action==='history')return {ok:true};
+    if(request.action==='rules-read') {
+      if(room.game)return fail('ゲーム開始後はルール確認を変更できません');
+      player.rulesRead=request.read;
+      return {ok:true};
+    }
     if(request.action==='kick'){
       if(room.game)return fail('開始後は参加者を退出させられません');
       if(room.hostId!==player.playerId)return fail('ホストだけが参加者を退出させられます');
@@ -373,7 +378,7 @@ export function serializePublicState(manager:RoomManager,room:Room,includeMap=tr
     players:[...room.players.values()].map(p=>{
       const wardId=game?.playerWards[p.playerId]??null,required=manager.required(room,p),finalized=p.submission.finalized;
       const eliminated=!!state?.end?.eliminated.some(e=>e.wardId===wardId);
-      return {playerId:p.playerId,nickname:p.nickname,connected:!!p.socketId,host:p.playerId===room.hostId,wardId,required,finalized,eliminated,
+      return {playerId:p.playerId,nickname:p.nickname,connected:!!p.socketId,rulesRead:p.rulesRead,host:p.playerId===room.hostId,wardId,required,finalized,eliminated,
         status:eliminated?'eliminated':!p.socketId?'disconnected':!required?'not-required':finalized?'finalized':'editing'};
     }),
     game:game&&state?{year:state.year,season:state.season,phase:state.phase,phaseKey:manager.phaseKey(room),board:state.board,seed:game.seed,

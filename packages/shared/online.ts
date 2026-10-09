@@ -17,6 +17,7 @@ export const requestSchema=z.discriminatedUnion('action',[
   z.object({action:z.literal('join'),nickname,preferredWardId:preference,roomCode:z.string().trim().toUpperCase().regex(/^[A-Z2-9]{6}$/)}).strict(),
   z.object({action:z.literal('reconnect'),...credentialsSchema.shape}).strict(),
   z.object({action:z.literal('preference'),preferredWardId:preference}).strict(),
+  z.object({action:z.literal('rules-read'),read:z.boolean()}).strict(),
   z.object({action:z.literal('leave')}).strict(),
   z.object({action:z.literal('kick'),playerId:id}).strict(),
   z.object({action:z.literal('scenario'),json:z.string().max(4*1024*1024),counts:scenarioCountsSchema.optional(),fileName:z.string().min(1).max(255).refine(v=>[...v].every(c=>c!=='/'&&c!=='\\'&&c.charCodeAt(0)>=32&&c.charCodeAt(0)!==127)).optional()}).strict(),
@@ -56,7 +57,7 @@ const gameEndSchema=z.object({reason:z.enum(['victory','elimination','year-limit
 export const publicResultSchema=z.object({year:z.number().int(),season:z.enum(['spring','autumn','winter']),movement:movementSchema.nullable(),retreat:retreatResultSchema.nullable(),winter:winterResultSchema.nullable(),scChanges:z.array(scChangeSchema)}).strict();
 export type PublicResult=z.infer<typeof publicResultSchema>;
 const publicPlayerSchema=z.object({playerId:id,nickname:z.string(),connected:z.boolean(),host:z.boolean(),wardId:wardSchema.nullable(),
-  required:z.boolean(),finalized:z.boolean(),eliminated:z.boolean(),status:z.enum(['editing','finalized','not-required','disconnected','eliminated'])}).strict();
+  rulesRead:z.boolean(),required:z.boolean(),finalized:z.boolean(),eliminated:z.boolean(),status:z.enum(['editing','finalized','not-required','disconnected','eliminated'])}).strict();
 export const presentationSchema=z.object({id,year:z.number().int().positive(),season:z.enum(['spring','autumn']),before:z.array(previewUnitSchema),after:z.array(previewUnitSchema),orders:z.array(z.union([orderSchema,bicycleOrderSchema.omit({equipmentId:true}),deployOrderSchema.omit({equipmentId:true})])),movement:movementSchema}).strict();
 export const turnSnapshotSchema=z.object({id,year:z.number().int().positive(),season:z.enum(['spring','autumn']),board:gameStatePreviewSchema,events:publicEventsSchema,presentation:presentationSchema}).strict();
 export type TurnSnapshot=z.infer<typeof turnSnapshotSchema>;
