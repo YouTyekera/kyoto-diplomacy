@@ -27,7 +27,7 @@ it('初参加はcreate/joinを送信でき、保存credentialsへの依存なく
  const gate=new OnlineSession(),epoch=gate.open(null);expect(gate.canRequest('create')).toBe(true);expect(gate.canRequest('join')).toBe(true);expect(gate.canRequest('start')).toBe(false);gate.begin();gate.public(pub());gate.private(own());gate.authenticated(epoch,identity);expect(gate.canRequest('start')).toBe(true);
 });
 it('永続的な復帰拒否ではonlineを表示せず、health/reconnect反復を停止',async()=>{
- vi.useFakeTimers();const states:string[]=[],health=vi.fn().mockResolvedValue(true),connect=vi.fn().mockRejectedValue(new PermanentConnectionError('Room unavailable'));
- const connection=new OnlineConnection({health,connect,disconnect:()=>{},state:s=>states.push(s)});
- try{connection.start(true);await vi.advanceTimersByTimeAsync(120000);expect(states.at(-1)).toBe('unavailable');expect(states).not.toContain('online');expect(connect).toHaveBeenCalledTimes(1);}finally{connection.dispose();vi.useRealTimers();}
+ vi.useFakeTimers();const states:string[]=[],health=vi.fn().mockResolvedValue(true),connect=vi.fn().mockRejectedValue(new PermanentConnectionError('Room unavailable')),disconnect=vi.fn();
+ const connection=new OnlineConnection({health,connect,disconnect,state:s=>states.push(s)});
+ try{connection.start(true);await vi.advanceTimersByTimeAsync(120000);expect(states.at(-1)).toBe('unavailable');expect(states).not.toContain('online');expect(connect).toHaveBeenCalledTimes(1);expect(disconnect).toHaveBeenCalledTimes(1);}finally{connection.dispose();vi.useRealTimers();}
 });
