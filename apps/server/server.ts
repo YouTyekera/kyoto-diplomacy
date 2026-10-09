@@ -100,7 +100,7 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
   const unsubscribeRooms=manager.onRoomUpdate(queuePublish);
   io.engine.on('connection_error',error=>console.warn('[online-handshake]',JSON.stringify({code:error.code??null})));
   io.on('connection',socket=>{
-    console.info('[online-socket]',JSON.stringify({event:'connected',transport:socket.conn.transport.name,connectedSockets:io.of('/').sockets.size}));
+    console.info('[online-socket]',JSON.stringify({event:'connected',transport:socket.conn.transport?.name??'-',connectedSockets:io.of('/').sockets.size}));
     socket.on('request',(request,ack)=>{
       if(typeof ack!=='function') return;
       if(draining){ack({ok:false,errors:['サーバーを再起動しています。接続が戻るまでお待ちください。']});return;}
@@ -114,7 +114,7 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
         const result=manager.request(socket.id,request,scenarioRequest?value=>console.info('[scenario-upload]',JSON.stringify({requestId,...value})):undefined);
         if(request?.action==='create'||request?.action==='join'||request?.action==='reconnect'){
           const room=manager.roomForSocket(socket.id);
-          console.info('[online-entry]',JSON.stringify({action:request.action,ok:result.ok,players:room?.players.size??null,durationMs:Math.round(performance.now()-started),transport:socket.conn.transport.name}));
+          console.info('[online-entry]',JSON.stringify({action:request.action,ok:result.ok,players:room?.players.size??null,durationMs:Math.round(performance.now()-started),transport:socket.conn.transport?.name??'-'}));
         }
         if(scenarioRequest&&!result.ok)console.info('[scenario-upload]',JSON.stringify({requestId,stage:'rejected'}));
         if(result.ok&&request.action==='leave') {sentMap.delete(socket.id);sentLobbyPrivate.delete(socket.id);}
@@ -138,7 +138,7 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
     socket.on('disconnect',reason=>{
       sentMap.delete(socket.id);sentLobbyPrivate.delete(socket.id);sentHistory.delete(socket.id);
       const room=manager.roomForSocket(socket.id);
-      console.info('[online-transport]',JSON.stringify({reason,hadRoom:!!room,players:room?.players.size??null,phase:room?.game?'game':room?'lobby':'entry',transport:socket.conn.transport.name}));
+      console.info('[online-transport]',JSON.stringify({reason,hadRoom:!!room,players:room?.players.size??null,phase:room?.game?'game':room?'lobby':'entry',transport:socket.conn.transport?.name??'-'}));
       manager.disconnect(socket.id);publishSafely(room);
     });
   });
