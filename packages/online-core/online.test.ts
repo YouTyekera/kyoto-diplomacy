@@ -4,7 +4,7 @@ import { compileMap } from '../map-core/compile';
 import { assignWards,createOnlineBoard,victoryTarget } from './initial';
 import { serializePublicState,serializePrivateState,type Room } from './room-manager';
 import { RoomManager } from '../../tests/immediate-playback-manager';
-import { type Credentials,type OnlineResponse,type OnlineRequest } from '../shared/online';
+import { publicRoomSchema, type Credentials,type OnlineResponse,type OnlineRequest } from '../shared/online';
 import { advanceGame } from '../game-core';
 import { noEvents } from '../game-core/events';
 import { completeSyntheticScenario } from '../../tests/scenario-fixture';
@@ -199,6 +199,14 @@ describe('オンラインRetreat/Winter',()=>{
 });
 
 describe('ロビーのルール確認',()=>{
+  it('古いBackendが読了フィールドを送らなくてもロビーを読み込める',()=>{
+    const {manager,room}=setup();
+    const snapshot=serializePublicState(manager,room);
+    const legacy=structuredClone(snapshot) as typeof snapshot & {players: Array<Record<string,unknown>>};
+    for(const player of legacy.players)delete player.rulesRead;
+    const parsed=publicRoomSchema.parse(legacy);
+    expect(parsed.players.map(p=>p.rulesRead)).toEqual([false,false,false]);
+  });
   it('本人だけが自分の確認を送信でき、全参加者へ確認状態を公開する',()=>{
     const {manager,room,sockets}=setup();
     expect(serializePublicState(manager,room).players.every(p=>!p.rulesRead)).toBe(true);
