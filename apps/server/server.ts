@@ -30,6 +30,7 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
     allowRequest:(request,callback)=>callback(null,!draining&&permittedOrigin(request.headers.origin,config)),
   });
   const sentMap=new Map<string,string>();
+  const sentLobbyPrivate=new Map<string,{roomCode:string;playerId:string;preferredWardId:string|null}>();
   const sentHistory=new Map<string,{roomCode:string;count:number}>();
   function history(socketId:string,room:Room,force=false){
     if(!room.game)return;
@@ -43,22 +44,35 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
   let scheduled:ReturnType<typeof setImmediate>|undefined;
   function publish(room:Room|undefined) {
     if(!room||manager.rooms.get(room.code)!==room) return;
+    const publishStarted=performance.now();
     const publicView=serializePublicState(manager,room,false,false);
     let snapshot:PublicRoomView|undefined;
     for(const player of room.players.values()) if(player.socketId) {
       const socket=io.sockets.sockets.get(player.socketId);
       if(socket) {
         const mapKey=`${room.code}:${room.scenario.hash}`;
-        if(sentMap.get(socket.id)!==mapKey) {
+        // The map is needed for gameplay, not for gathering people in the lobby.
+        // Defer the expensive immutable map snapshot until the match starts.
+        if(room.game&&sentMap.get(socket.id)!==mapKey) {
           // Parse the immutable compiled map once, not once per player/connection/presence update.
           let map=wireMaps.get(room.map);if(!map){map=mapDefinitionSchema.parse(room.map);wireMaps.set(room.map,map);}
           snapshot??={...publicView,map};
           socket.emit('publicState',snapshot);sentMap.set(socket.id,mapKey);
         } else socket.emit('publicState',publicView);
       }
-      socket?.emit('privateState',serializePrivateState(manager,room,player));
+      // Lobby presence updates do not change another player's private view.
+      // Send it on the first snapshot or when that player's preference changes.
+      if(socket){
+        const previous=sentLobbyPrivate.get(socket.id);
+        if(room.game||!previous||previous.roomCode!==room.code||previous.playerId!==player.playerId||previous.preferredWardId!==player.preferredWardId){
+          socket.emit('privateState',serializePrivateState(manager,room,player));
+          sentLobbyPrivate.set(socket.id,{roomCode:room.code,playerId:player.playerId,preferredWardId:player.preferredWardId});
+        }
+      }
       if(socket)history(socket.id,room);
     }
+    const durationMs=Math.round(performance.now()-publishStarted);
+    if(durationMs>250)console.warn('[online-perf] slow publish',JSON.stringify({durationMs,players:room.players.size,started:!!room.game}));
   }
   function publishSafely(room:Room|undefined){
     try{publish(room);return true;}catch{
@@ -80,7 +94,7 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
     if(event.event==='host-transferred'&&event.roomCode)queuePublish(manager.rooms.get(event.roomCode));
   });
   const unsubscribeEnds=manager.onSessionEnd((socketId,event)=>{
-    sentMap.delete(socketId);io.sockets.sockets.get(socketId)?.emit('sessionEnded',event);
+    sentMap.delete(socketId);sentLobbyPrivate.delete(socketId);io.sockets.sockets.get(socketId)?.emit('sessionEnded',event);
   });
   const unsubscribeRooms=manager.onRoomUpdate(queuePublish);
   io.on('connection',socket=>{
@@ -95,7 +109,7 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
         const scenarioRequest=request?.action==='scenario';
         const result=manager.request(socket.id,request,scenarioRequest?value=>console.info('[scenario-upload]',JSON.stringify({requestId,...value})):undefined);
         if(scenarioRequest&&!result.ok)console.info('[scenario-upload]',JSON.stringify({requestId,stage:'rejected'}));
-        if(result.ok&&request.action==='leave') sentMap.delete(socket.id);
+        if(result.ok&&request.action==='leave') {sentMap.delete(socket.id);sentLobbyPrivate.delete(socket.id);}
         if(result.ok){
           const current=manager.roomForSocket(socket.id);
           if(request.action==='order-patch'||request.action==='legal-orders'||request.action==='history'||request.action==='orders'&&!request.finalize){
@@ -113,7 +127,12 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
         respond(result);
       } catch(error) {respond({ok:false,errors:[!config.production&&error instanceof Error?error.message:'サーバーの処理に失敗しました。接続状態を確認して再試行してください。']});}
     });
-    socket.on('disconnect',()=>{sentMap.delete(socket.id);sentHistory.delete(socket.id);const room=manager.roomForSocket(socket.id);manager.disconnect(socket.id);publishSafely(room);});
+    socket.on('disconnect',reason=>{
+      sentMap.delete(socket.id);sentLobbyPrivate.delete(socket.id);sentHistory.delete(socket.id);
+      const room=manager.roomForSocket(socket.id);
+      if(room)console.info('[online-transport]',JSON.stringify({reason,players:room.players.size,phase:room.game?'game':'lobby'}));
+      manager.disconnect(socket.id);publishSafely(room);
+    });
   });
   function close(){
     if(closing)return closing;
