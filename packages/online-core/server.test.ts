@@ -29,9 +29,11 @@ it('実Socket.IOで3人を認証、秘密draft/ready、同時最終確定の1回
     for(let i=1;i<3;i++){const joined=await clients[i].timeout(5000).emitWithAck('request',{action:'join',nickname:`player${i}`,preferredWardId:WARDS[i].id,roomCode:credentials[0].roomCode});expect(joined.ok).toBe(true);if(joined.ok)credentials.push(joined.credentials!);}
     expect((await clients[1].timeout(5000).emitWithAck('request',{action:'leave'})).ok).toBe(true);
     const rejoined=await clients[1].timeout(5000).emitWithAck('request',{action:'join',nickname:'player1',preferredWardId:'26102',roomCode:credentials[0].roomCode});expect(rejoined.ok).toBe(true);if(rejoined.ok)credentials[1]=rejoined.credentials!;
+    await vi.waitFor(()=>expect(publicViews[0]?.players).toHaveLength(3));
+    expect(mapPackets).toEqual([]); // Lobby join, leave and rejoin do not transfer the map.
     expect((await clients[0].timeout(5000).emitWithAck('request',{action:'start',yearLimit:null})).ok).toBe(true);
     await vi.waitFor(()=>expect(privateViews[2]?.wardId).toBe('26103'));
-    expect(mapPackets.slice(0,3)).toEqual([1,2,1]);
+    expect(mapPackets.slice(0,3)).toEqual([1,1,1]); // On start, every player receives the map exactly once.
     const phaseKey=publicViews[0]!.game!.phaseKey;
     expect((await clients[0].timeout(5000).emitWithAck('request',{action:'orders',phaseKey,orders:[{type:'move',unitId:'initial-sample-a',destination:'sample-b'}],finalize:true})).ok).toBe(true);
     await vi.waitFor(()=>expect(publicViews[1]!.players[0].finalized).toBe(true));
@@ -50,6 +52,6 @@ it('実Socket.IOで3人を認証、秘密draft/ready、同時最終確定の1回
     // Newly drafted next-phase orders stay private even while old public result is available.
     await replacement.timeout(5000).emitWithAck('request',{action:'orders',phaseKey:publicViews[3]!.game!.phaseKey,orders:[{type:'move',unitId:'initial-sample-a',destination:'sample-a'}],finalize:false});
     await vi.waitFor(()=>expect(privateViews[3]?.orders).toHaveLength(1));expect(privateViews[1]?.orders).toEqual([]);
-    expect(mapPackets).toEqual([1,2,1,1]);
+    expect(mapPackets).toEqual([1,1,1,1]);
   }finally {for(const client of clients)client.disconnect();await server.close();}
 },15000);
