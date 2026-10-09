@@ -65,7 +65,7 @@ export function App() {
   const [search, setSearch] = useState('');
   const [saveStatus, setSaveStatus] = useState('');
   const [tab, setTab] = useState('edit');
-  const [screenMode, setScreenMode] = useState<'home' | 'settings' | 'edit' | 'preview' | 'rules' | 'game' | 'online'>(fastOnlineEntry?'online':'home');
+  const [screenMode, setScreenMode] = useState<'home' | 'settings' | 'edit' | 'preview' | 'rules' | 'game' | 'online'>(()=>fastOnlineEntry?'online':new URLSearchParams(window.location.search).get('tool')==='editor'?'edit':'home');
   const [developer, setDeveloper] = useState(() => new URLSearchParams(window.location.search).get('tool') === 'editor');
   const [localPlayer, setLocalPlayer] = useState(false);
   const localMemory = useRef<LocalUiMemory|null>(null);
