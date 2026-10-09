@@ -63,8 +63,7 @@ export function OnlineGame({ dataset, config, onBack, developer = false }: { dat
   const displayConfig: MapConfig = useMemo(() => map ? { ...createConfig(displayDataset), mapId: map.mapId, obstacles: map.obstacles, regions: Object.fromEntries(map.regions.map(r => [r.regionId, { enabled: r.enabled, isSupplyCenter: r.isSupplyCenter, homeWardId: r.homeWardId, startingUnit: r.startingUnit, displayAnchorOverride: r.displayAnchorOverride }])) } : config, [map, displayDataset, config]);
   return <section className="online-shell">
     {!game && <div className="player-page-heading"><button onClick={onBack}>{developer ? '地図エディタへ戻る' : 'トップへ戻る'}</button><ConnectionScope /><AudioSettings compact /></div>}
-    {(!game||!online.connected)&&<ConnectionStatus state={online.connectionState} error={online.configurationError} retry={online.retry} />}
-        {room&&!online.roomSessionReady&&<p className="notice" role="status" data-room-session="restoring">最後に確認したルームの状態です。ルームへ再接続しています…</p>}
+    {(!game||!online.connected)&&<ConnectionStatus state={room&&!online.roomSessionReady&&online.connectionState==='online'?'restoring':online.connectionState} error={online.configurationError} retry={online.retry} />}
     {room&&!online.roomSessionReady&&online.connectionState==='unavailable'&&<button onClick={online.forget}>保存した参加情報を消す</button>}
     {!game&&room&&online.roomSessionReady&&!room.players.find(p=>p.playerId===room.hostId)?.connected&&<HostReconnectNotice deadline={room.hostReconnectDeadline}/>}
     {online.sessionNotice&&<p className="notice" role="status">{online.sessionNotice}</p>}
