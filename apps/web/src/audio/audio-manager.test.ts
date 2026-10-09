@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AudioManager, readMusicSettings, musicStorageKey, type AudioPort } from './audio-manager';
+import { AudioManager, readMusicSettings, musicStorageKey, defaultMusicSettings, type AudioPort } from './audio-manager';
 import { bgmManifest } from './bgm-manifest';
 function fixture(rejectFirstPlay = false) {
   vi.useFakeTimers();
@@ -54,7 +54,7 @@ describe('BGM manager', () => {
   it('設定保存キー・壊れた保存・範囲外volume・storage拒否', () => {
     expect(musicStorageKey).toBe('kyoto-music-v1');
     expect(readMusicSettings({ getItem: () => JSON.stringify({ enabled: false, volume: 120 }) })).toEqual({ enabled: false, volume: 100 });
-    for (const getItem of [() => '{', () => '{"enabled":true,"volume":"50"}', () => { throw new Error('blocked'); }]) expect(readMusicSettings({ getItem })).toEqual({ enabled: true, volume: 70 });
+    for (const getItem of [() => '{', () => '{"enabled":true,"volume":"50"}', () => { throw new Error('blocked'); }]) expect(readMusicSettings({ getItem })).toEqual(defaultMusicSettings);
   });
   it('autoplay blockedとDomestic→Adjudication→Domesticでも保存済みON/音量を変更しない', async () => {
     vi.useFakeTimers();
