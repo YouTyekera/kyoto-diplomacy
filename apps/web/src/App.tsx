@@ -109,7 +109,8 @@ export function App() {
   }
   useEffect(() => { void loadOfficial(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!dataset || !config) return;
+    if (!dataset || !config || (screenMode === 'online' && !developer)) return;
+    // An online lobby does not need a client-side compiled preview map.
     setCalculationError('');
     const worker = new Worker(new URL('./map.worker.ts', import.meta.url), { type: 'module' });
     worker.onmessage = event => {
@@ -119,7 +120,7 @@ export function App() {
     worker.onerror = event => setCalculationError(event.message || '地図計算に失敗しました');
     const timer = setTimeout(() => worker.postMessage({ dataset, config }), 120);
     return () => { clearTimeout(timer); worker.terminate(); };
-  }, [dataset, config]);
+  }, [dataset, config, screenMode, developer]);
   useEffect(() => {
     if (!dataset || !config || computed?.dataset !== dataset || computed.config !== config) return;
     setPreview(current => {
