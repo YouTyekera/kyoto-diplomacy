@@ -13,7 +13,7 @@ const preference=wardSchema.nullable();
 export const winterDraftSchema=z.object({buildRegionIds:z.array(id).max(227),disbandUnitIds:z.array(id).max(227)}).strict();
 const phaseKey=id;
 export const requestSchema=z.discriminatedUnion('action',[
-  z.object({action:z.literal('create'),nickname,preferredWardId:preference,datasetKind:z.enum(['sample','kyoto-kml']),config:configSchema,scenario:z.literal('standard').optional()}).strict(),
+  z.object({action:z.literal('create'),nickname,preferredWardId:preference,datasetKind:z.enum(['sample','kyoto-kml']),config:configSchema.optional(),scenario:z.literal('standard').optional(),operationId:z.string().uuid().optional()}).strict().refine(value=>value.scenario==='standard'||value.config!==undefined,{message:'config is required for an editor scenario'}),
   z.object({action:z.literal('join'),nickname,preferredWardId:preference,roomCode:z.string().trim().toUpperCase().regex(/^[A-Z2-9]{6}$/)}).strict(),
   z.object({action:z.literal('reconnect'),...credentialsSchema.shape}).strict(),
   z.object({action:z.literal('preference'),preferredWardId:preference}).strict(),
@@ -36,7 +36,7 @@ export const requestSchema=z.discriminatedUnion('action',[
   z.object({action:z.literal('unready'),phaseKey}).strict(),
 ]);
 type ParsedRequest=z.infer<typeof requestSchema>;
-export type OnlineRequest=Exclude<ParsedRequest,{action:'create'}>|(Omit<Extract<ParsedRequest,{action:'create'}>,'config'>&{config:MapConfig});
+export type OnlineRequest=Exclude<ParsedRequest,{action:'create'}>|(Omit<Extract<ParsedRequest,{action:'create'}>,'config'>&{config?:MapConfig});
 export const responseSchema=z.discriminatedUnion('ok',[
   z.object({ok:z.literal(true),credentials:credentialsSchema.optional(),matchLog:matchLogSchema.optional(),draftVersion:z.number().int().nonnegative().optional(),legalOrders:z.object({phaseKey,unitId:id,orders:z.array(gameOrderSchema)}).strict().optional()}).strict(),
   z.object({ok:z.literal(false),errors:z.array(z.string())}).strict(),

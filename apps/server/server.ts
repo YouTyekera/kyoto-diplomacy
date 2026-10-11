@@ -45,7 +45,8 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
   function publish(room:Room|undefined) {
     if(!room||manager.rooms.get(room.code)!==room) return;
     const publishStarted=performance.now();
-    const publicView=serializePublicState(manager,room,false,false);
+    let preflightMs=0,serializationMs=0;
+    const publicView=serializePublicState(manager,room,false,false,value=>{preflightMs=value.preflightMs;serializationMs=value.totalMs;});
     let snapshot:PublicRoomView|undefined;
     for(const player of room.players.values()) if(player.socketId) {
       const socket=io.sockets.sockets.get(player.socketId);
@@ -72,7 +73,7 @@ export function createOnlineServer(manager:RoomManager,config:Pick<ServerConfig,
       if(socket)history(socket.id,room);
     }
     const durationMs=Math.round(performance.now()-publishStarted);
-    if(durationMs>250)console.warn('[online-perf] slow publish',JSON.stringify({durationMs,players:room.players.size,started:!!room.game}));
+    if(durationMs>250)console.warn('[online-perf] slow publish',JSON.stringify({durationMs,preflightMs:Math.round(preflightMs),serializationMs:Math.round(serializationMs),players:room.players.size,connectedSockets:io.of('/').sockets.size,started:!!room.game}));
   }
   function publishSafely(room:Room|undefined){
     try{publish(room);return true;}catch{

@@ -17,9 +17,8 @@ export class OnlineSession {
   public(view:PublicRoomView){if(!this.transportConnected)return;this.publicState=view;this.restore();}
   private(view:PrivatePlayerView){if(!this.transportConnected)return;this.privateState=view;this.restore();}
   current(epoch:number){return this.transportConnected&&this.epoch===epoch;}
-  canRequest(action:OnlineRequest['action']){return this.transportConnected&&(action==='create'||action==='join'||this.roomSessionReady);}
+  canRequest(action:OnlineRequest['action']){return this.transportConnected&&((action==='create'||action==='join')?!this.identity:this.roomSessionReady);}
   private restore(){
-    if(this.roomSessionReady)return;
     const identity=this.identity,pub=this.publicState,own=this.privateState;
     this.roomSessionReady=!!(this.accepted&&identity&&pub?.roomCode===identity.roomCode&&own?.playerId===identity.playerId&&pub.players.some(p=>p.playerId===identity.playerId&&p.connected)&&own.phaseKey===(pub.game?.phaseKey??null));
   }
