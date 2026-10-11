@@ -23,19 +23,31 @@ it('join/disconnectと別タブ乗っ取りが秘密情報なしで診断でき�
       return client;
     }
     const first=await connect();
-    const created=await first.timeout(5000).emitWithAck('request',{action:'create',nickname:'host',preferredWardId:null,datasetKind:'sample',config:sampleConfig});
+    const operationId=crypto.randomUUID(),createRequest={action:'create' as const,nickname:'host',preferredWardId:null,datasetKind:'sample' as const,config:sampleConfig,operationId};
+    const created=await first.timeout(5000).emitWithAck('request',createRequest);
     expect(created.ok).toBe(true);
     if(!created.ok)throw Error(created.errors.join(','));
     const second=await connect();
     const ended=new Promise<string>(resolve=>first.once('sessionEnded',event=>resolve(event.reason)));
     expect((await second.timeout(5000).emitWithAck('request',{action:'reconnect',...created.credentials!})).ok).toBe(true);
     expect(await ended).toBe('replaced');
+    const replayed=await second.timeout(5000).emitWithAck('request',createRequest);
+    expect(replayed).toEqual(created);
+    const rejected=await first.timeout(5000).emitWithAck('request',{...createRequest,nickname:'different'});
+    expect(rejected.ok).toBe(false);expect(rejected).not.toHaveProperty('credentials');
+    expect(manager.roomForSocket(first.id!)).toBeUndefined();
+    expect(manager.roomForSocket(second.id!)?.players.size).toBe(1);
+    expect(manager.rooms.size).toBe(1);
     first.disconnect();
     second.disconnect();
     await vi.waitFor(()=>expect(logs.some(line=>line.startsWith('[online-transport]'))).toBe(true));
-    expect(logs.filter(line=>line.startsWith('[online-entry]'))).toHaveLength(2);
+    expect(logs.filter(line=>line.startsWith('[online-entry]'))).toHaveLength(4);
     expect(logs.some(line=>line.startsWith('[online-session-ended]'))).toBe(true);
     expect(logs.join('\n')).not.toContain(created.credentials!.reconnectToken);
+    expect(logs.join('\n')).not.toContain(operationId);
+    expect(logs.join('\n')).not.toContain(created.credentials!.playerId);
+    expect(JSON.stringify(rejected)).not.toContain(operationId);
+    expect(JSON.stringify(rejected)).not.toContain(created.credentials!.reconnectToken);
   }finally{
     clients.forEach(client=>client.disconnect());
     await server.close();

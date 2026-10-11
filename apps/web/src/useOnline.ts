@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { OnlineConnection,PermanentConnectionError,probeHealth,type ConnectionState } from './online-connection';
 import { OnlineSession,sessionWaitingMessage } from './online-session';
+import { OnlineCreateOperation } from './online-create';
 import { currentOnlineTarget } from './online-target';
 import {browserIdentities,identityCredentials,type SavedIdentity,historyKey,identityPrefix} from './online-identities';
 import { turnHistorySchema,type TurnSnapshot,sessionEndedSchema,privatePlayerSchema, publicRoomSchema, responseSchema,
@@ -22,7 +23,7 @@ export function useOnline(inviteRoom?:string) {
   // Browser-only diagnostic breadcrumbs. Do not include room codes, player identifiers, or tokens.
   const [networkEvents,setNetworkEvents]=useState<string[]>([]);
   const connectionAttempts=useRef(0);
-  const createOperation=useRef<string|null>(null);
+  const createOperation=useRef(new OnlineCreateOperation());
   function trace(event:string,detail:string,transport='-'){
     const safeDetail=detail.slice(0,110);
     setNetworkEvents(previous=>[...previous.slice(-7),`${new Date().toLocaleTimeString('ja-JP')} | ${event} | ${safeDetail} | ${transport} | 再接続回数:${connectionAttempts.current}`]);
@@ -133,7 +134,7 @@ export function useOnline(inviteRoom?:string) {
       const response={ok:false as const,errors:[input.action==='create'||input.action==='join'?'サーバーへの接続を待ってください':sessionWaitingMessage]};setErrors(response.errors);return response;
     }
     const entering=input.action==='create'||input.action==='join';
-    const outgoing=input.action==='create'?{...input,operationId:createOperation.current??(createOperation.current=crypto.randomUUID())}:input;
+    const outgoing=input.action==='create'?createOperation.current.prepare(input):input;
     if(entering){gate.begin();sync();}
     const epoch=gate.epoch,blocking=!(input.action==='order-patch'||input.action==='legal-orders'||input.action==='history'||input.action==='orders'&&!input.finalize);
     inflight.current++;setPending(true);if(blocking){blockingInflight.current++;setBlockingPending(true);}
@@ -145,12 +146,12 @@ export function useOnline(inviteRoom?:string) {
       }
       const response=responseSchema.parse(raw);
       if(!gate.current(epoch))return {ok:false,errors:[sessionWaitingMessage]};
-      if(input.action==='create')createOperation.current=null;
+      if(outgoing.action==='create')createOperation.current.settle(outgoing.operationId);
       if(!response.ok)setErrors(response.errors);
       else {
         setErrors([]);setSessionNotice('');
         if(response.credentials){
-          credentials.current=response.credentials;remember(response.credentials,entering?input.nickname:undefined);
+          credentials.current=response.credentials;remember(response.credentials,outgoing.action==='create'||outgoing.action==='join'?outgoing.nickname:undefined);
           const ended=waitingEnd.current;waitingEnd.current=null;
           if(ended&&ended.roomCode===response.credentials.roomCode&&ended.playerId===response.credentials.playerId){endIdentity(ended.reason);return {ok:false,errors:['このルームへの参加は終了しました。']};}
           gate.authenticated(epoch,response.credentials);sync();if(!gate.roomSessionReady)setConnectionState('restoring');
