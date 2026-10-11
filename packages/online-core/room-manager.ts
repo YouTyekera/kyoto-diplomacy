@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { planPlayback } from '../shared/playback';
 import type { OnlinePlayback, TurnSnapshot } from '../shared/online';
 import { compileScenario,compileUploadedScenario,prepareScenarioForOnlinePlay,validateScenarioForOnlinePlay,type OnlineScenarioPreflight,type Scenario,type ScenarioDiagnostic } from './scenario';
@@ -27,6 +27,19 @@ const blank=():Submission=>({orders:[],retreats:[],winter:{buildRegionIds:[],dis
 const fail=(...errors:string[]):OnlineResponse=>({ok:false,errors});
 const emptyWinter=()=>({buildRegionIds:[],disbandUnitIds:[]});
 const orderKey=(order:GameOrder)=>JSON.stringify(Object.entries(order).sort(([a],[b])=>a.localeCompare(b)));
+function createRequestFingerprint(request:Extract<OnlineRequest,{action:'create'}>):string {
+  // Compare validated create inputs, not mutable lobby preferences or scenario metadata.
+  // Object key order is irrelevant; array order and every supplied setting are preserved.
+  const json=JSON.stringify({...request,operationId:undefined},(_key,value:unknown)=>
+    value&&typeof value==='object'&&!Array.isArray(value)
+      ?Object.fromEntries(Object.entries(value).sort(([a],[b])=>a<b?-1:a>b?1:0)):value);
+  return createHash('sha256').update(json).digest('hex');
+}
+function freezeScenario(value:object,seen=new WeakSet<object>()):void {
+  if(seen.has(value))return;seen.add(value);
+  for(const child of Object.values(value))if(child&&typeof child==='object')freezeScenario(child,seen);
+  Object.freeze(value);
+}
 function requireResult(response:GameResponse):GameSessionState {if(!response.ok) throw new Error(response.errors.join('\n'));return response.result;}
 
 /** Synchronous transactions: no await between phase check, finalization, lock and resolution. */
@@ -53,6 +66,13 @@ export class RoomManager {
     state.events={...state.events,reservations:[...state.events.reservations.filter(r=>!ownIds.has(r.unitId)),...orders.flatMap(o=>o.type==='bicycle-move'||o.type==='deploy-barricade'?[{equipmentId:o.equipmentId,unitId:o.unitId,type:o.type==='bicycle-move'?'bicycle' as const:'barricade' as const}]:[])]};
   }
   private readonly identities=new Map<string,{roomCode:string;playerId:string}>();
+  private readonly createOperations=new Map<string,{roomCode:string;playerId:string;fingerprint:string}>();
+  private forgetPlayerCreateOperations(roomCode:string,playerId:string){
+    for(const [operationId,created] of this.createOperations)
+      if(created.roomCode===roomCode&&created.playerId===playerId)this.createOperations.delete(operationId);
+  }
+  private standardPrepared?:ReturnType<typeof compileUploadedScenario>;
+  private readonly scenarioPreflights=new WeakMap<Scenario,{hash:string;map:MapDefinition;config:Scenario['config'];report:Scenario['report'];value:OnlineScenarioPreflight}>();
   private readonly preflights=new WeakMap<Room,{scenario:Scenario;hash:string;map:MapDefinition;config:Scenario['config'];report:Scenario['report'];prepared:OnlineScenarioPreflight;key:string;value:OnlineScenarioPreflight}>();
   private readonly hostGrace=new Map<string,{playerId:string;deadline:number;timer:ReturnType<typeof setTimeout>}>();
   private readonly sessionEnds=new Set<(socketId:string,event:SessionEnded)=>void>();
@@ -69,12 +89,16 @@ export class RoomManager {
   dispose(){this.disposed=true;for(const room of this.rooms.values())if(room.game?.playback?.timer)clearTimeout(room.game.playback.timer);for(const grace of this.hostGrace.values())clearTimeout(grace.timer);this.hostGrace.clear();this.sessionListeners.clear();this.sessionEnds.clear();this.roomUpdates.clear();}
   constructor(private datasets:Record<RegionDataset['kind'],RegionDataset>,private settings=defaultGameSettings,private eventOptions:{settings?:EventSettings;seedFactory?:()=>string;now?:()=>string;standardScenarioJson?:string}={}) {}
   private standardScenario(diagnostic?:(value:ScenarioDiagnostic)=>void) {
+    if(this.standardPrepared)return this.standardPrepared;
     const json=this.eventOptions.standardScenarioJson;
     if(!json)throw new Error('標準シナリオを読み込めません。サーバー管理者へお知らせください。');
     const loaded=compileUploadedScenario(this.datasets,'kyoto-kml',json,undefined,diagnostic);
     loaded.scenario.name='標準シナリオ';loaded.scenario.fileName='kyoto-standard.json';loaded.scenario.source='standard';
+    freezeScenario(loaded.scenario);
+    this.standardPrepared=loaded;
     return loaded;
   }
+  preloadStandardScenario(){if(this.eventOptions.standardScenarioJson)this.standardScenario();}
   private now(){return this.eventOptions.now?.()??new Date().toISOString();}
   configuredMaxYears(){return this.settings.maxYears;}
   preflight(room:Room){
@@ -82,7 +106,9 @@ export class RoomManager {
     let cached=this.preflights.get(room);
     // Compiled scenario geometry/config are replaced together, never edited by room operations.
     if(!cached||cached.scenario!==scenario||cached.hash!==scenario.hash||cached.map!==room.map||cached.config!==scenario.config||cached.report!==scenario.report){
-      const prepared=prepareScenarioForOnlinePlay(room.map,scenario.config,scenario.report);
+      const shared=room.map===scenario.map?this.scenarioPreflights.get(scenario):undefined;
+      let prepared=shared?.hash===scenario.hash&&shared.map===room.map&&shared.config===scenario.config&&shared.report===scenario.report?shared.value:undefined;
+      if(!prepared){prepared=prepareScenarioForOnlinePlay(room.map,scenario.config,scenario.report);if(room.map===scenario.map)this.scenarioPreflights.set(scenario,{hash:scenario.hash,map:room.map,config:scenario.config,report:scenario.report,value:prepared});}
       for(const row of prepared.wardCounts)Object.freeze(row);Object.freeze(prepared.wardCounts);Object.freeze(prepared.errors);Object.freeze(prepared.warnings);Object.freeze(prepared);
       cached={scenario,hash:scenario.hash,map:room.map,config:scenario.config,report:scenario.report,prepared,key:'',value:prepared};this.preflights.set(room,cached);
     }
@@ -133,6 +159,23 @@ export class RoomManager {
       return {ok:true};
     }
     if(request.action==='create'||request.action==='join') {
+      const fingerprint=request.action==='create'&&request.operationId?createRequestFingerprint(request):undefined;
+      if(request.action==='create'&&request.operationId){
+        const prior=this.createOperations.get(request.operationId),room=prior&&this.rooms.get(prior.roomCode),player=room?.players.get(prior!.playerId);
+        if(prior&&room&&player){
+          if(prior.fingerprint!==fingerprint)return fail('同じ作成操作IDで異なる内容を送信することはできません。元の要求内容で再試行してください。');
+          const current=this.playerForSocket(socketId);
+          if(current&&current!==player)return fail('既に別のルームへ参加しています');
+          const previousSocket=player.socketId;
+          if(previousSocket&&previousSocket!==socketId)this.identities.delete(previousSocket);
+          player.socketId=socketId;this.identities.set(socketId,{roomCode:room.code,playerId:player.playerId});
+          if(room.hostId===player.playerId)this.cancelHostGrace(room);
+          if(!room.game)this.transferHost(room);
+          if(previousSocket&&previousSocket!==socketId)this.endSession(previousSocket,room,player.playerId,'replaced');
+          return {ok:true,credentials:{roomCode:room.code,playerId:player.playerId,reconnectToken:player.reconnectToken}};
+        }
+        if(prior)this.createOperations.delete(request.operationId);
+      }
       if(this.identities.has(socketId)) return fail('既にルームへ参加しています');
       if(request.action==='join') {
         const room=this.rooms.get(request.roomCode);
@@ -144,11 +187,12 @@ export class RoomManager {
       let scenario:Scenario,datasetKind=request.datasetKind;
       try {
         if(request.scenario==='standard'){const loaded=this.standardScenario(diagnostic);scenario=loaded.scenario;datasetKind=loaded.datasetKind;}
-        else scenario=compileScenario(this.datasets[datasetKind],request.config,false);
+        else scenario=compileScenario(this.datasets[datasetKind],request.config!,false);
       }catch(error){return fail(error instanceof Error?error.message:'シナリオを読み込めません');}
       let code:string;do {code=Array.from(randomBytes(6),n=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n%32]).join('');} while(this.rooms.has(code));
       const room:Room={code,hostId:'',map:scenario.map,scenario,datasetKind,players:new Map(),game:null};this.rooms.set(code,room);
       const credentials=this.addPlayer(room,socketId,request.nickname,request.preferredWardId);room.hostId=credentials.playerId;
+      if(request.operationId)this.createOperations.set(request.operationId,{roomCode:code,playerId:credentials.playerId,fingerprint:fingerprint!});
       return {ok:true,credentials};
     }
     const room=this.roomForSocket(socketId),player=this.playerForSocket(socketId);
@@ -165,6 +209,7 @@ export class RoomManager {
       if(request.playerId===room.hostId)return fail('ホスト自身は退出させられません');
       const target=room.players.get(request.playerId);if(!target)return fail('参加者が見つかりません');
       room.players.delete(target.playerId);
+      this.forgetPlayerCreateOperations(room.code,target.playerId);
       if(target.socketId){this.identities.delete(target.socketId);this.endSession(target.socketId,room,target.playerId,'kicked');}
       return {ok:true};
     }
@@ -221,8 +266,9 @@ export class RoomManager {
     if(request.action==='leave') {
       if(room.game) return fail('開始後の退出は再接続を待つ切断として扱います');
       room.players.delete(player.playerId);this.identities.delete(socketId);
+      if(room.players.size)this.forgetPlayerCreateOperations(room.code,player.playerId);
       if(room.hostId===player.playerId)this.cancelHostGrace(room);
-      this.transferHost(room);if(!room.players.size) this.rooms.delete(room.code);return {ok:true};
+      this.transferHost(room);if(!room.players.size){this.rooms.delete(room.code);for(const [operationId,created] of this.createOperations)if(created.roomCode===room.code)this.createOperations.delete(operationId);}return {ok:true};
     }
     if(request.action==='preference') {
       if(room.game) return fail('開始後は希望を変更できません');player.preferredWardId=request.preferredWardId;return {ok:true};
@@ -371,9 +417,10 @@ export class RoomManager {
 }
 
 /** Explicit allowlist. Never serialize internal Room/Game/PlayerSession objects. */
-export function serializePublicState(manager:RoomManager,room:Room,includeMap=true,includeHistory=true):PublicRoomView {
-  const game=room.game,state=game?.state,preflight=manager.preflight(room);
-  return publicRoomSchema.parse({roomCode:room.code,hostId:room.hostId,hostReconnectDeadline:manager.hostGraceDeadline(room),...(includeMap?{map:room.map}:{}),startErrors:game?[]:manager.startErrors(room,preflight),
+export interface PublicSerializationTiming {preflightMs:number;schemaMs:number;totalMs:number}
+export function serializePublicState(manager:RoomManager,room:Room,includeMap=true,includeHistory=true,timing?:(value:PublicSerializationTiming)=>void):PublicRoomView {
+  const started=performance.now(),game=room.game,state=game?.state,preflight=manager.preflight(room),preflightDone=performance.now();
+  const result=publicRoomSchema.parse({roomCode:room.code,hostId:room.hostId,hostReconnectDeadline:manager.hostGraceDeadline(room),...(includeMap?{map:room.map}:{}),startErrors:game?[]:manager.startErrors(room,preflight),
     scenario:{scenarioId:room.scenario.id,scenarioName:room.scenario.name,scenarioHash:room.scenario.hash,fileName:room.scenario.fileName,source:room.scenario.source??(room.scenario.loaded?'custom':'editor'),loaded:room.scenario.loaded,enabledRegions:preflight.enabledRegions,totalSC:preflight.totalSC,totalStartingUnits:preflight.totalStartingUnits,errors:preflight.errors,warnings:preflight.warnings,maxYears:state?.maxYears??room.lobbyMaxYears??manager.configuredMaxYears()},
     players:[...room.players.values()].map(p=>{
       const wardId=game?.playerWards[p.playerId]??null,required=manager.required(room,p),finalized=p.submission.finalized;
@@ -384,6 +431,7 @@ export function serializePublicState(manager:RoomManager,room:Room,includeMap=tr
     game:game&&state?{year:state.year,season:state.season,phase:state.phase,phaseKey:manager.phaseKey(room),board:state.board,seed:game.seed,
       status:state.status,maxYears:state.maxYears,endResult:state.endResult,summary:summarizeMatch(game.matchLog),
       playerWards:game.playerWards,inactiveWards:game.inactiveWards,activePlayerCount:game.activePlayerCount,victoryTargetSC:state.victoryTargetSC,presentation:state.presentation,playback:manager.publicPlayback(room),...(includeHistory?{history:game.history}:{}),requiredRivalInitialSupplyCentersForInstantWin:state.requiredRivalInitialSupplyCentersForInstantWin,rivalInitialSCByWard:Object.fromEntries(state.participants.map(w=>[w,conquestProgress(state,w).rivalInitialSC])),events:publicEvents(state.events),inventoryCounts:inventoryCounts(state.events,state.participants),end:state.end,lastResult:game.lastResult}:null});
+  const done=performance.now();timing?.({preflightMs:preflightDone-started,schemaMs:done-preflightDone,totalMs:done-started});return result;
 }
 export function serializePrivateState(manager:RoomManager,room:Room,player:PlayerSession):PrivatePlayerView {
   const game=room.game,wardId=game?.playerWards[player.playerId]??null,state=game?.state;

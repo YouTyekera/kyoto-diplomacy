@@ -9,7 +9,9 @@ import { serverConfig } from './config';
 const config=serverConfig();
 const dataset=datasetSchema.parse(JSON.parse(await readFile(resolve('data/generated/regions.json'),'utf8')));
 const standardScenarioJson=await readFile(resolve('data/default-scenarios/kyoto-standard.json'),'utf8');
-const server=createOnlineServer(new RoomManager({'kyoto-kml':dataset,sample:sampleDataset},undefined,{standardScenarioJson}),config);
+const manager=new RoomManager({'kyoto-kml':dataset,sample:sampleDataset},undefined,{standardScenarioJson});
+manager.preloadStandardScenario();
+const server=createOnlineServer(manager,config);
 const {port,host}=config;
 server.http.listen(port,host,()=>{
   const address=server.http.address();

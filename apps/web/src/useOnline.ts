@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { OnlineConnection,PermanentConnectionError,probeHealth,type ConnectionState } from './online-connection';
 import { OnlineSession,sessionWaitingMessage } from './online-session';
+import { OnlineCreateOperation } from './online-create';
 import { currentOnlineTarget } from './online-target';
 import {browserIdentities,identityCredentials,type SavedIdentity,historyKey,identityPrefix} from './online-identities';
 import { turnHistorySchema,type TurnSnapshot,sessionEndedSchema,privatePlayerSchema, publicRoomSchema, responseSchema,
@@ -22,6 +23,7 @@ export function useOnline(inviteRoom?:string) {
   // Browser-only diagnostic breadcrumbs. Do not include room codes, player identifiers, or tokens.
   const [networkEvents,setNetworkEvents]=useState<string[]>([]);
   const connectionAttempts=useRef(0);
+  const createOperation=useRef(new OnlineCreateOperation());
   function trace(event:string,detail:string,transport='-'){
     const safeDetail=detail.slice(0,110);
     setNetworkEvents(previous=>[...previous.slice(-7),`${new Date().toLocaleTimeString('ja-JP')} | ${event} | ${safeDetail} | ${transport} | 再接続回数:${connectionAttempts.current}`]);
@@ -66,8 +68,13 @@ export function useOnline(inviteRoom?:string) {
             if(disposed||signal.aborted||!gate.current(epoch))return;
             const response=responseSchema.parse(raw);
             if(!response.ok){
+              const lost=credentials.current;
+              if(lost){history.remove(lost);history.clearActive();credentials.current=null;setSavedIdentities(history.list());}
+              latestPublic.current=null;setPublicView(null);setPrivateView(null);
+              gate.invalidate();sync();
+              setSessionNotice('保存したルームに復帰できません。ルームが消えた場合は、新しいルームを作成してください。');
               trace('本人復帰拒否','保存されたルームが見つからないか、認証が無効');
-              setErrors(['参加していたルームに復帰できません。サーバーの再起動でルームが失われた可能性があります。保存した参加情報を消し、新しいルームを作成してください。']);
+              setErrors([]);
               cleanup();reject(new PermanentConnectionError('Room session unavailable'));return;
             }
             // Ack authentication stays at 10s; the separate authoritative snapshot may take longer.
@@ -127,17 +134,24 @@ export function useOnline(inviteRoom?:string) {
       const response={ok:false as const,errors:[input.action==='create'||input.action==='join'?'サーバーへの接続を待ってください':sessionWaitingMessage]};setErrors(response.errors);return response;
     }
     const entering=input.action==='create'||input.action==='join';
+    const outgoing=input.action==='create'?createOperation.current.prepare(input):input;
     if(entering){gate.begin();sync();}
     const epoch=gate.epoch,blocking=!(input.action==='order-patch'||input.action==='legal-orders'||input.action==='history'||input.action==='orders'&&!input.finalize);
     inflight.current++;setPending(true);if(blocking){blockingInflight.current++;setBlockingPending(true);}
     try {
-      const response=responseSchema.parse(await client.timeout(10000).emitWithAck('request',input));
+      let raw:unknown;
+      for(let attempt=0;;attempt++){
+        try{raw=await client.timeout(10000).emitWithAck('request',outgoing);break;}
+        catch(error){if(input.action!=='create'||attempt>=1||!gate.current(epoch)||!client.connected)throw error;}
+      }
+      const response=responseSchema.parse(raw);
       if(!gate.current(epoch))return {ok:false,errors:[sessionWaitingMessage]};
+      if(outgoing.action==='create')createOperation.current.settle(outgoing.operationId);
       if(!response.ok)setErrors(response.errors);
       else {
         setErrors([]);setSessionNotice('');
         if(response.credentials){
-          credentials.current=response.credentials;remember(response.credentials,entering?input.nickname:undefined);
+          credentials.current=response.credentials;remember(response.credentials,outgoing.action==='create'||outgoing.action==='join'?outgoing.nickname:undefined);
           const ended=waitingEnd.current;waitingEnd.current=null;
           if(ended&&ended.roomCode===response.credentials.roomCode&&ended.playerId===response.credentials.playerId){endIdentity(ended.reason);return {ok:false,errors:['このルームへの参加は終了しました。']};}
           gate.authenticated(epoch,response.credentials);sync();if(!gate.roomSessionReady)setConnectionState('restoring');

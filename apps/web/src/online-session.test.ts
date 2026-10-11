@@ -13,6 +13,11 @@ it('transportだけではRoom操作を解放せず、ackと本人/公開状態�
 it('ackが先でも本人状態の復元を待つ',()=>{
  const gate=new OnlineSession(),epoch=gate.open(identity);gate.authenticated(epoch,identity);gate.public(pub());expect(gate.roomSessionReady).toBe(false);gate.private(own());expect(gate.roomSessionReady).toBe(true);
 });
+it('a newer public phase pauses room actions until the matching private phase arrives',()=>{
+ const gate=new OnlineSession(),epoch=gate.open(identity);gate.authenticated(epoch,identity);gate.public(pub());gate.private(own());expect(gate.roomSessionReady).toBe(true);
+ gate.public({...pub(),game:{phaseKey:'next'}} as PublicRoomView);expect(gate.canRequest('orders')).toBe(false);
+ gate.private({...own(),phaseKey:'next'});expect(gate.canRequest('orders')).toBe(true);
+});
 it('切断・連続接続は古いsnapshot/ackを破棄し、復帰失敗時もstale UIを操作できない',()=>{
  const gate=new OnlineSession(),old=gate.open(identity);gate.public(pub());gate.private(own());gate.authenticated(old,identity);gate.invalidate();expect(gate.canRequest('start')).toBe(false);
  const epoch=gate.open(identity);gate.authenticated(old,identity);expect(gate.roomSessionReady).toBe(false);gate.public(pub());gate.private(own());expect(gate.roomSessionReady).toBe(false);gate.authenticated(epoch,identity);expect(gate.roomSessionReady).toBe(true);

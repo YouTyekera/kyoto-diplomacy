@@ -35,13 +35,27 @@ export function OnlineGame({ dataset, config, onBack, developer = false }: { dat
   const [nickname, setNickname] = useState(''), [preferred, setPreferred] = useState<WardId | ''>('');
   const [code, setCode] = useState(() => invitedRoom(window.location.search));
   const [yearLimit, setYearLimit] = useState(String(defaultGameSettings.maxYears));
+  const [editingYears,setEditingYears]=useState(false);
+  const [submittedYears,setSubmittedYears]=useState<number|null|undefined>(undefined);
   const [fileError, setFileError] = useState('');
   const [newParticipant,setNewParticipant]=useState(false);
   const room = online.publicView, self = online.privateView, game = room?.game;
-  const roomLocked=online.pending||!online.roomSessionReady;
+  const roomLocked=!online.roomSessionReady;
   const saved=online.savedIdentities.filter(i=>!code||i.roomCode===code.trim().toUpperCase());
   const chooseIdentity=!online.hasCredentials&&saved.length>0&&!newParticipant;
-  useEffect(() => { if (room && room.hostId === self?.playerId) setYearLimit(String(room.scenario.maxYears)); }, [room?.roomCode, room?.hostId, room?.scenario.maxYears, self?.playerId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if(!room||room.hostId!==self?.playerId)return;
+    if(submittedYears!==undefined){if(room.scenario.maxYears===(submittedYears??defaultGameSettings.maxYears)){setSubmittedYears(undefined);setEditingYears(false);}return;}
+    if(!editingYears)setYearLimit(String(room.scenario.maxYears));
+  }, [editingYears,submittedYears,room?.roomCode,room?.hostId,room?.scenario.maxYears,self?.playerId]); // eslint-disable-line react-hooks/exhaustive-deps
+  function commitYears(){
+    if(!room||room.hostId!==self?.playerId||!online.roomSessionReady)return;
+    const parsed=yearLimit===''?null:Number(yearLimit);
+    if(parsed!==null&&(!Number.isSafeInteger(parsed)||parsed<1)){setEditingYears(false);setYearLimit(String(room.scenario.maxYears));return;}
+    if((parsed??defaultGameSettings.maxYears)===room.scenario.maxYears){setEditingYears(false);return;}
+    setSubmittedYears(parsed);
+    void online.request({action:'lobby-years',yearLimit:parsed}).then(response=>{if(!response.ok){setSubmittedYears(undefined);setEditingYears(false);setYearLimit(String(room.scenario.maxYears));}});
+  }
   useBgm('lobby');
   async function loadScenario(file: File) {
     let json: string;
@@ -77,7 +91,7 @@ export function OnlineGame({ dataset, config, onBack, developer = false }: { dat
       <label>ニックネーム<input autoFocus aria-label="オンラインニックネーム" maxLength={32} value={nickname} onChange={e => setNickname(e.target.value)} /></label>
       <label>希望区（保証なし）<select aria-label="オンライン希望区" value={preferred} onChange={e => setPreferred(e.target.value as WardId | '')}><option value="">希望なし</option>{WARDS.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
       <div className="action-buttons"><button className="primary" disabled={!online.connected || online.pending || !nickname.trim() || code.length !== 6 || online.hasCredentials} onClick={() => void online.request({ action: 'join', roomCode: code, nickname, preferredWardId: preferred || null })}>ルームへ参加</button>
-      <button disabled={!online.connected || online.pending || !nickname.trim() || online.hasCredentials} onClick={() => void online.request({ action: 'create', nickname, preferredWardId: preferred || null, datasetKind: dataset.kind, config, ...(!developer?{scenario:'standard' as const}:{}) })}>ルームを作成</button></div></>}
+      <button disabled={!online.connected || online.pending || !nickname.trim() || online.hasCredentials} onClick={() => void online.request({ action: 'create', nickname, preferredWardId: preferred || null, datasetKind: dataset.kind, ...(developer?{config}:{scenario:'standard' as const}) })}>ルームを作成</button></div></>}
       {online.hasCredentials && <><p>保存した参加情報で復帰を試みています。サーバー再起動でルームがなくなった場合は参加情報を消して作り直してください。</p><button onClick={online.forget}>保存した参加情報を消す</button></>}
       <p className="hint">同じPCで試す場合は新規タブを開いてください。同じタブの再読み込みで本人として復帰できます。</p>
     </div> : game && map ? <OnlineMatch key={online.presentationEpoch} room={room} game={game} self={self} dataset={displayDataset} config={displayConfig} developer={developer} pending={online.blockingPending||!online.roomSessionReady} sessionReady={online.roomSessionReady} request={online.request} onDownload={() => void downloadLog()} onBack={onBack} /> : <>
@@ -87,8 +101,8 @@ export function OnlineGame({ dataset, config, onBack, developer = false }: { dat
         <details><summary>シナリオ識別情報 · #{room.scenario.scenarioHash.slice(0, 8)}</summary><p>採用 {room.scenario.enabledRegions}地域 / 補給拠点 {room.scenario.totalSC} / 初期軍 {room.scenario.totalStartingUnits}</p>{developer && <p>{room.scenario.scenarioHash}</p>}</details>
         <details><summary>Error {room.scenario.errors.length} / Warning {room.scenario.warnings.length} · 詳細を見る</summary>{room.scenario.errors.map((e, i) => <p key={`e${i}`}>Error: {playerMessage(e)}</p>)}{room.scenario.warnings.map((e, i) => <p key={`w${i}`}>Warning: {playerMessage(e)}</p>)}</details></section>
         {room.hostId === self?.playerId && <><div className="scenario-options"><button aria-pressed={room.scenario.source==='standard'} disabled={roomLocked} onClick={()=>{setFileError('');void online.request({action:'standard-scenario'});}}>標準シナリオ</button><label className="file-button">カスタムJSONを読み込む<input aria-label="カスタムJSONを読み込む" type="file" accept=".json,application/json" disabled={roomLocked} onChange={e => { const file = e.target.files?.[0]; if (file) void loadScenario(file); e.target.value = ''; }} /></label></div>{fileError && <p role="alert">{fileError}</p>}
-          <label>規定年数（試遊用・変更可能）<input aria-label="オンライン規定年数" disabled={roomLocked} type="number" min={1} step={1} value={yearLimit} onChange={e => { const value=e.target.value;setYearLimit(value);if(value===''||(Number.isInteger(Number(value))&&Number(value)>0))void online.request({action:'lobby-years',yearLimit:value===''?null:Number(value)}); }} /></label>
-          <button className="primary" disabled={roomLocked || room.startErrors.length > 0} onClick={() => void online.request({ action: 'start', yearLimit: yearLimit ? Number(yearLimit) : null })}>オンラインゲーム開始</button></>}
+          <label>規定年数（試遊用・変更可能）<input aria-label="オンライン規定年数" disabled={roomLocked} type="number" min={1} step={1} value={yearLimit} onFocus={()=>setEditingYears(true)} onChange={e => setYearLimit(e.target.value)} onBlur={commitYears} onKeyDown={e=>{if(e.key==='Enter')e.currentTarget.blur();}} /></label>
+          <button className="primary" disabled={roomLocked || online.blockingPending || room.startErrors.length > 0} onClick={() => void online.request({ action: 'start', yearLimit: yearLimit ? Number(yearLimit) : null })}>オンラインゲーム開始</button></>}
         {room.startErrors.map(e => <p key={e}>{playerMessage(e)}</p>)}
         <LobbyRules room={room} self={self} locked={roomLocked} request={online.request} />
         <label>自分の希望区<select aria-label="ロビー希望区" value={self?.preferredWardId ?? ''} disabled={roomLocked} onChange={e => void online.request({ action: 'preference', preferredWardId: (e.target.value || null) as WardId | null })}><option value="">希望なし</option>{WARDS.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
