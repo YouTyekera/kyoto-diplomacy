@@ -2,25 +2,30 @@ import { z } from 'zod';
 import type { MapDefinition } from '../shared/model';
 import { retreatOrderSchema, type AdjudicationResult, type RetreatResult, type ValidationIssue } from './model';
 import { playableIds, validateBoard } from './validation';
+import type { GameStatePreview } from '../shared/preview';
 
-export function resolveRetreats(map:MapDefinition, movement:AdjudicationResult, submissions:unknown):
+/** Game sessions supply post-movement control; the standalone rules sandbox has no territorial board. */
+export function legalRetreatDestinations(map:MapDefinition,movement:Pick<AdjudicationResult,'units'|'dislodgedUnits'|'standoffRegions'>,unitId:string,control?:GameStatePreview['regionControl']):string[] {
+  const d=movement.dislodgedUnits.find(d=>d.unit.unitId===unitId);if(!d)return [];
+  const occupied=new Set(movement.units.map(u=>u.regionId)),allowed=playableIds(map);
+  return (map.adjacency[d.unit.regionId]??[]).filter(to=>allowed.has(to)&&!occupied.has(to)&&to!==d.attackerOrigin&&!movement.standoffRegions.includes(to)&&
+    (!control||control[to]?.controllerWardId===d.unit.ownerWardId)).sort();
+}
+
+export function resolveRetreats(map:MapDefinition, movement:AdjudicationResult, submissions:unknown,control?:GameStatePreview['regionControl']):
   {ok:true;result:RetreatResult}|{ok:false;errors:ValidationIssue[]} {
   const parsed=z.array(retreatOrderSchema).safeParse(submissions);
   if(!parsed.success) return {ok:false,errors:[{code:'invalid-shape',message:'撤退命令の形式が不正です'}]};
   const errors=validateBoard(map,movement.units), byId=new Map(movement.dislodgedUnits.map(d=>[d.unit.unitId,d]));
-  const occupied=new Set(movement.units.map(u=>u.regionId)),allowed=playableIds(map),submitted=new Set<string>();
-  const legal=(id:string,destination:string)=>{
-    const d=byId.get(id)!;
-    return allowed.has(destination)&&map.adjacency[d.unit.regionId]?.includes(destination)&&!occupied.has(destination)&&
-      destination!==d.attackerOrigin&&!movement.standoffRegions.includes(destination);
-  };
+  const submitted=new Set<string>(),options=new Map(movement.dislodgedUnits.map(d=>[d.unit.unitId,legalRetreatDestinations(map,movement,d.unit.unitId,control)]));
+  const legal=(id:string,destination:string)=>options.get(id)!.includes(destination);
   for(const order of parsed.data) {
     if(!byId.has(order.unitId)) {errors.push({code:'unknown-unit',unitId:order.unitId,message:'排除されたユニットではありません'});continue;}
     if(submitted.has(order.unitId)) errors.push({code:'duplicate-order',unitId:order.unitId,message:'撤退命令が重複しています'});
     submitted.add(order.unitId);
     if(order.type==='retreat'&&!legal(order.unitId,order.destination)) errors.push({code:'invalid-retreat',unitId:order.unitId,message:'合法な撤退先ではありません'});
   }
-  const actualOptions=(id:string)=>(map.adjacency[byId.get(id)!.unit.regionId]??[]).filter(destination=>legal(id,destination));
+  const actualOptions=(id:string)=>options.get(id)!;
   for(const d of movement.dislodgedUnits) if(!submitted.has(d.unit.unitId)&&actualOptions(d.unit.unitId).length)
     errors.push({code:'missing-order',unitId:d.unit.unitId,message:'撤退か解散を入力してください'});
   if(errors.length) return {ok:false,errors};

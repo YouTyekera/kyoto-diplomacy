@@ -255,7 +255,7 @@ export function MapCanvas({ dataset, config, result, selected, onSelect:handleSe
         const color=index?'#147c9f':'#a43e87';
         return <g key={`${index}-${id}`} data-command-region={id} data-command-role={index?'destination':'origin'} className={`command-preview command-${index?'destination':'origin'}`} pointerEvents="none">
           <path d={r.path} fill={color} fillOpacity=".2" stroke={color} strokeWidth="3" strokeDasharray={index?'6 4':undefined} vectorEffect="non-scaling-stroke"/>
-          <g transform={`translate(${r.center.join(' ')}) scale(${unitsPerPixel})`}><circle r="23" fill="none" stroke={color} strokeWidth="3"/><text y="-29" textAnchor="middle" fontSize="13" className="region-marker-label">{commandPreview.kind==='support'?index?'支援移動先':'支援対象':'封鎖候補'}</text></g>
+          <g transform={`translate(${r.center.join(' ')}) scale(${unitsPerPixel})`}><circle r="23" fill="none" stroke={color} strokeWidth="3"/><text y="-29" textAnchor="middle" fontSize="13" className="region-marker-label">{commandPreview.kind==='support'?index?'支援移動先':'支援対象':commandPreview.kind==='retreat'?'選択中の撤退軍':'封鎖候補'}</text></g>
         </g>;
       })}
       {presentation?.group&&<g className="playback-focus" pointerEvents="none">{presentation.group.regionIds.map(id=>{const r=rendered.find(r=>r.regionId===id);return r?<path key={id} d={r.path} fill="#fff3b6" fillOpacity=".18" stroke="#bb8647" strokeWidth="2" vectorEffect="non-scaling-stroke"/>:null;})}</g>}

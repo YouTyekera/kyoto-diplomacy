@@ -43,7 +43,7 @@ export function adjudicateGameOrders(map:MapDefinition,state:GameSessionState,or
 export function adjudicateGameRetreats(map:MapDefinition,state:GameSessionState,submissions:unknown):GameResponse {
   if(state.status==='finished')return {ok:false,errors:['ゲームは終了しています']};
   if(state.phase!=='retreats'||!state.movement||state.retreatResolved) return {ok:false,errors:['未解決の撤退フェイズではありません']};
-  const response=resolveRetreats(effectiveMap(map,state.events),state.movement,submissions);
+  const response=resolveRetreats(effectiveMap(map,state.events),state.movement,submissions,state.board.regionControl);
   if(!response.ok) return {ok:false,errors:response.errors.map(e=>`[${e.code}] ${e.message}`)};
   return {ok:true,result:{...state,board:{...state.board,units:response.result.units},events:settleEquipment(state.events,response.result.units),retreatResolved:true,retreatResult:response.result}};
 }

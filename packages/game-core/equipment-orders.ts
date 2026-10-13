@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { MapDefinition } from '../shared/model';
 import { gameOrderSchema, eventStateSchema, type GameOrder, type EquipmentResult } from '../shared/events';
-import { adjudicate, legalOrders, validateOrderSet, type Order } from '../rules-core';
+import { adjudicate, legalOrders, legalRetreatDestinations, validateOrderSet, type Order } from '../rules-core';
 import { effectiveMap, edge, edgeKey, safeRemoval } from './events';
 import { applyMovementControl } from './control';
 import type { GameSessionState, GameResponse, GameMovement } from './model';
@@ -76,8 +76,8 @@ export function resolveGameMovement(map:MapDefinition,state:GameSessionState,ord
   if(!second.ok)return {ok:false,errors:second.errors.map(e=>e.message)};
   let board=applyMovementControl(state.board,first.result);board=applyMovementControl(board,second.result);
   const dislodgedUnits=[...first.result.dislodgedUnits,...second.result.dislodgedUnits],dislodged=new Set(dislodgedUnits.map(d=>d.unit.unitId));
-  const standoffRegions=[...new Set([...first.result.standoffRegions,...second.result.standoffRegions])].sort(),occupied=new Set(second.result.units.map(u=>u.regionId));
-  for(const d of dislodgedUnits)d.legalRetreatDestinations=(seasonMap.adjacency[d.unit.regionId]??[]).filter(to=>!occupied.has(to)&&to!==d.attackerOrigin&&!standoffRegions.includes(to)).sort();
+  const standoffRegions=[...new Set([...first.result.standoffRegions,...second.result.standoffRegions])].sort();
+  for(const d of dislodgedUnits)d.legalRetreatDestinations=legalRetreatDestinations(seasonMap,{units:second.result.units,dislodgedUnits,standoffRegions},d.unit.unitId,board.regionControl);
   const equipmentResults:EquipmentResult[]=bicycles.map(o=>{
     const one=first.result.orderResults.find(r=>r.order.unitId===o.unitId)!,two=successes.includes(o)?second.result.orderResults.find(r=>r.order.unitId===o.unitId):undefined;
     return {unitId:o.unitId,type:'bicycle',viaRegionId:o.viaRegionId,destination:o.destination,status:two?.status??'fail',reason:one.status==='fail'?'第1区間失敗。元の地域に留まるか、排除時は撤退':two?.status==='success'?'両区間成功': '第2区間失敗。経由地域に留まる',firstLeg:{status:one.status,reason:one.reason},...(two?{secondLeg:{status:two.status,reason:two.reason}}:{})};

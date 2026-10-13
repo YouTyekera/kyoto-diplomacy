@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import type { SfxCue } from './audio/sfx-manager';
 import type { GameOrder, Equipment } from '../../../packages/shared/events';
 export type Action = 'move' | 'support' | 'support-hold' | 'support-move' | 'bicycle-move' | 'deploy-barricade' | null;
-export interface CommandPreview { origin:string;destination?:string;kind:'support'|'barricade' }
+export interface CommandPreview { origin:string;destination?:string;kind:'support'|'barricade'|'retreat' }
 export function supportPreview(order:GameOrder,units:Unit[]):CommandPreview|undefined {
  if(order.type!=='support-hold'&&order.type!=='support-move')return;
  const target=units.find(u=>u.unitId===order.targetUnitId);

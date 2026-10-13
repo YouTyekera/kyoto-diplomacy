@@ -332,7 +332,7 @@ export class RoomManager {
       const own=state.movement.dislodgedUnits.filter(d=>d.unit.ownerWardId===ward);
       if(request.orders.some(o=>!own.some(d=>d.unit.unitId===o.unitId))) return ['自軍の撤退だけ編集できます'];
       const supplemented=state.movement.dislodgedUnits.filter(d=>!own.includes(d)||(!request.finalize&&!request.orders.some(o=>o.unitId===d.unit.unitId))).map(d=>({type:'disband' as const,unitId:d.unit.unitId}));
-      const checked=resolveRetreats(effectiveMap(room.map,state.events),state.movement,[...request.orders,...supplemented]);
+      const checked=resolveRetreats(effectiveMap(room.map,state.events),state.movement,[...request.orders,...supplemented],state.board.regionControl);
       if(!checked.ok) return checked.errors.map(e=>e.message);
       player.submission.retreats=structuredClone(request.orders);return null;
     }

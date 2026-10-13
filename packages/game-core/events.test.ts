@@ -151,16 +151,18 @@ describe('自転車の2段階同時裁定・所持と予約',()=>{
   });
   it.each(['retreat','disband'] as const)('利用軍が排除後%sした場合の装備損失',type=>{
     const {map,state}=eventFixture([army('r',R,'a'),army('b',B,'b'),army('s',B,'d')]);item(state,'bicycle');item(state,'bicycle',R,'unused');
+    state.board.regionControl.c.controllerWardId=R;
     const s=move(map,state,[bike(),{type:'move',unitId:'b',destination:'a'},{type:'support-move',unitId:'s',targetUnitId:'b',destination:'a'}]);expect(s.movement?.dislodgedUnits.map(d=>d.unit.unitId)).toContain('r');
     // Temporary bus is still present for the associated retreat.
     s.events.temporaryBusEdges=[edge('a','c')];const next=ok(adjudicateGameRetreats(map,s,[type==='retreat'?{type:'retreat',unitId:'r',destination:'c'}:{type:'disband',unitId:'r'}]));
     expect(next.events.inventory.map(e=>e.equipmentId).sort()).toEqual(type==='retreat'?['bicycle','unused']:['unused']);
   });
-  it('撤退競合で利用軍2体が破壊されれば予約された自転車2個が消える',()=>{
+  it('異勢力は同じ地域に撤退できず、利用軍2体の解散で予約された自転車2個が消える',()=>{
     const {map,state}=eventFixture([army('r',R,'a'),army('green',G,'f'),army('b',B,'b'),army('s',B,'d'),army('t',B,'g'),army('v',B,'c')]);
     item(state,'bicycle');item(state,'bicycle',G,'green-bike');state.events.temporaryBusEdges=[edge('a','e')];
     const moved=move(map,state,[bike(),bike('green','g','h','green-bike'),{type:'move',unitId:'b',destination:'a'},{type:'support-move',unitId:'s',targetUnitId:'b',destination:'a'},{type:'move',unitId:'t',destination:'f'},{type:'support-move',unitId:'v',targetUnitId:'t',destination:'f'}]);
-    const s=ok(adjudicateGameRetreats(map,moved,[{type:'retreat',unitId:'r',destination:'e'},{type:'retreat',unitId:'green',destination:'e'}]));expect(s.retreatResult?.disbandedUnitIds.sort()).toEqual(['green','r']);expect(s.events.inventory).toEqual([]);
+    expect(adjudicateGameRetreats(map,moved,[{type:'retreat',unitId:'r',destination:'e'},{type:'retreat',unitId:'green',destination:'e'}]).ok).toBe(false);
+    const s=ok(adjudicateGameRetreats(map,moved,[{type:'disband',unitId:'r'},{type:'disband',unitId:'green'}]));expect(s.retreatResult?.disbandedUnitIds.sort()).toEqual(['green','r']);expect(s.events.inventory).toEqual([]);
   });
 });
 
@@ -178,6 +180,7 @@ describe('バリケードの保持・失敗・次季節・4季節',()=>{
   });
   it.each(['retreat','disband'] as const)('排除された設置軍は設置失敗、%sで所持を清算',type=>{
     const {map,state}=eventFixture([army('r',R,'a'),army('b',B,'b'),army('s',B,'d')]);item(state,'barricade');
+    state.board.regionControl.c.controllerWardId=R;
     const s=move(map,state,[barrier(),{type:'move',unitId:'b',destination:'a'},{type:'support-move',unitId:'s',targetUnitId:'b',destination:'a'}]);expect(s.events.pendingBarricades).toEqual([]);expect(s.events.inventory).toHaveLength(1);
     s.events.temporaryBusEdges=[edge('a','c')];const next=ok(adjudicateGameRetreats(map,s,[type==='retreat'?{type:'retreat',unitId:'r',destination:'c'}:{type:'disband',unitId:'r'}]));expect(next.events.inventory).toHaveLength(type==='retreat'?1:0);
   });
@@ -203,10 +206,11 @@ describe('装備pickupは全撤退後・SC更新前',()=>{
     const s=ok(adjudicateGameRetreats(map,moved,[]));expect(s.events.inventory).toEqual([{equipmentId:'ground',type:'bicycle',ownerWardId:R}]);expect(s.events.groundEquipment.map(e=>e.equipmentId)).toEqual(['left']);expect(s.phase).toBe('retreats');
     expect(ok(advanceGame(map,s)).phase).toBe('sc-update');
   });
-  it('Retreat到着のownerへ取得し、controllerとは独立する',()=>{
+  it('自軍支配地域へのRetreat到着で装備を取得し、SC所有とは独立する',()=>{
     const {map,state}=eventFixture([army('r',R,'a'),army('b',B,'b'),army('s',B,'d')]);
     state.events.groundEquipment=[{equipmentId:'ground',type:'bicycle',regionId:'c',spawnedYear:1,spawnedSeason:'spring'}];state.events.temporaryBusEdges=[edge('a','c')];
+    state.board.regionControl.c.controllerWardId=R;state.board.regionControl.c.supplyCenterOwnerWardId=G;
     const moved=move(map,state,[{type:'move',unitId:'b',destination:'a'},{type:'support-move',unitId:'s',targetUnitId:'b',destination:'a'}]);
-    const s=ok(adjudicateGameRetreats(map,moved,[{type:'retreat',unitId:'r',destination:'c'}]));expect(s.events.inventory[0].ownerWardId).toBe(R);expect(s.board.regionControl.c.controllerWardId).toBe(G);
+    const s=ok(adjudicateGameRetreats(map,moved,[{type:'retreat',unitId:'r',destination:'c'}]));expect(s.events.inventory[0].ownerWardId).toBe(R);expect(s.board.regionControl.c).toMatchObject({controllerWardId:R,supplyCenterOwnerWardId:G});
   });
 });
