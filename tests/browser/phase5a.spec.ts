@@ -101,9 +101,19 @@ test('3人の招待・初期表示・シナリオ・地図命令・ready・1920/
     const legal = await pages[0].locator('.legal-target').evaluateAll(elements => elements.map(e => e.getAttribute('data-region-id'))); expect(legal.sort()).toEqual([...map.adjacency[starts[0].regionId]].sort());
     await pages[0].locator(`[data-region-id="${destination.regionId}"]`).press('Enter'); await expect(pages[0].locator('.move-line')).toHaveCount(1); await expect(pages[1].locator('.move-line')).toHaveCount(0);
     await pages[0].locator(`[data-marker-region="${helper.regionId}"]`).press('Enter'); await pages[0].getByRole('button', { name: '支援', exact: true }).click();
-    await expect(pages[0].locator(`[data-region-id="${starts[1].regionId}"]`)).toHaveClass(/legal-target/); await pages[0].locator(`[data-marker-region="${starts[1].regionId}"]`).press('Enter'); await pages[0].getByRole('button',{name:'この軍の現在地を守る',exact:true}).click();await expect(pages[0].getByLabel('選択軍の操作')).toContainText('現在地で支援');
+    await expect(pages[0].locator(`[data-region-id="${starts[1].regionId}"]`)).toHaveClass(/legal-target/); await pages[0].locator(`[data-marker-region="${starts[1].regionId}"]`).press('Enter');
+    const holdSupport=pages[0].getByRole('button',{name:`${starts[1].name}を現在地で支援`,exact:true});
+    const camera=await pages[0].locator('svg.map').getAttribute('viewBox');
+    await holdSupport.hover();await expect(pages[0].locator('[data-command-role="origin"]')).toHaveAttribute('data-command-region',starts[1].regionId);
+    expect(await pages[0].locator('svg.map').getAttribute('viewBox')).toBe(camera);await expect(pages[0].locator('.support-line')).toHaveCount(0);
+    await pages[0].mouse.move(0,0);await expect(pages[0].locator('[data-command-role="origin"]')).toHaveCount(0);
+    await holdSupport.focus();await expect(pages[0].locator('[data-command-role="origin"]')).toHaveAttribute('data-command-region',starts[1].regionId);
+    await holdSupport.click();await expect(pages[0].getByLabel('選択軍の操作')).toContainText('現在地で支援');
     await pages[0].getByRole('button', { name: '支援', exact: true }).click();
-    await pages[0].locator(`[data-marker-region="${starts[0].regionId}"]`).press('Enter');await pages[0].getByRole('button',{name:'この軍の移動を支援する',exact:true}).click(); await expect(pages[0].locator(`[data-region-id="${destination.regionId}"]`)).toHaveClass(/legal-target/); await pages[0].locator(`[data-region-id="${destination.regionId}"]`).press('Enter'); await expect(pages[0].locator('.support-line')).toHaveCount(1);
+    await expect(pages[0].locator(`[data-region-id="${destination.regionId}"]`)).toHaveClass(/legal-target/);await pages[0].locator(`[data-region-id="${destination.regionId}"]`).press('Enter');
+    const moveSupport=pages[0].getByRole('button',{name:`${starts[0].name} → ${destination.name}への移動を支援`,exact:true});
+    await moveSupport.focus();await expect(pages[0].locator('[data-command-role="origin"]')).toHaveAttribute('data-command-region',starts[0].regionId);await expect(pages[0].locator('[data-command-role="destination"]')).toHaveAttribute('data-command-region',destination.regionId);
+    await moveSupport.click();await expect(pages[0].locator('.support-line')).toHaveCount(1);await expect(pages[0].locator('[data-command-role="origin"]')).toHaveCount(0);
     for (const viewport of [{ width: 1920, height: 1080 }, { width: 1280, height: 720 }]) {
       await pages[0].setViewportSize(viewport); const mapBox = await pages[0].locator('svg.map').boundingBox(), submit = await pages[0].getByRole('button', { name: '命令書を確定', exact: true }).boundingBox();
       expect(mapBox!.width).toBeGreaterThan(viewport.width * 0.5); expect(mapBox!.height).toBeGreaterThan(190); expect(submit!.y + submit!.height).toBeLessThanOrEqual(viewport.height);

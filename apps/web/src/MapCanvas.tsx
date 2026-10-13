@@ -10,7 +10,7 @@ import { layoutMarkers, markerPixels } from './marker-layout';
 import type { Unit } from '../../../packages/rules-core/model';
 import type { PublicEvents } from '../../../packages/shared/events';
 import type { ResolvedPublicOrder as Order } from '../../../packages/game-core/model';
-import { describeOrder } from './BottomActionBar';
+import { describeOrder, type CommandPreview } from './BottomActionBar';
 import { SupplyCenterMarker, ArmyMarker } from './MapMarkers';
 import type { EventFocus } from './EventsPanel';
 import { presentationPosition,presentationSettings,type Presentation } from './AdjudicationPresentation';
@@ -37,9 +37,10 @@ interface Props {
   feedback?:BoardFeedback;acceptedOrder?:{key:number;order:GameOrder}|null;
   retreatUnits?:Unit[];historyUnits?:Unit[];
   readOnly?:boolean;
+  commandPreview?:CommandPreview;
 }
 const defaultView = { x: 0, y: 0, width: 1000, height: 800 };
-export function MapCanvas({ dataset, config, result, selected, onSelect:handleSelect, ward, busy, preview, anchorMode, onAnchor, obstacleDraft = [], orders = [], orderUnits = [],events, legalTargetIds = [], playerFacing = false,currentPlayerWardId,onRightClick,previewNext=false,secondaryTargetIds,eventFocus,eventHighlight=[],presentation,feedback,acceptedOrder,retreatUnits=[],historyUnits,readOnly=false }: Props) {
+export function MapCanvas({ dataset, config, result, selected, onSelect:handleSelect, ward, busy, preview, anchorMode, onAnchor, obstacleDraft = [], orders = [], orderUnits = [],events, legalTargetIds = [], playerFacing = false,currentPlayerWardId,onRightClick,previewNext=false,secondaryTargetIds,eventFocus,eventHighlight=[],presentation,feedback,acceptedOrder,retreatUnits=[],historyUnits,readOnly=false,commandPreview }: Props) {
   const onSelect=useCallback((id:string)=>{if(!presentation?.active&&!readOnly)handleSelect(id);},[handleSelect,presentation?.active,readOnly]);
   const [acceptedRegion,setAcceptedRegion]=useState<string|null>(null);
   useEffect(()=>{const order=acceptedOrder?.order;if(!order){setAcceptedRegion(null);return;}const id='destination'in order?order.destination:order.type==='deploy-barricade'?order.targetRegionId:orderUnits.find(u=>u.unitId===order.unitId)?.regionId;setAcceptedRegion(id??null);const timer=setTimeout(()=>setAcceptedRegion(null),uiMotion.feedback);return()=>clearTimeout(timer);},[acceptedOrder?.key]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -249,6 +250,14 @@ export function MapCanvas({ dataset, config, result, selected, onSelect:handleSe
       {playerFacing&&<TerrainBackdrop playablePaths={terrainPaths} view={view} unitsPerPixel={unitsPerPixel} />}
       {playerFacing&&dataset.kind==='kyoto-kml'&&<KyotoGeography project={projection.project} scale={unitsPerPixel}/>}
       {regionElements}
+      {commandPreview&&[commandPreview.origin,commandPreview.destination].map((id,index)=>{
+        const r=rendered.find(r=>r.regionId===id);if(!r?.center)return null;
+        const color=index?'#147c9f':'#a43e87';
+        return <g key={`${index}-${id}`} data-command-region={id} data-command-role={index?'destination':'origin'} className={`command-preview command-${index?'destination':'origin'}`} pointerEvents="none">
+          <path d={r.path} fill={color} fillOpacity=".2" stroke={color} strokeWidth="3" strokeDasharray={index?'6 4':undefined} vectorEffect="non-scaling-stroke"/>
+          <g transform={`translate(${r.center.join(' ')}) scale(${unitsPerPixel})`}><circle r="23" fill="none" stroke={color} strokeWidth="3"/><text y="-29" textAnchor="middle" fontSize="13" className="region-marker-label">{commandPreview.kind==='support'?index?'支援移動先':'支援対象':'封鎖候補'}</text></g>
+        </g>;
+      })}
       {presentation?.group&&<g className="playback-focus" pointerEvents="none">{presentation.group.regionIds.map(id=>{const r=rendered.find(r=>r.regionId===id);return r?<path key={id} d={r.path} fill="#fff3b6" fillOpacity=".18" stroke="#bb8647" strokeWidth="2" vectorEffect="non-scaling-stroke"/>:null;})}</g>}
       {config.obstacles.map(o => <g key={o.id} data-obstacle-id={o.id}>
         <path d={projection.path(o.geometry)} fill="#354640" fillOpacity="0.6" stroke="#263b34"

@@ -11,3 +11,8 @@
 .playback-focus path { stroke-linejoin:round; }
 .board-first .left-hud, .board-first .right-hud { top:88px; }
 @media(max-width:720px){ .operation-reveal{max-height:190px;overflow:auto;} .turn-history small{display:none;} }
+
+.support-candidate { display:inline-flex; gap:.25rem; flex-wrap:wrap; }
+.command-origin circle { animation:command-location-pulse 1.2s ease-in-out infinite; }
+@keyframes command-location-pulse { 50% { stroke-width:5; opacity:.65; } }
+@media (prefers-reduced-motion: reduce) { .command-origin circle { animation:none; } }
