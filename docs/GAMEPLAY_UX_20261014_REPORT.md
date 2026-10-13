@@ -26,6 +26,15 @@
 - 変更: rules-core/retreat.ts、game-core/equipment-orders.ts・session.ts・game.test.ts・events.test.ts、online-core/room-manager.ts、territorial-retreat.test.ts（game/online）、tests/gameplay-fixture.ts、App・OnlineGame・GameSessionPanel・BottomActionBar・MapCanvas。
 - 検証: 関連5ファイル124テスト成功、型チェック成功。UI統合はPhase 5で確認。
 
-## Phase 3〜5
+## Phase 3
+
+- 監査: 出現は非SC空地、取得は関連撤退解決後。候補と完全命令検証は同じ恒久辺・予約・safeRemoval条件を使用。設置はHoldとして防御し排除時失敗。成功時消費・pendingへ追加、次移動季節から4季節、毎撤退解決で期間減少。公開eventsと本人reservationsが復帰で復元。ルール不整合は確認されず、コアの設置ルールは変更なし。
+- 原因: 装備なしはボタンが消え、不可理由がなく、地図クリックだけで即登録していた。通常プレイヤーの失敗表示も原因を省略。
+- BottomActionBar: 装備なし・別軍予約・安全な辺なしの理由。地図または候補ボタンで選択→2地域と辺をプレビュー→明示登録。ホバー／フォーカスでも辺を強調。成功は裁定時、次季節から4季節・消費を説明。
+- MapCanvas / App / OnlineGame: 地域・辺プレビューを接続。既存の封鎖と残り期間表示は維持。公開裁定で設置成功・失敗理由を表示。
+- テスト: 全候補と完全検証の一致、橋・重複・予約の除外、本人予約の再接続保持を追加。
+- 検証: 関連4ファイル48テスト成功、型チェック成功。UI統合はPhase 5。
+
+## Phase 4〜5
 
 未着手。

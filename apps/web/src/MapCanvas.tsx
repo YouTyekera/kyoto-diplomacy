@@ -38,9 +38,10 @@ interface Props {
   retreatUnits?:Unit[];historyUnits?:Unit[];
   readOnly?:boolean;
   commandPreview?:CommandPreview;
+  onRegionHover?:(id:string|null)=>void;
 }
 const defaultView = { x: 0, y: 0, width: 1000, height: 800 };
-export function MapCanvas({ dataset, config, result, selected, onSelect:handleSelect, ward, busy, preview, anchorMode, onAnchor, obstacleDraft = [], orders = [], orderUnits = [],events, legalTargetIds = [], playerFacing = false,currentPlayerWardId,onRightClick,previewNext=false,secondaryTargetIds,eventFocus,eventHighlight=[],presentation,feedback,acceptedOrder,retreatUnits=[],historyUnits,readOnly=false,commandPreview }: Props) {
+export function MapCanvas({ dataset, config, result, selected, onSelect:handleSelect, ward, busy, preview, anchorMode, onAnchor, obstacleDraft = [], orders = [], orderUnits = [],events, legalTargetIds = [], playerFacing = false,currentPlayerWardId,onRightClick,previewNext=false,secondaryTargetIds,eventFocus,eventHighlight=[],presentation,feedback,acceptedOrder,retreatUnits=[],historyUnits,readOnly=false,commandPreview,onRegionHover }: Props) {
   const onSelect=useCallback((id:string)=>{if(!presentation?.active&&!readOnly)handleSelect(id);},[handleSelect,presentation?.active,readOnly]);
   const [acceptedRegion,setAcceptedRegion]=useState<string|null>(null);
   useEffect(()=>{const order=acceptedOrder?.order;if(!order){setAcceptedRegion(null);return;}const id='destination'in order?order.destination:order.type==='deploy-barricade'?order.targetRegionId:orderUnits.find(u=>u.unitId===order.unitId)?.regionId;setAcceptedRegion(id??null);const timer=setTimeout(()=>setAcceptedRegion(null),uiMotion.feedback);return()=>clearTimeout(timer);},[acceptedOrder?.key]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -211,14 +212,15 @@ export function MapCanvas({ dataset, config, result, selected, onSelect:handleSe
             className={`region ${settings?.enabled ? 'playable-region' : 'excluded-region'} ${isSelected ? 'selected' : ''} ${hoveredId === r.regionId ? 'hovered' : ''} ${!playerFacing && neighbors.has(r.regionId) ? 'neighbor' : ''} ${legalSet.has(r.regionId) ? 'legal-target' : ''} ${secondarySet.has(r.regionId)&&(!!secondaryTargetIds||!legalSet.has(r.regionId))?'secondary-target':''} ${focusedIds.has(r.regionId)?'event-highlight':''} ${pulse.includes(r.regionId)?'event-pulse':''} ${acceptedRegion===r.regionId?'order-accepted-pulse':''} ${impactStandoffs?.includes(r.regionId)?'standoff-flash':''}`}
             opacity={ward === 'all' || ward === (preview ? control?.controllerWardId : r.wardId) ? 1 : 0.35}
             role="button" tabIndex={0} aria-label={`${r.name} (${WARDS.find(w => w.id === r.wardId)!.name})`}
-            onMouseEnter={() => { setHoveredId(r.regionId); setHover(`${r.name} · ${preview ? `現在支配: ${nameOf(control?.controllerWardId)}` : WARDS.find(w => w.id === r.wardId)!.name} · ${settings?.enabled ? '採用' : '除外'}`); }}
-            onMouseLeave={() => { setHover(''); setHoveredId(null); }}
+            onMouseEnter={() => { setHoveredId(r.regionId); onRegionHover?.(r.regionId); setHover(`${r.name} · ${preview ? `現在支配: ${nameOf(control?.controllerWardId)}` : WARDS.find(w => w.id === r.wardId)!.name} · ${settings?.enabled ? '採用' : '除外'}`); }}
+            onMouseLeave={() => { setHover(''); setHoveredId(null);onRegionHover?.(null); }}
+            onFocus={()=>onRegionHover?.(r.regionId)} onBlur={()=>onRegionHover?.(null)}
             onClick={() => { if (!suppressClick.current && !anchorMode) onSelect(r.regionId); }}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(r.regionId); } }}>
             <title>{r.name} ({WARDS.find(w => w.id === r.wardId)!.name})</title>
           </path>
         </g>;
-      }),[rendered,config,selected,preview,ward,hoveredId,playerFacing,neighbors,legalSet,secondarySet,secondaryTargetIds,focusedIds,pulse,acceptedRegion,impactStandoffs,anchorMode,onSelect]);
+      }),[rendered,config,selected,preview,ward,hoveredId,playerFacing,neighbors,legalSet,secondarySet,secondaryTargetIds,focusedIds,pulse,acceptedRegion,impactStandoffs,anchorMode,onSelect,onRegionHover]);
   const inspected=rendered.find(r=>r.regionId===(hoveredId??selected));
   function resetCamera(){
     if(!playerFacing){setFitMode(null);setView(defaultView);return;}
@@ -250,12 +252,16 @@ export function MapCanvas({ dataset, config, result, selected, onSelect:handleSe
       {playerFacing&&<TerrainBackdrop playablePaths={terrainPaths} view={view} unitsPerPixel={unitsPerPixel} />}
       {playerFacing&&dataset.kind==='kyoto-kml'&&<KyotoGeography project={projection.project} scale={unitsPerPixel}/>}
       {regionElements}
+      {commandPreview?.kind==='barricade'&&(()=>{
+        const a=rendered.find(r=>r.regionId===commandPreview.origin)?.center,b=rendered.find(r=>r.regionId===commandPreview.destination)?.center;if(!a||!b)return null;
+        return <g data-command-edge="barricade" data-edge-a={commandPreview.origin} data-edge-b={commandPreview.destination} pointerEvents="none"><line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke="#8c3d42" strokeWidth="5" strokeDasharray="6 3" vectorEffect="non-scaling-stroke"/><circle cx={(a[0]+b[0])/2} cy={(a[1]+b[1])/2} r={9*unitsPerPixel} fill="#fff5df" stroke="#8c3d42" strokeWidth="3" vectorEffect="non-scaling-stroke"/></g>;
+      })()}
       {commandPreview&&[commandPreview.origin,commandPreview.destination].map((id,index)=>{
         const r=rendered.find(r=>r.regionId===id);if(!r?.center)return null;
         const color=index?'#147c9f':'#a43e87';
         return <g key={`${index}-${id}`} data-command-region={id} data-command-role={index?'destination':'origin'} className={`command-preview command-${index?'destination':'origin'}`} pointerEvents="none">
           <path d={r.path} fill={color} fillOpacity=".2" stroke={color} strokeWidth="3" strokeDasharray={index?'6 4':undefined} vectorEffect="non-scaling-stroke"/>
-          <g transform={`translate(${r.center.join(' ')}) scale(${unitsPerPixel})`}><circle r="23" fill="none" stroke={color} strokeWidth="3"/><text y="-29" textAnchor="middle" fontSize="13" className="region-marker-label">{commandPreview.kind==='support'?index?'支援移動先':'支援対象':commandPreview.kind==='retreat'?'選択中の撤退軍':'封鎖候補'}</text></g>
+          <g transform={`translate(${r.center.join(' ')}) scale(${unitsPerPixel})`}><circle r="23" fill="none" stroke={color} strokeWidth="3"/><text y="-29" textAnchor="middle" fontSize="13" className="region-marker-label">{commandPreview.kind==='support'?index?'支援移動先':'支援対象':commandPreview.kind==='retreat'?'選択中の撤退軍':index?'封鎖先':'設置元'}</text></g>
         </g>;
       })}
       {presentation?.group&&<g className="playback-focus" pointerEvents="none">{presentation.group.regionIds.map(id=>{const r=rendered.find(r=>r.regionId===id);return r?<path key={id} d={r.path} fill="#fff3b6" fillOpacity=".18" stroke="#bb8647" strokeWidth="2" vectorEffect="non-scaling-stroke"/>:null;})}</g>}
@@ -293,7 +299,7 @@ export function MapCanvas({ dataset, config, result, selected, onSelect:handleSe
       <g className="supply-layer">
       {markerItems.filter(item => item.settings.isSupplyCenter).map(({ marker, r, owner, active, title }) => <g key={r.regionId}
         className={`supply-region-marker ${active ? 'marker-active' : ''} ${feedback?.captured.includes(r.regionId)?'sc-captured':''}`} data-supply-region={r.regionId} role="button" tabIndex={0} aria-label={title}
-        onMouseEnter={() => { setHoveredId(r.regionId); setHover(title); }} onMouseLeave={() => { setHoveredId(null); setHover(''); }}
+        onMouseEnter={() => { setHoveredId(r.regionId); onRegionHover?.(r.regionId); setHover(title); }} onMouseLeave={() => { setHoveredId(null); onRegionHover?.(null); setHover(''); }}
         onClick={() => { if (!suppressClick.current && !anchorMode) onSelect(r.regionId); }} onKeyDown={e => { if (e.key === 'Enter') onSelect(r.regionId); }}>
         <title>{title}</title><g transform={`translate(${marker.x} ${marker.y}) scale(${tokenScale})`}><circle className="supply-hit-target" r={Math.max(8.5,10*unitsPerPixel/tokenScale)} fill="transparent" stroke="none" pointerEvents="all" /><circle className="supply-selection-ring" cx="0" cy="0" r="8.5" fill="none" stroke="#287f96" strokeWidth="1.3" vectorEffect="non-scaling-stroke" pointerEvents="none" /><SupplyCenterMarker owner={owner} preview={!!preview} neutralScale={playerFacing?neutralSupplyScale(view.width,playableView.width):1} /></g>
       </g>)}
@@ -306,7 +312,7 @@ export function MapCanvas({ dataset, config, result, selected, onSelect:handleSe
       }) : markerItems.map(({ marker, r, unitOwner, unitName, active, title }) => {
         return <g key={r.regionId} className={`region-marker ${active ? 'marker-active' : ''} ${legalSet.has(r.regionId)?'legal-unit':''} ${selected===r.regionId&&unitOwner?'selected-army':''} ${feedback?.built.includes(preview?.units.find(u=>u.regionId===r.regionId)?.unitId??'')?'army-built':''}`} data-marker-region={r.regionId}
           data-anchor={r.displayAnchor?.join(',')} role="button" tabIndex={0} aria-label={title}
-          onMouseEnter={() => { setHoveredId(r.regionId); setHover(title); }} onMouseLeave={() => { setHoveredId(null); setHover(''); }}
+          onMouseEnter={() => { setHoveredId(r.regionId); onRegionHover?.(r.regionId); setHover(title); }} onMouseLeave={() => { setHoveredId(null); onRegionHover?.(null); setHover(''); }}
           onClick={() => { if (!suppressClick.current && !anchorMode) onSelect(r.regionId); }}
           onKeyDown={e => { if (e.key === 'Enter') onSelect(r.regionId); }}>
           <title>{title}</title>
