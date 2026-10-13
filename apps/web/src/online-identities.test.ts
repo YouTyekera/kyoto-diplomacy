@@ -17,6 +17,13 @@ it('kick/leave削除は該当playerだけを削除し、同Roomの別tab/player�
  const local=new MemoryStorage(),tab=new MemoryStorage(),store=new OnlineIdentities(local,tab);store.remember(a,'A');store.remember(b,'B');store.remove(b);expect(store.active()).toBeNull();expect(store.list().map(i=>i.playerId)).toEqual(['host']);expect(new OnlineIdentities(local,new MemoryStorage()).list()).toHaveLength(1);
 });
 it('別tabへの移動ではactive参照だけを消し、復帰用履歴は維持',()=>{const store=new OnlineIdentities(new MemoryStorage(),new MemoryStorage());store.remember(a,'A');store.clearActive();expect(store.active()).toBeNull();expect(store.list()).toHaveLength(1);});
+it('終了画面を離れて新規作成しても旧履歴を保持し、選んだ以前のゲームへ復帰できる',()=>{
+ const local=new MemoryStorage(),tab=new MemoryStorage(),store=new OnlineIdentities(local,tab),newGame={...b,roomCode:'DEF234'};
+ store.remember(a,'以前のゲーム');const previous=store.list()[0];store.clearActive();
+ expect(new OnlineIdentities(local,tab).active()).toBeNull();expect(store.list()).toEqual([previous]);
+ store.remember(newGame,'新しいゲーム');expect(store.active()).toEqual(newGame);expect(store.list()).toHaveLength(2);
+ store.remember(a,'以前のゲーム');expect(store.active()).toEqual(a);expect(store.list()).toHaveLength(2);
+});
 it('別tabの更新・破損entry・旧arrayの移行でも他identityを上書きしない',()=>{
  const local=new MemoryStorage(),tab=new MemoryStorage(),host=new OnlineIdentities(local,tab),guest=new OnlineIdentities(local,new MemoryStorage());
  local.setItem(historyKey,JSON.stringify([{...a,nickname:'旧A',updatedAt:1}]));expect(host.list()[0].nickname).toBe('旧A');expect(local.getItem(historyKey)).toBeNull();

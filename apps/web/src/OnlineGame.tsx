@@ -43,6 +43,11 @@ export function OnlineGame({ dataset, config, onBack, developer = false }: { dat
   const roomLocked=!online.roomSessionReady;
   const saved=online.savedIdentities.filter(i=>!code||i.roomCode===code.trim().toUpperCase());
   const chooseIdentity=!online.hasCredentials&&saved.length>0&&!newParticipant;
+  function back(){online.leaveScreen();onBack();}
+  function newGame(){
+    const url=new URL(window.location.href);url.searchParams.delete('room');window.history.replaceState(window.history.state,'',url);
+    setCode('');setNewParticipant(true);online.retry();
+  }
   useEffect(() => {
     if(!room||room.hostId!==self?.playerId)return;
     if(submittedYears!==undefined){if(room.scenario.maxYears===(submittedYears??defaultGameSettings.maxYears)){setSubmittedYears(undefined);setEditingYears(false);}return;}
@@ -76,7 +81,7 @@ export function OnlineGame({ dataset, config, onBack, developer = false }: { dat
   const displayDataset: RegionDataset = useMemo(() => map ? { version: 1, kind: dataset.kind, regions: map.regions.map(r => ({ regionId: r.regionId, wardId: r.wardId, sourceAreaNumber: r.sourceAreaNumber, name: r.name, geometry: r.geometry, source: r.source })) } : dataset, [map, dataset]);
   const displayConfig: MapConfig = useMemo(() => map ? { ...createConfig(displayDataset), mapId: map.mapId, obstacles: map.obstacles, regions: Object.fromEntries(map.regions.map(r => [r.regionId, { enabled: r.enabled, isSupplyCenter: r.isSupplyCenter, homeWardId: r.homeWardId, startingUnit: r.startingUnit, displayAnchorOverride: r.displayAnchorOverride }])) } : config, [map, displayDataset, config]);
   return <section className="online-shell">
-    {!game && <div className="player-page-heading"><button onClick={onBack}>{developer ? '地図エディタへ戻る' : 'トップへ戻る'}</button><ConnectionScope /><AudioSettings compact /></div>}
+    {!game && <div className="player-page-heading"><button onClick={back}>{developer ? '地図エディタへ戻る' : 'トップへ戻る'}</button><ConnectionScope /><AudioSettings compact /></div>}
     {(!game||!online.connected)&&<ConnectionStatus state={room&&!online.roomSessionReady&&online.connectionState==='online'?'restoring':online.connectionState} error={online.configurationError} retry={online.retry} />}
     {room&&!online.roomSessionReady&&online.connectionState==='unavailable'&&<button onClick={online.forget}>保存した参加情報を消す</button>}
     {!game&&room&&online.roomSessionReady&&!room.players.find(p=>p.playerId===room.hostId)?.connected&&<HostReconnectNotice deadline={room.hostReconnectDeadline}/>}
@@ -86,7 +91,7 @@ export function OnlineGame({ dataset, config, onBack, developer = false }: { dat
     {!room ? <div className="online-entry"><h1>オンライン対戦</h1><p>3～11人で同時に命令を出します。標準シナリオですぐに始められます。カスタムJSONはロビーで読み込めます。</p>
       {code && <p>ルーム {code} への招待です。</p>}
       <label>ルームコード<input aria-label="参加ルームコード" maxLength={6} value={code} onChange={e => setCode(e.target.value.toUpperCase())} /></label>
-      {chooseIdentity?<section aria-label="保存した参加者から復帰"><h2>{saved.length>1?'どの参加者として復帰しますか？':'この端末の参加履歴'}</h2>{saved.map(identity=><div key={`${identity.roomCode}:${identity.playerId}`}><button disabled={!online.transportConnected||online.pending} onClick={()=>online.restore(identity)}>{identity.nickname}として復帰</button><small> · {!code&&`ルーム ${identity.roomCode} · `}最後の参加: {new Date(identity.updatedAt).toLocaleString('ja-JP')}</small></div>)}<button onClick={()=>setNewParticipant(true)}>別の参加者として入る</button></section>:<>
+      {chooseIdentity?<section aria-label="保存した参加者から復帰"><h2>前のゲームへ戻る</h2><p>保存した参加者を選んで復帰できます。終了済みなら結果を表示します。</p>{saved.map(identity=><div key={`${identity.roomCode}:${identity.playerId}`}><button disabled={!online.transportConnected||online.pending} onClick={()=>online.restore(identity)}>{identity.nickname}として復帰</button><small> · {!code&&`ルーム ${identity.roomCode} · `}最後の参加: {new Date(identity.updatedAt).toLocaleString('ja-JP')}</small></div>)}<button disabled={online.pending} onClick={newGame}>新しいゲームを作る</button><button onClick={()=>setNewParticipant(true)}>別の参加者として入る</button></section>:<>
       {!online.hasCredentials&&saved.length>0&&<button onClick={()=>setNewParticipant(false)}>保存した参加者から復帰する</button>}
       <label>ニックネーム<input autoFocus aria-label="オンラインニックネーム" maxLength={32} value={nickname} onChange={e => setNickname(e.target.value)} /></label>
       <label>希望区（保証なし）<select aria-label="オンライン希望区" value={preferred} onChange={e => setPreferred(e.target.value as WardId | '')}><option value="">希望なし</option>{WARDS.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
@@ -94,7 +99,7 @@ export function OnlineGame({ dataset, config, onBack, developer = false }: { dat
       <button disabled={!online.connected || online.pending || !nickname.trim() || online.hasCredentials} onClick={() => void online.request({ action: 'create', nickname, preferredWardId: preferred || null, datasetKind: dataset.kind, ...(developer?{config}:{scenario:'standard' as const}) })}>ルームを作成</button></div></>}
       {online.hasCredentials && <><p>保存した参加情報で復帰を試みています。サーバー再起動でルームがなくなった場合は参加情報を消して作り直してください。</p><button onClick={online.forget}>保存した参加情報を消す</button></>}
       <p className="hint">同じPCで試す場合は新規タブを開いてください。同じタブの再読み込みで本人として復帰できます。</p>
-    </div> : game && map ? <OnlineMatch key={online.presentationEpoch} room={room} game={game} self={self} dataset={displayDataset} config={displayConfig} developer={developer} pending={online.blockingPending||!online.roomSessionReady} sessionReady={online.roomSessionReady} request={online.request} onDownload={() => void downloadLog()} onBack={onBack} /> : <>
+    </div> : game && map ? <OnlineMatch key={online.presentationEpoch} room={room} game={game} self={self} dataset={displayDataset} config={displayConfig} developer={developer} pending={online.blockingPending||!online.roomSessionReady} sessionReady={online.roomSessionReady} request={online.request} onDownload={() => void downloadLog()} onBack={back} /> : <>
       <RoomCard room={room} years={room.hostId === self?.playerId ? yearLimit || room.scenario.maxYears : room.scenario.maxYears} target={room.players.length >= 3 ? victoryTarget(room.players.length) : '3人参加後に計算'} />
       <div className="lobby-layout"><main className="lobby-setup"><h2>開始の準備</h2>
         <section aria-label="シナリオ検証"><h3>{room.scenario.source==='standard'?'標準シナリオ':room.scenario.source==='custom'?'カスタムシナリオ':room.scenario.scenarioName}</h3><p>{room.scenario.source==='standard'?'標準シナリオを選択済みです。ファイルの読み込みは不要です。':room.scenario.loaded ? 'カスタムJSON読込済み' : '保存JSON未読込・作成時のエディタ設定'}</p>

@@ -156,6 +156,18 @@ test('Game OverでresultのBGM contextへ切替・再接続でも結果を保持
     await finalize(pages); await finalize(pages);
     for (const page of pages) { await expect(page.getByRole('heading', { name: '共同勝利', exact: true })).toBeVisible(); await expect(page.locator('html')).toHaveAttribute('data-bgm-context', 'result'); }
     await pages[1].reload(); await expect(pages[1].locator('html')).toHaveAttribute('data-bgm-context', 'result'); await expect(pages[1].getByRole('table', { name: '最終順位' })).toBeVisible();
+    const page=pages[0],standings=await page.getByRole('table',{name:'最終順位'}).innerText();
+    const oldEntries=await page.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('kyoto-online-identities-v1:')));
+    await page.getByRole('button',{name:'トップへ戻る',exact:true}).click();await page.getByRole('button',{name:'オンライン対戦',exact:true}).click();
+    await expect(page.getByRole('heading',{name:'前のゲームへ戻る',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'新しいゲームを作る',exact:true})).toBeVisible();
+    await page.getByRole('button',{name:'Result0として復帰',exact:true}).click();await expect(page.getByRole('table',{name:'最終順位'})).toHaveText(standings,{useInnerText:true});
+    await page.evaluate(room=>{const url=new URL(location.href);url.searchParams.set('room',room);history.replaceState(null,'',url);},code);
+    await page.getByRole('button',{name:'トップへ戻る',exact:true}).click();await page.getByRole('button',{name:'オンライン対戦',exact:true}).click();await page.getByRole('button',{name:'新しいゲームを作る',exact:true}).click();
+    await expect(page.getByLabel('参加ルームコード')).toHaveValue('');expect(new URL(page.url()).searchParams.has('room')).toBe(false);
+    await page.getByLabel('オンラインニックネーム').fill('Rematch');await page.getByRole('button',{name:'ルームを作成',exact:true}).click();
+    await expect(page.getByTestId('room-code')).not.toHaveText(code);await expect(page.getByLabel('ゲーム終了結果')).toHaveCount(0);
+    const entries=await page.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('kyoto-online-identities-v1:')));expect(entries).toHaveLength(oldEntries.length+1);for(const entry of oldEntries)expect(entries).toContain(entry);
+    await page.reload();await expect(page.getByTestId('room-code')).not.toHaveText(code);await expect(page.getByLabel('ゲーム終了結果')).toHaveCount(0);
   } finally { await Promise.all(contexts.map(c => c.close().catch(() => {}))); }
 });
 
