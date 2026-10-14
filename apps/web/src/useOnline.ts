@@ -69,7 +69,7 @@ export function useOnline(inviteRoom?:string) {
             const response=responseSchema.parse(raw);
             if(!response.ok){
               const lost=credentials.current;
-              if(lost){history.remove(lost);history.clearActive();credentials.current=null;setSavedIdentities(history.list());}
+              if(lost){history.clearActive();credentials.current=null;setSavedIdentities(history.list());}
               latestPublic.current=null;setPublicView(null);setPrivateView(null);
               gate.invalidate();sync();
               setSessionNotice('保存したルームに復帰できません。ルームが消えた場合は、新しいルームを作成してください。');
@@ -165,6 +165,8 @@ export function useOnline(inviteRoom?:string) {
   function retry(){setErrors([]);session.current.invalidate();sync();inflight.current=0;blockingInflight.current=0;setPending(false);setBlockingPending(false);socket.current?.disconnect();recovery.current?.start(true);}
   function forget(){if(credentials.current)history.remove(credentials.current);history.clearActive();credentials.current=null;setSavedIdentities(history.list());setPublicView(null);setPrivateView(null);latestPublic.current=null;retry();}
   function restore(identity:SavedIdentity){if(publicView||credentials.current)return;credentials.current=identityCredentials(identity);remember(credentials.current,identity.nickname);setSessionNotice('');retry();}
+  // Leaving a finished screen suspends only this tab's automatic resume, never its history or server room.
+  function leaveScreen(){if(publicView?.game?.status==='finished')history.clearActive();}
   const connected=state.transportConnected&&(!credentials.current||state.roomSessionReady);
-  return {publicView,privateView,...state,connected,pending,blockingPending,errors,request,forget,retry,restore,savedIdentities,sessionNotice,connectionState,networkEvents,configurationError:target.error,presentationEpoch,hasCredentials:!!credentials.current};
+  return {publicView,privateView,...state,connected,pending,blockingPending,errors,request,forget,retry,restore,leaveScreen,savedIdentities,sessionNotice,connectionState,networkEvents,configurationError:target.error,presentationEpoch,hasCredentials:!!credentials.current};
 }

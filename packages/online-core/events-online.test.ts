@@ -45,6 +45,9 @@ describe('オンライン公開イベント・秘密の装備予約',()=>{
     const {manager,room,submit,credentials}=setup(false);room.game!.state.events.inventory=[{equipmentId:'private-wall',type:'barricade',ownerWardId:'26101'}];
     const order:GameOrder={type:'deploy-barricade',unitId:'initial-sample-a',targetRegionId:'sample-b',equipmentId:'private-wall'};ok(submit(0,[order]));
     expect(JSON.stringify(serializePublicState(manager,room))).not.toContain('private-wall');expect(serializePrivateState(manager,room,room.players.get(credentials[0].playerId)!).orders).toEqual([order]);
+    manager.disconnect('s0');ok(manager.request('s0',{action:'reconnect',...credentials[0]}));
+    const restored=serializePrivateState(manager,room,room.players.get(credentials[0].playerId)!);
+    expect(restored.orders).toEqual([order]);expect(restored.reservations).toEqual([{equipmentId:'private-wall',unitId:order.unitId,type:'barricade'}]);expect(restored.inventory).toHaveLength(1);
     for(let i=0;i<3;i++)ok(submit(i,i===0?[order]:[],true));
     const view=serializePublicState(manager,room);expect(view.game?.events.activeBarricades[0]).toMatchObject({a:'sample-a',b:'sample-b',remainingMovementSeasons:4});expect(view.game?.inventoryCounts['26101'].barricade).toBe(0);
     expect(effectiveMap(room.map,room.game!.state.events).adjacency['sample-a']).not.toContain('sample-b');

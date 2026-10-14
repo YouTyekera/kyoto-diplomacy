@@ -48,14 +48,16 @@ describe('controllerと春秋SC所有',()=>{
     const failed=ok(adjudicateGameOrders(map,blocked,[{type:'move',unitId:'r',destination:b},{type:'hold',unitId:'b'}]));
     expect(failed.board.regionControl[b].controllerWardId).toBe(B);
   });
-  it('Retreatは他勢力controllerを上書きしない',()=>{
+  it('Retreatは自勢力controllerを保持し、補給所有者を上書きしない',()=>{
     const {map,state}=fixture();map.adjacency[c].push(b);map.adjacency[b].push(c);
     state.board.units=[army('r',R,a),army('b',B,b),army('s',R,c)];
+    state.board.regionControl[d].controllerWardId=B;
+    state.board.regionControl[d].supplyCenterOwnerWardId=R;
     const moved=ok(adjudicateGameOrders(map,state,[{type:'move',unitId:'r',destination:b},{type:'hold',unitId:'b'},
       {type:'support-move',unitId:'s',targetUnitId:'r',destination:b}]));
     const next=ok(adjudicateGameRetreats(map,moved,[{type:'retreat',unitId:'b',destination:d}]));
     expect(next.board.units.find(u=>u.unitId==='b')!.regionId).toBe(d);
-    expect(next.board.regionControl[d].controllerWardId).toBe(R);
+    expect(next.board.regionControl[d]).toMatchObject({controllerWardId:B,supplyCenterOwnerWardId:R});
   });
   it.each(['spring','autumn'] as const)('%s SC Updateは移動と撤退後のcontrollerをSC所有に使用する',current=>{
     const {map,state}=fixture();state.season=current;state.board.regionControl[b].controllerWardId=R;

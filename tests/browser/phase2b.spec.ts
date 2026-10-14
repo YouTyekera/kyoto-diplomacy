@@ -82,11 +82,11 @@ test('冬は不足するDisbandを自動選択せず、指定軍を解散して�
   await page.screenshot({path:'test-results/phase2b-winter-disband.png',fullPage:true});
   await next(page);await expect(page.getByTestId('game-phase')).toHaveText('第2年 · 春 · 移動命令');
 });
-test('年間の秘密撤退はcontrollerを更新せず、退却後の春SC更新までSC所有を保持',async({page})=>{
+test('年間の秘密撤退は自軍支配地域に限定し、退却後の春SC更新までSC所有を保持',async({page})=>{
   const config=structuredClone(sampleConfig);config.regions['sample-b'].isSupplyCenter=true;config.adjacencyAdd=[['sample-b','sample-c']];
   for(const [id,owner] of [['sample-a','26101'],['sample-b','26102'],['sample-c','26101']] as const) config.regions[id].startingUnit={ownerWardId:owner,type:'army'};
   await sample(page,config);const preview=await save(page,'Preview JSONを保存');
-  preview.regionControl['sample-b'].controllerWardId='26102';preview.regionControl['sample-b'].supplyCenterOwnerWardId='26102';preview.regionControl['sample-d'].controllerWardId='26101';
+  preview.regionControl['sample-b'].controllerWardId='26102';preview.regionControl['sample-b'].supplyCenterOwnerWardId='26102';preview.regionControl['sample-d'].controllerWardId='26102';
   await page.getByLabel('Preview JSONを読込').setInputFiles({name:'control.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(preview))});
   await start(page);await page.getByLabel('年間進行ユニット').selectOption('preview-sample-a');
   await page.getByLabel('年間命令種別').selectOption('move');await page.getByLabel('年間移動先').selectOption('sample-b');
@@ -102,7 +102,7 @@ test('年間の秘密撤退はcontrollerを更新せず、退却後の春SC更�
   await expect(page.locator('[data-marker-region="sample-d"] .unit-marker')).toHaveCount(0);await expect(page.locator('.order-line')).toHaveCount(0);
   await page.getByRole('button',{name:'年間撤退を同時解決',exact:true}).click();
   await expect(page.locator('[data-marker-region="sample-d"] .unit-marker')).toHaveAttribute('data-unit-owner','26102');
-  await expect(page.locator('[data-region-id="sample-d"]')).toHaveAttribute('data-controller-ward-id','26101');
+  await expect(page.locator('[data-region-id="sample-d"]')).toHaveAttribute('data-controller-ward-id','26102');
   await next(page);await expect(page.getByTestId('game-phase')).toContainText('春 · 補給拠点の所有権更新');await next(page);
   await expect(page.locator('[data-supply-region="sample-b"] .supply-marker')).toHaveAttribute('data-supply-owner','26101');
 });

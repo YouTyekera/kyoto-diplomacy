@@ -29,13 +29,14 @@ interface Props {
   onStart:(state:GameSessionState)=>void;onChange:(state:GameSessionState)=>void;
   onSelectRegion:(id:string)=>void;onOrdersChange:(orders:Order[],units:Unit[])=>void;
   presentationLocked?:boolean;eventLocator?:ReturnType<typeof useEventLocator>;playerFacing?:boolean;commandRef?:RefObject<((order:Order|undefined,removeId?:string)=>void|boolean)|null>;
+  retreatSelection?:string;onRetreatSelection?:(id:string)=>void;
   memoryRef?:RefObject<LocalUiMemory|null>;
   inventoryPulseKey?:number;
 }
 const orderNames=gameOrderNames;
 const phaseNames={orders:'移動命令',retreats:'撤退', 'sc-update':'補給拠点の所有権更新',adjustments:'冬の増減員','end-of-year':'冬後の脱落・年末判定',finished:'終了'};
 const seasonNames={spring:'春',autumn:'秋',winter:'冬'};
-export function GameSessionPanel({map,preview,state,initial,selected,onStart,onChange,onSelectRegion,onOrdersChange,playerFacing=false,presentationLocked=false,eventLocator,commandRef,memoryRef,inventoryPulseKey=0}:Props) {
+export function GameSessionPanel({retreatSelection,onRetreatSelection,map,preview,state,initial,selected,onStart,onChange,onSelectRegion,onOrdersChange,playerFacing=false,presentationLocked=false,eventLocator,commandRef,memoryRef,inventoryPulseKey=0}:Props) {
   const [participants,setParticipants]=useState<WardId[]>(()=>[...new Set(preview.units.map(u=>u.ownerWardId))]);
   const [yearLimit,setYearLimit]=useState(String(defaultGameSettings.maxYears));
   const log=useRef<MatchLog|null>(memoryRef?.current?.log??null);
@@ -86,7 +87,7 @@ export function GameSessionPanel({map,preview,state,initial,selected,onStart,onC
   const unit=state?.board.units.find(u=>u.regionId===selected)??state?.board.units[0];
   const choices=unit&&state?legalGameOrders(map,state,unit.unitId,Object.values(orders)):[];
   const draft:Order|undefined=unit?(orders[unit.unitId]??{type:'hold',unitId:unit.unitId}):undefined;
-  const retreating=state?.movement?.dislodgedUnits.find(d=>d.unit.unitId===retreatId)??state?.movement?.dislodgedUnits[0];
+  const retreating=state?.movement?.dislodgedUnits.find(d=>d.unit.unitId===(retreatSelection??retreatId))??state?.movement?.dislodgedUnits[0];
   const privateOrder=retreating?retreatSubmissions[retreating.unit.unitId]:undefined;
   const activeWard=winterWard||state?.participants[0];
   const budget=state&&activeWard?winterBudget(map,state,activeWard):null;
@@ -133,7 +134,8 @@ export function GameSessionPanel({map,preview,state,initial,selected,onStart,onC
         <h3>撤退 · {state.movement?.dislodgedUnits.length??0}体</h3><p className="retreat-notice">撤退フェイズ中は交渉禁止</p>
         {!state.movement?.dislodgedUnits.length?<p>撤退する軍はありません。</p>:state.retreatResolved?<p>同時撤退の解決済みです。</p>:<>
           <p className="hint">選択軍の入力だけを表示し、他の撤退先は解決まで地図・一覧へ出しません。</p>
-          <label>撤退ユニット<select aria-label="年間撤退ユニット" value={retreating!.unit.unitId} onChange={e=>setRetreatId(e.target.value)}>{state.movement.dislodgedUnits.map(d=><option key={d.unit.unitId} value={d.unit.unitId}>{unitName(d.unit)}</option>)}</select></label>
+          <label>撤退ユニット<select aria-label="年間撤退ユニット" value={retreating!.unit.unitId} onChange={e=>{setRetreatId(e.target.value);onRetreatSelection?.(e.target.value);}}>{state.movement.dislodgedUnits.map(d=><option key={d.unit.unitId} value={d.unit.unitId}>{unitName(d.unit)}</option>)}</select></label>
+          <button onClick={()=>eventLocator?.onLocate([retreating!.unit.regionId])}>撤退軍の位置を見る</button><p>撤退先は自軍が現在支配する地域のみです。</p>
           <p>攻撃元: {regionName(retreating!.attackerOrigin)}</p>
           <label>秘密入力の撤退先<select aria-label="年間秘密撤退先" value={privateOrder?.type==='retreat'?privateOrder.destination:'disband'} onChange={e=>{
             const id=retreating!.unit.unitId;setRetreatSubmissions({...retreatSubmissions,[id]:e.target.value==='disband'?{type:'disband',unitId:id}:{type:'retreat',unitId:id,destination:e.target.value}});
@@ -162,7 +164,7 @@ export function GameSessionPanel({map,preview,state,initial,selected,onStart,onC
       {!!state.scChanges.length&&<details className="sc-changes" open><summary>直前の補給拠点の所有権更新</summary>{state.scChanges.map(c=><p key={c.regionId}>{regionName(c.regionId)}: {wardName(c.previous)} → {wardName(c.owner)}</p>)}</details>}
       {state.movement&&<details className="annual-results" open><summary>移動の裁定理由</summary>{state.movement.orderResults.map(o=><p key={o.order.unitId}>{origins.find(u=>u.unitId===o.order.unitId)?unitName(origins.find(u=>u.unitId===o.order.unitId)!):o.order.unitId} · {describe(o.order)}: {reasonText[o.reason]}（攻撃{o.attackStrength} / 防御{o.defenseStrength}）</p>)}</details>}
       {state.retreatResult&&<div className="annual-retreat-results">{state.retreatResult.outcomes.map(o=><p key={o.unitId}>{playerFacing?resolvedUnitName(o.unitId):o.unitId}: {reasonText[o.reason]}{o.destination?` → ${regionName(o.destination)}`:''}</p>)}</div>}
-      {!!state.movement?.equipmentResults.length&&<div aria-label="装備の裁定結果">{state.movement.equipmentResults.map(r=><p key={r.unitId}>{playerFacing?(origins.find(u=>u.unitId===r.unitId)?unitName(origins.find(u=>u.unitId===r.unitId)!):'軍'):r.unitId}: {playerFacing?(r.status==='success'?'成功':'失敗'):r.reason} {r.firstLeg&&`第1区間 ${playerFacing?reasonText[r.firstLeg.reason as keyof typeof reasonText]??'移動終了':r.firstLeg.reason}`} {r.secondLeg&&`第2区間 ${playerFacing?reasonText[r.secondLeg.reason as keyof typeof reasonText]??'移動終了':r.secondLeg.reason}`}</p>)}</div>}
+      {!!state.movement?.equipmentResults.length&&<div aria-label="装備の裁定結果">{state.movement.equipmentResults.map(r=><p key={r.unitId}>{playerFacing?(origins.find(u=>u.unitId===r.unitId)?unitName(origins.find(u=>u.unitId===r.unitId)!):'軍'):r.unitId}: {r.type==='barricade'?r.reason:playerFacing?(r.status==='success'?'成功':'失敗'):r.reason} {r.firstLeg&&`第1区間 ${playerFacing?reasonText[r.firstLeg.reason as keyof typeof reasonText]??'移動終了':r.firstLeg.reason}`} {r.secondLeg&&`第2区間 ${playerFacing?reasonText[r.secondLeg.reason as keyof typeof reasonText]??'移動終了':r.secondLeg.reason}`}</p>)}</div>}
       {state.endResult&&log.current&&<GameOver result={state.endResult} summary={summarizeMatch(log.current)} target={state.victoryTargetSC} onDownload={()=>{if(log.current)downloadMatchLog(exportMatchLog(log.current));}}/>}
       <p className="hint">規定年数: {state.maxYears}年</p>
     </>}
