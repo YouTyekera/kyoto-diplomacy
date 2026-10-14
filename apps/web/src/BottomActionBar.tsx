@@ -13,7 +13,7 @@ export function supportPreview(order:GameOrder,units:Unit[]):CommandPreview|unde
 export function barricadeUnavailableReason(unit:Unit,inventory:Equipment[],reservations:EventState['reservations'],choices:GameOrder[],drafts:GameOrder[]):string|undefined {
  const items=inventory.filter(e=>e.type==='barricade'&&e.ownerWardId===unit.ownerWardId);
  if(!items.length)return 'バリケードを所持していません。地図上の装備は到着後の撤退処理完了時に取得します。';
- if(reservations.some(r=>r.type==='barricade'&&r.unitId!==unit.unitId&&items.some(e=>e.equipmentId===r.equipmentId))||drafts.some(o=>o.type==='deploy-barricade'&&o.unitId!==unit.unitId))return 'バリケードは別の軍の命令に予約済みです。先にその命令を変更してください。';
+ if(reservations.some(r=>r.type==='barricade'&&r.unitId!==unit.unitId&&items.some(e=>e.equipmentId===r.equipmentId))||drafts.some(o=>o.type==='deploy-barricade'&&o.unitId!==unit.unitId&&items.some(e=>e.equipmentId===o.equipmentId)))return 'バリケードは別の軍の命令に予約済みです。先にその命令を変更してください。';
  if(!choices.length)return '設置候補を確認中です。';
  if(!choices.some(o=>o.type==='deploy-barricade'))return '合法な設置辺がありません。既存の封鎖や地図を分断する辺には設置できません。';
 }

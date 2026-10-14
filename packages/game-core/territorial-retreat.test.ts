@@ -1,6 +1,6 @@
 import { expect,it } from 'vitest';
-import { retreatFixture,ok,R,B,army } from '../../tests/gameplay-fixture';
-import { adjudicateGameRetreats } from './session';
+import { retreatFixture,gameplayFixture,ok,R,B,army } from '../../tests/gameplay-fixture';
+import { adjudicateGameRetreats,adjudicateGameOrders } from './session';
 import { legalRetreatDestinations } from '../rules-core/retreat';
 import { effectiveMap } from './events';
 it('uses post-movement control, not administrative ward or supply ownership, for candidates and resolution',()=>{
@@ -8,6 +8,13 @@ it('uses post-movement control, not administrative ward or supply ownership, for
  expect(state.movement!.dislodgedUnits[0].legalRetreatDestinations).toEqual(['d']);
  expect(map.regions.find(r=>r.regionId==='d')!.wardId).not.toBe(R);expect(state.board.regionControl.d.supplyCenterOwnerWardId).not.toBe(R);
  const next=ok(adjudicateGameRetreats(map,state,[{type:'retreat',unitId:'r',destination:'d'}]));expect(next.board.units.find(u=>u.unitId==='r')!.regionId).toBe('d');
+});
+it('excludes a formerly friendly region captured and vacated by a bicycle during the same movement',()=>{
+ const {map,state}=gameplayFixture();state.board.units=[army('r',R,'a'),army('attack',B,'c'),army('support',B,'g'),army('bike',B,'b')];
+ map.adjacency.b.push('d');map.adjacency.d.push('b','f');map.adjacency.f.push('d');state.events.inventory=[{equipmentId:'bike',type:'bicycle',ownerWardId:B}];
+ const moved=ok(adjudicateGameOrders(map,state,[{type:'hold',unitId:'r'},{type:'move',unitId:'attack',destination:'a'},{type:'support-move',unitId:'support',targetUnitId:'attack',destination:'a'},{type:'bicycle-move',unitId:'bike',equipmentId:'bike',viaRegionId:'d',destination:'f'}]));
+ expect(state.board.regionControl.d.controllerWardId).toBe(R);expect(moved.board.regionControl.d.controllerWardId).toBe(B);expect(moved.board.units.some(u=>u.regionId==='d')).toBe(false);
+ expect(moved.movement!.dislodgedUnits[0].legalRetreatDestinations).toEqual([]);expect(adjudicateGameRetreats(map,moved,[{type:'retreat',unitId:'r',destination:'d'}]).ok).toBe(false);
 });
 it.each(['e','f'])('rejects neutral/enemy destination %s even if stale candidate metadata allows it',destination=>{
  const {map,state}=retreatFixture();state.movement!.dislodgedUnits[0].legalRetreatDestinations.push(destination);

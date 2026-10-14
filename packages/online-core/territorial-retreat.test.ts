@@ -19,7 +19,8 @@ it('exposes only owned retreat candidates, rejects forged orders and preserves p
   manager.disconnect('r');expect(manager.request('retry',{action:'reconnect',...credentials}).ok).toBe(true);
   expect(serializePrivateState(manager,room,player).retreatOrders).toEqual([{type:'retreat',unitId:'r',destination:'d'}]);
   expect(JSON.stringify(serializePublicState(manager,room,false,false))).not.toContain('retreatOrders');
-  expect(serializePrivateState(manager,room,room.players.get(room.game!.playerWards? [...room.players.keys()].find(id=>room.game!.playerWards[id]===B)!:'')!).retreatOrders).toEqual([]);
+  const other=[...room.players.values()].find(p=>room.game!.playerWards[p.playerId]===B)!;
+  expect(serializePrivateState(manager,room,other).retreatOrders).toEqual([]);
   expect(manager.request('retry',{action:'retreats',phaseKey,orders:[{type:'retreat',unitId:'r',destination:'d'}],finalize:true}).ok).toBe(true);
   expect(room.game!.state.board.units.find(u=>u.unitId==='r')!.regionId).toBe('d');
  }finally{manager.dispose();}

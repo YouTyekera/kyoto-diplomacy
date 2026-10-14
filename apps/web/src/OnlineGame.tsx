@@ -144,6 +144,9 @@ function OnlineMatch({ room, game, self, dataset, config, developer, pending, se
   const compatible = self?.phaseKey === game.phaseKey;
   const draft = useOptimisticOrders(game.phaseKey, compatible && self ? self.orders : [], sessionReady, request);
   const orders = draft.orders;
+  // Order patches deliberately avoid full private-state publication. Display reservations from the
+  // same optimistic sheet (including rollback) rather than waiting for an unrelated snapshot.
+  const reservations=game.phase==='orders'?orders.flatMap(o=>o.type==='bicycle-move'||o.type==='deploy-barricade'?[{equipmentId:o.equipmentId,unitId:o.unitId,type:o.type==='bicycle-move'?'bicycle' as const:'barricade' as const}]:[]):self?.reservations??[];
   const orderLocked = !!historical || !!game.playback || presentation.active || pending || draft.finalizing || !compatible || !!self?.finalized || game.phase !== 'orders';
   const own = game.board.units.filter(u => u.ownerWardId === self?.wardId);
   const [selectedLegalUnit,setSelectedLegalUnit]=useState<string>();
@@ -151,7 +154,7 @@ function OnlineMatch({ room, game, self, dataset, config, developer, pending, se
   const [retreatId,setRetreatId]=useState('');
   const retreating=compatible&&game.phase==='retreats'?self?.retreatUnits.find(d=>d.unit.unitId===retreatId)??self?.retreatUnits[0]:undefined;
   const required = room.players.find(p => p.playerId === self?.playerId)?.required ?? false;
-  const commands = useMapCommands({ reservations:compatible?self?.reservations:[], units: game.board.units, ownUnits: own,ownOrders:orders, legalOrders, inventory: compatible && self ? self.inventory : [],
+  const commands = useMapCommands({ reservations:compatible?reservations:[], units: game.board.units, ownUnits: own,ownOrders:orders, legalOrders, inventory: compatible && self ? self.inventory : [],
     onLocate:locator.onLocate, choose: draft.choose, remove: unitId => { void draft.remove(unitId); }, onCue: cue=>sfx.playCue(cue), locked: orderLocked, contextKey: `${game.phaseKey}:${draft.rollback}` });
   const legalUnit=developer?(own.find(u=>u.regionId===selected)??own[0])?.unitId:commands.unit?.unitId;
   useEffect(()=>setSelectedLegalUnit(legalUnit),[legalUnit]);
@@ -188,7 +191,7 @@ function OnlineMatch({ room, game, self, dataset, config, developer, pending, se
         {game.phase === 'orders' && compatible && !historical && !playback && <BottomActionBar commands={commands} units={game.board.units} regionName={regionName} draft={orders.find(o => o.unitId === commands.unit?.unitId)} />}
       </main>
       {right && <aside id="info-tray" className="right-hud"><div className="tray-heading"><strong>参加者・地域情報</strong><button aria-label="情報トレイを閉じる" onClick={()=>setRight(false)}>閉じる</button></div><PlayerList room={room} self={self} sessionReady={sessionReady}/>
-        {compatible && self && !historical && <InventoryPanel pulseKey={feedback.inventory?feedback.key:0} developer={developer} inventory={self.inventory} reservations={self.reservations} unitName={id => { const u = game.board.units.find(u => u.unitId === id) ?? self.retreatUnits.find(d => d.unit.unitId === id)?.unit; return u ? `${regionName(u.regionId)} · ${wardName(u.ownerWardId)}` : '軍'; }} />}
+        {compatible && self && !historical && <InventoryPanel pulseKey={feedback.inventory?feedback.key:0} developer={developer} inventory={self.inventory} reservations={reservations} unitName={id => { const u = game.board.units.find(u => u.unitId === id) ?? self.retreatUnits.find(d => d.unit.unitId === id)?.unit; return u ? `${regionName(u.regionId)} · ${wardName(u.ownerWardId)}` : '軍'; }} />}
         {!developer&&<details><summary>シナリオ詳細</summary><p>{room.scenario.scenarioName} · 規定年数: {game.maxYears}年</p><p>{room.scenario.fileName??'作成時の地図設定'} · #{room.scenario.scenarioHash.slice(0,8)}</p><p>採用 {room.scenario.enabledRegions}地域 / 補給拠点 {room.scenario.totalSC} / 初期軍 {room.scenario.totalStartingUnits}</p><ConnectionScope /></details>}
         <details><summary>無所属区 · {game.inactiveWards.length}区</summary>{game.inactiveWards.map(wardName).join('、')}</details>
         {selectedRegion && <section aria-label="オンライン地域詳細"><h3>{selectedRegion.name}</h3><p>{wardName(selectedRegion.wardId)} · 現在支配: {wardName(displayBoard.regionControl[selectedRegion.regionId]?.controllerWardId ?? null)}</p>{selectedRegion.isSupplyCenter && <p>補給拠点の所有: {wardName(game.board.regionControl[selectedRegion.regionId]?.supplyCenterOwnerWardId ?? null)}</p>}</section>}

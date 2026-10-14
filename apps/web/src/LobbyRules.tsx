@@ -16,6 +16,7 @@ export function LobbyRules({ room, self, locked, request }: {
   return <section className="lobby-rules" aria-label="遊び方の確認">
     <h3>はじめての京都ま市ー</h3>
     <p>待ち時間にルールを確認しよう！ 読み終わったら「読めたよ！」を押してホストに知らせられます。</p>
+    <p>京都ま市ーでは、撤退先は自軍が現在支配する地域だけです。地理上の行政区や補給拠点の所有者ではなく、地図の支配色で判定します。中立・敵支配地域には撤退できません。</p>
     <p className="lobby-rules-actions">
       <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} aria-controls="lobby-guide-viewer">
         {open ? '説明を閉じる' : 'ルール説明を読む'}

@@ -66,7 +66,7 @@ test('3人の招待・初期表示・シナリオ・地図命令・ready・1920/
   config.regions[helper.regionId].startingUnit = { ownerWardId: '26101', type: 'army' };
   config.adjacencyAdd.push([starts[0].regionId, destination.regionId], [helper.regionId, destination.regionId], [helper.regionId, starts[1].regionId]);
   const map = compileMap(dataset, config).map;
-  const contexts = await Promise.all(wards.map(() => browser.newContext({ viewport: { width: 1920, height: 1080 }, permissions: ['clipboard-read', 'clipboard-write'] })));
+  const contexts = await Promise.all(wards.map(() => browser.newContext({ hasTouch:true, viewport: { width: 1920, height: 1080 }, permissions: ['clipboard-read', 'clipboard-write'] })));
   const pages = await Promise.all(contexts.map(c => c.newPage())); const errors: string[] = [];
   for (const page of pages) page.on('pageerror', e => errors.push(e.message));
   try {
@@ -87,6 +87,7 @@ test('3人の招待・初期表示・シナリオ・地図命令・ready・1920/
     await pages[0].getByRole('button', { name: 'コードをコピー', exact: true }).click(); expect(await pages[0].evaluate(() => navigator.clipboard.readText())).toBe(code);
     await pages[0].getByRole('button', { name: '招待リンクをコピー', exact: true }).click(); const invite = await pages[0].evaluate(() => navigator.clipboard.readText()); expect(invite).toContain(`/?room=${code}`);
     await expect(pages[0].getByRole('status').filter({ hasText: '同じPCからのみ' })).toBeVisible();
+    await expect(pages[0].getByLabel('カスタムJSONを読み込む')).toBeEnabled();
     await pages[0].getByLabel('カスタムJSONを読み込む').setInputFiles({ name: 'player-ui-test-only.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(config)) });
     await expect(pages[0].getByTestId('scenario-summary')).toContainText('player-ui-test-only.json');
     await pages[0].setViewportSize({ width: 1280, height: 720 }); const compactCode = await pages[0].getByTestId('room-code').boundingBox(); expect(compactCode!.y + compactCode!.height).toBeLessThan(720); await pages[0].setViewportSize({ width: 1920, height: 1080 });
@@ -108,6 +109,7 @@ test('3人の招待・初期表示・シナリオ・地図命令・ready・1920/
     expect(await pages[0].locator('svg.map').getAttribute('viewBox')).toBe(camera);await expect(pages[0].locator('.support-line')).toHaveCount(0);
     await pages[0].mouse.move(0,0);await expect(pages[0].locator('[data-command-role="origin"]')).toHaveCount(0);
     await holdSupport.focus();await expect(pages[0].locator('[data-command-role="origin"]')).toHaveAttribute('data-command-region',starts[1].regionId);
+    await pages[0].getByRole('button',{name:`${starts[1].name}を現在地で支援の対象の位置を見る`,exact:true}).tap();await expect(pages[0].locator('[data-command-role="origin"]')).toBeVisible();await expect(pages[0].locator('.support-line')).toHaveCount(0);
     await holdSupport.click();await expect(pages[0].getByLabel('選択軍の操作')).toContainText('現在地で支援');
     await pages[0].getByRole('button', { name: '支援', exact: true }).click();
     await expect(pages[0].locator(`[data-region-id="${destination.regionId}"]`)).toHaveClass(/legal-target/);await pages[0].locator(`[data-region-id="${destination.regionId}"]`).press('Enter');
@@ -148,6 +150,7 @@ test('Game OverでresultのBGM contextへ切替・再接続でも結果を保持
   try {
     for (let i = 0; i < 3; i++) await entry(pages[i], `Result${i}`, ['26101', '26102', '26103'][i]);
     await pages[0].getByRole('button', { name: 'ルームを作成', exact: true }).click(); const code = await pages[0].getByTestId('room-code').innerText();
+    await expect(pages[0].getByLabel('カスタムJSONを読み込む')).toBeEnabled();
     await pages[0].getByLabel('カスタムJSONを読み込む').setInputFiles({ name: 'result-ui-test.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(config)) });
     for (const page of pages.slice(1)) { await page.getByLabel('参加ルームコード').fill(code); await page.getByRole('button', { name: 'ルームへ参加', exact: true }).click(); }
     await pages[1].evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })); await pages[1].getByRole('button', { name: 'コードをコピー', exact: true }).click(); await expect(pages[1].getByText('コピーしました', { exact: true })).toBeVisible();
@@ -187,6 +190,7 @@ test('プレイヤーの地図操作で自転車2区間・バリケード設置�
   try {
     for (let i = 0; i < 3; i++) await entry(pages[i], `Gear${i}`, wards[i]);
     await pages[0].getByRole('button', { name: 'ルームを作成', exact: true }).click(); const code = await pages[0].getByTestId('room-code').innerText();
+    await expect(pages[0].getByLabel('カスタムJSONを読み込む')).toBeEnabled();
     await pages[0].getByLabel('カスタムJSONを読み込む').setInputFiles({ name: 'gear-ui-test-only.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(config)) });
     for (const page of pages.slice(1)) { await page.getByLabel('参加ルームコード').fill(code); await page.getByRole('button', { name: 'ルームへ参加', exact: true }).click(); }
     await pages[0].getByRole('button', { name: 'オンラインゲーム開始', exact: true }).click(); await expect(pages[0].getByTestId('online-phase')).toContainText('春');
@@ -204,8 +208,14 @@ test('プレイヤーの地図操作で自転車2区間・バリケード設置�
     expect(packets.length).toBeGreaterThan(0); expect(packets.every(p => !p.includes('"reservations"') && !p.includes('"bicycle-move"') && !p.includes('"viaRegionId"'))).toBe(true);
     await finalize(pages.slice(1));await closePresentation([pages[0]]); await expect(pages[0].getByTestId('online-phase')).toContainText('第2年 · 春');
     await pages[0].locator(`[data-marker-region="${wallRegion}"]`).press('Enter'); await pages[0].getByRole('button', { name: 'バリケード', exact: true }).click(); await expect(pages[0].locator(`[data-region-id="${scs[0]}"]`)).toHaveClass(/legal-target/);
-    await pages[0].locator(`[data-region-id="${scs[0]}"]`).press('Enter'); await finalize(pages); await expect(pages[0].getByTestId('online-phase')).toContainText('秋'); await expect(pages[0].getByLabel('有効バリケード')).toContainText('残り4季');
-    await pages[0].locator(`[data-marker-region="${wallRegion}"]`).press('Enter'); await expect(pages[0].getByRole('button', { name: 'バリケード', exact: true })).toHaveCount(0); await pages[0].getByRole('button', { name: '移動', exact: true }).click(); await expect(pages[0].locator(`[data-region-id="${scs[0]}"]`)).not.toHaveClass(/legal-target/);
+    const edge=pages[0].locator('[data-command-edge="barricade"]');await pages[0].locator(`[data-supply-region="${scs[0]}"]`).hover();await expect(edge).toHaveAttribute('data-edge-b',scs[0]);
+    await pages[0].locator(`[data-region-id="${scs[0]}"]`).press('Enter');await expect(pages[0].getByLabel('バリケード設置確認')).toContainText(dataset.regions.find(r=>r.regionId===wallRegion)!.name);await expect(pages[0].getByLabel('バリケード設置確認')).toContainText(dataset.regions.find(r=>r.regionId===scs[0])!.name);
+    await expect(pages[0].getByLabel('選択軍の操作')).toContainText('命令未入力');await expect(pages[1].locator('[data-command-edge="barricade"]')).toHaveCount(0);
+    await pages[0].getByRole('button',{name:'この辺への設置命令を登録',exact:true}).click();await expect(edge).toHaveCount(0);await expect(pages[0].getByLabel('選択軍の操作')).toContainText('バリケード');
+    await pages[0].reload();await pages[0].locator(`[data-marker-region="${wallRegion}"]`).press('Enter');await expect(pages[0].getByLabel('選択軍の操作')).toContainText('バリケード');
+    for(const viewport of [{width:1280,height:720},{width:1920,height:1080}]){await pages[0].setViewportSize(viewport);await pages[0].getByRole('button',{name:'バリケード',exact:true}).click();await pages[0].getByLabel('バリケード設置確認').getByRole('button').first().focus();await expect(edge).toBeVisible();expect(await pages[0].evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width);await pages[0].screenshot({path:`test-results/gameplay-barricade-${viewport.width}.png`,fullPage:true});await pages[0].getByRole('button',{name:'キャンセル',exact:true}).click();}
+    await finalize(pages); await expect(pages[0].getByTestId('online-phase')).toContainText('秋'); await expect(pages[0].getByLabel('有効バリケード')).toContainText('残り4季');
+    await pages[0].locator(`[data-marker-region="${wallRegion}"]`).press('Enter'); await expect(pages[0].getByRole('button', { name: 'バリケード', exact: true })).toBeDisabled();await expect(pages[0].getByLabel('選択軍の操作')).toContainText('所持していません'); await pages[0].getByRole('button', { name: '移動', exact: true }).click(); await expect(pages[0].locator(`[data-region-id="${scs[0]}"]`)).not.toHaveClass(/legal-target/);
     expect(errors).toEqual([]);
   } finally { await Promise.all(contexts.map(c => c.close().catch(() => {}))); }
 });
